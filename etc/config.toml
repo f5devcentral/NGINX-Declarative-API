@@ -1,0 +1,18 @@
+# NGINX Configuration Generator
+
+# Main variables
+[main]
+banner = "NGINX Configuration Generator"
+version = "0.1"
+url = "https://github.com/fabriziofiorucci/NGINX-Config-Generator"
+
+# Jinja templates
+[templates]
+root_dir = "../templates"
+nginxconf = "nginxconf.tmpl"
+configmap = "configmap.tmpl"
+
+# API Server configuration
+[apiserver]
+host = "localhost"
+port = 5000

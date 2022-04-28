@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+urllib3
+requests
+datetime
+pydantic
+jinja2
+toml
