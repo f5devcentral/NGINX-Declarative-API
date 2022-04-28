@@ -2,6 +2,7 @@
 
 {# --- Upstreams section --- #}
 
+{% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
 upstream {{ u.name }} {
     zone {{ u.name }} 64k;
@@ -17,6 +18,7 @@ upstream {{ u.name }} {
 
 }
 {% endfor %}
+{% endif %}
 
 {# --- Rate limit section --- #}
 
@@ -96,7 +98,7 @@ server {
     {%- if loc.urimatch|lower == "best" %} ^~ {% endif -%}
     {%- endif -%}
     {{ loc.uri }} {
-        proxy_pass {{ loc.upstream }};
+        {% if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif %}
 
         {% if loc.health_check == True %}health_check;{% endif %}
 
