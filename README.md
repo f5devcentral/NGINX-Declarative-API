@@ -60,8 +60,7 @@ A sample Postman collection can be found [here](/postman)
 
 When NGINX Config Generator is running, REST API documentation can be accessed at:
 
-```
-http://127.0.0.1:5000/docs
-http://127.0.0.1:5000/redoc
-http://127.0.0.1:5000/openapi.json
+- Documentation and testing: http://127.0.0.1:5000/docs
+- Redoc documentation: http://127.0.0.1:5000/redoc
+- OpenAPI specification: http://127.0.0.1:5000/openapi.json
 ```
