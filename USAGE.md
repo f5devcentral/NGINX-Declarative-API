@@ -8,6 +8,8 @@ The JSON schema is self explainatory.
   - *configmap* - Kubernetes Configmap in YAML format.
     - `.output.configmap.name` must be set to the ConfigMap name
     - `.output.configmap.filename` must be set to the NGINX configuration filename
+  - *http* - NGINX configuration is POSTed to custom url
+    - `.output.http.url` the URL to POST the configuration to
 - `.declaration` describes the NGINX configuration to be created.
 
 Locations `.declaration.servers[].locations[].uri` match modifiers in `.declaration.servers[].locations[].urimatch` can be:

@@ -26,7 +26,7 @@ NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 - [X] Plaintext
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
-- [ ] POST to Generic REST API endpoint
+- [X] POST to Generic REST API endpoint
 - [ ] NGINX Instance Manager interoperability
   
 ## Supported NGINX Plus configurations
@@ -41,7 +41,6 @@ NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 - [X] NGINX Plus REST API access
 - [X] Custom configuration snippets (for upstreams, servers, locations)
 - [ ] Caching
-- [ ] Dynamic modules loading
 
 ## How to use
 

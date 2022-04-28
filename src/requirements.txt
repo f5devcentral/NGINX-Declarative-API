@@ -6,3 +6,4 @@ datetime
 pydantic
 jinja2
 toml
+requests

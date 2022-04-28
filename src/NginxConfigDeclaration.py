@@ -12,9 +12,14 @@ class OutputConfigMap(BaseModel):
     filename: str
 
 
+class OutputHttp(BaseModel):
+    url: str
+
+
 class Output(BaseModel):
     type: str
     configmap: Optional[OutputConfigMap]
+    http: Optional[OutputHttp]
 
 
 class Tls(BaseModel):
