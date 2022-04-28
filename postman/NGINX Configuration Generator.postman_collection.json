@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "3bfebddf-306b-4034-8249-2ef06a19dfbe",
+		"name": "NGINX Configuration Generator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Basic - LB",
+			"item": [
+				{
+					"name": "Basic - LB - plaintext output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"plaintext\"\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"urimatch\": \"prefix\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"health_check\": true\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Basic - LB - json b64 encoded output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"json\"\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"urimatch\": \"prefix\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"health_check\": true\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Basic - LB - ConfigMap output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"configmap\",\n        \"configmap\": {\n            \"name\": \"nginx.test\",\n            \"filename\": \"testservice.conf\"\n        }\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"urimatch\": \"prefix\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"health_check\": true\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Basic - LB - HTTP output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.18:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"urimatch\": \"prefix\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"health_check\": true\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Advanced",
+			"item": [
+				{
+					"name": "Advanced LB - plaintext output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"plaintext\"\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/admin/(.*)$\",\n                        \"urimatch\": \"regex\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"rate_limit\": {\n                            \"profile\": \"test_ratelimit\",\n                            \"httpcode\": 429,\n                            \"burst\": 10,\n                            \"delay\": 3\n                        },\n                        \"health_check\": true\n                    },\n                    {\n                        \"uri\": \"/test\",\n                        \"urimatch\": \"exact\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"health_check\": true,\n                        \"snippet\": \"# This is a location snippet comment\"\n                    }\n                ],\n                \"snippet\": \"# This is a server snippet comment\"\n            },\n            {\n                \"names\": [\n                    \"server_443\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.2:443\",\n                    \"http2\": true,\n                    \"tls\": {\n                        \"certificate\": \"/etc/nginx/ssl/test.crt\",\n                        \"key\": \"/etc/nginx/ssl/test.key\",\n                        \"trusted_ca\": \"/etc/nginx/ssl/chain.pem\",\n                        \"ciphers\": \"TLS_AES_256_GCM_SHA384:!ECDHE-RSA-AES256-SHA384:!aNULL:!eNULL:!LOW:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS\",\n                        \"protocols\": [\n                            \"TLSv1.2\",\n                            \"TLSv1.3\"\n                        ]\n                    }\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"upstream\": \"http://test_upstream\"\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\",\n                        \"weight\": 5,\n                        \"max_fails\": 2,\n                        \"fail_timeout\": \"30s\",\n                        \"max_conns\": 3,\n                        \"slow_start\": \"30s\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\",\n                        \"backup\": true\n                    }\n                ],\n                \"sticky\": {\n                    \"cookie\": \"cookie_name\",\n                    \"expires\": \"1h\",\n                    \"domain\": \".testserver\",\n                    \"path\": \"/\"\n                },\n                \"snippet\": \"# This is a upstream snippet comment\"\n            }\n        ],\n        \"rate_limit\": [\n            {\n                \"name\": \"test_ratelimit\",\n                \"key\": \"$binary_remote_addr\",\n                \"size\": \"10m\",\n                \"rate\": \"1r/s\"\n            }\n        ],\n        \"nginx_plus_api\": {\n            \"write\": true,\n            \"listen\": \"127.0.0.1:8080\",\n            \"allow_acl\": \"192.168.1.0/24\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Advanced LB - json b64 encoded output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"json\"\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/admin/(.*)$\",\n                        \"urimatch\": \"regex\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"rate_limit\": {\n                            \"profile\": \"test_ratelimit\",\n                            \"httpcode\": 429,\n                            \"burst\": 10,\n                            \"delay\": 3\n                        },\n                        \"health_check\": true\n                    },\n                    {\n                        \"uri\": \"/test\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"health_check\": true,\n                        \"snippet\": \"# This is a location snippet comment\"\n                    }\n                ],\n                \"snippet\": \"# This is a server snippet comment\"\n            },\n            {\n                \"names\": [\n                    \"server_443\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.2:443\",\n                    \"http2\": true,\n                    \"tls\": {\n                        \"certificate\": \"/etc/nginx/ssl/test.crt\",\n                        \"key\": \"/etc/nginx/ssl/test.key\",\n                        \"trusted_ca\": \"/etc/nginx/ssl/chain.pem\",\n                        \"ciphers\": \"TLS_AES_256_GCM_SHA384:!ECDHE-RSA-AES256-SHA384:!aNULL:!eNULL:!LOW:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS\",\n                        \"protocols\": [\n                            \"TLSv1.2\",\n                            \"TLSv1.3\"\n                        ]\n                    }\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"upstream\": \"http://test_upstream\"\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\",\n                        \"weight\": 5,\n                        \"max_fails\": 2,\n                        \"fail_timeout\": \"30s\",\n                        \"max_conns\": 3,\n                        \"slow_start\": \"30s\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\",\n                        \"backup\": true\n                    }\n                ],\n                \"sticky\": {\n                    \"cookie\": \"cookie_name\",\n                    \"expires\": \"1h\",\n                    \"domain\": \".testserver\",\n                    \"path\": \"/\"\n                },\n                \"snippet\": \"# This is a upstream snippet comment\"\n            }\n        ],\n        \"rate_limit\": [\n            {\n                \"name\": \"test_ratelimit\",\n                \"key\": \"$binary_remote_addr\",\n                \"size\": \"10m\",\n                \"rate\": \"1r/s\"\n            }\n        ],\n        \"nginx_plus_api\": {\n            \"write\": true,\n            \"listen\": \"127.0.0.1:8080\",\n            \"allow_acl\": \"192.168.1.0/24\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Advanced LB - ConfigMap output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"configmap\",\n        \"configmap\": {\n            \"name\": \"nginx.test\",\n            \"filename\": \"testservice.conf\"\n        }\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/admin/(.*)$\",\n                        \"urimatch\": \"regex\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"rate_limit\": {\n                            \"profile\": \"test_ratelimit\",\n                            \"httpcode\": 429,\n                            \"burst\": 10,\n                            \"delay\": 3\n                        },\n                        \"health_check\": true\n                    },\n                    {\n                        \"uri\": \"/test\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"health_check\": true,\n                        \"snippet\": \"# This is a location snippet comment\"\n                    }\n                ],\n                \"snippet\": \"# This is a server snippet comment\"\n            },\n            {\n                \"names\": [\n                    \"server_443\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.2:443\",\n                    \"http2\": true,\n                    \"tls\": {\n                        \"certificate\": \"/etc/nginx/ssl/test.crt\",\n                        \"key\": \"/etc/nginx/ssl/test.key\",\n                        \"trusted_ca\": \"/etc/nginx/ssl/chain.pem\",\n                        \"ciphers\": \"TLS_AES_256_GCM_SHA384:!ECDHE-RSA-AES256-SHA384:!aNULL:!eNULL:!LOW:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS\",\n                        \"protocols\": [\n                            \"TLSv1.2\",\n                            \"TLSv1.3\"\n                        ]\n                    }\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"upstream\": \"http://test_upstream\"\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\",\n                        \"weight\": 5,\n                        \"max_fails\": 2,\n                        \"fail_timeout\": \"30s\",\n                        \"max_conns\": 3,\n                        \"slow_start\": \"30s\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\",\n                        \"backup\": true\n                    }\n                ],\n                \"sticky\": {\n                    \"cookie\": \"cookie_name\",\n                    \"expires\": \"1h\",\n                    \"domain\": \".testserver\",\n                    \"path\": \"/\"\n                },\n                \"snippet\": \"# This is a upstream snippet comment\"\n            }\n        ],\n        \"rate_limit\": [\n            {\n                \"name\": \"test_ratelimit\",\n                \"key\": \"$binary_remote_addr\",\n                \"size\": \"10m\",\n                \"rate\": \"1r/s\"\n            }\n        ],\n        \"nginx_plus_api\": {\n            \"write\": true,\n            \"listen\": \"127.0.0.1:8080\",\n            \"allow_acl\": \"192.168.1.0/24\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Advanced LB - HTTP output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.18:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"servers\": [\n            {\n                \"names\": [\n                    \"server_8080.nginx.lab\",\n                    \"server_8081.nginx.lab\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.1:8080\"\n                },\n                \"log\": {\n                    \"access\": \"/var/log/nginx/access_log\",\n                    \"error\": \"/var/log/nginx/error_log\"\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/admin/(.*)$\",\n                        \"urimatch\": \"regex\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"rate_limit\": {\n                            \"profile\": \"test_ratelimit\",\n                            \"httpcode\": 429,\n                            \"burst\": 10,\n                            \"delay\": 3\n                        },\n                        \"health_check\": true\n                    },\n                    {\n                        \"uri\": \"/test\",\n                        \"upstream\": \"http://test_upstream\",\n                        \"caching\": \"test_caching\",\n                        \"health_check\": true,\n                        \"snippet\": \"# This is a location snippet comment\"\n                    }\n                ],\n                \"snippet\": \"# This is a server snippet comment\"\n            },\n            {\n                \"names\": [\n                    \"server_443\"\n                ],\n                \"listen\": {\n                    \"address\": \"192.168.123.2:443\",\n                    \"http2\": true,\n                    \"tls\": {\n                        \"certificate\": \"/etc/nginx/ssl/test.crt\",\n                        \"key\": \"/etc/nginx/ssl/test.key\",\n                        \"trusted_ca\": \"/etc/nginx/ssl/chain.pem\",\n                        \"ciphers\": \"TLS_AES_256_GCM_SHA384:!ECDHE-RSA-AES256-SHA384:!aNULL:!eNULL:!LOW:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS\",\n                        \"protocols\": [\n                            \"TLSv1.2\",\n                            \"TLSv1.3\"\n                        ]\n                    }\n                },\n                \"locations\": [\n                    {\n                        \"uri\": \"/\",\n                        \"upstream\": \"http://test_upstream\"\n                    }\n                ]\n            }\n        ],\n        \"upstreams\": [\n            {\n                \"name\": \"test_upstream\",\n                \"origin\": [\n                    {\n                        \"server\": \"10.0.0.1:80\",\n                        \"weight\": 5,\n                        \"max_fails\": 2,\n                        \"fail_timeout\": \"30s\",\n                        \"max_conns\": 3,\n                        \"slow_start\": \"30s\"\n                    },\n                    {\n                        \"server\": \"10.0.0.2:80\",\n                        \"backup\": true\n                    }\n                ],\n                \"sticky\": {\n                    \"cookie\": \"cookie_name\",\n                    \"expires\": \"1h\",\n                    \"domain\": \".testserver\",\n                    \"path\": \"/\"\n                },\n                \"snippet\": \"# This is a upstream snippet comment\"\n            }\n        ],\n        \"rate_limit\": [\n            {\n                \"name\": \"test_ratelimit\",\n                \"key\": \"$binary_remote_addr\",\n                \"size\": \"10m\",\n                \"rate\": \"1r/s\"\n            }\n        ],\n        \"nginx_plus_api\": {\n            \"write\": true,\n            \"listen\": \"127.0.0.1:8080\",\n            \"allow_acl\": \"192.168.1.0/24\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/{{api_version}}/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"{{api_version}}",
+								"config"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ncg_host",
+			"value": "127.0.0.1",
+			"type": "default"
+		},
+		{
+			"key": "ncg_port",
+			"value": "5000",
+			"type": "default"
+		},
+		{
+			"key": "api_version",
+			"value": "v0",
+			"type": "default"
+		}
+	]
+}
