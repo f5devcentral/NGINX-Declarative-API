@@ -46,21 +46,12 @@ NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 
 Run NGINX Config Generator using:
 
-```
+```buildoutcfg
 $ cd src
-$ pip install -r requirements.txt
-$ python3 main.py
+$ npm install toml expressjs nunjucks request
+$ node main.py
 ```
 
 Usage details and JSON schema are available [here](/USAGE.md)
 
 A sample Postman collection can be found [here](/postman)
-
-## REST API documentation
-
-When NGINX Config Generator is running, REST API documentation can be accessed at:
-
-- Documentation and testing: http://127.0.0.1:5000/docs
-- Redoc documentation: http://127.0.0.1:5000/redoc
-- OpenAPI specification: http://127.0.0.1:5000/openapi.json
-```
