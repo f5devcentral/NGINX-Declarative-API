@@ -20,8 +20,8 @@ NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 
 Two branches are currently available:
 
-- [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator)
-- [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator)
+- [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main)
+- [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/nodejs)
 
 ## Input formats
 
