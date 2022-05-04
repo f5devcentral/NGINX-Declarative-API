@@ -48,7 +48,7 @@ Run NGINX Config Generator using:
 
 ```buildoutcfg
 $ cd src
-$ npm install toml expressjs nunjucks request
+$ npm install toml expressjs nunjucks request ajv
 $ node main.py
 ```
 

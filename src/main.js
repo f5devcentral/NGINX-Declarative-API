@@ -1,4 +1,5 @@
-// NGINX Configuration Generator
+// NGINX Configuration Generator - main module
+
 var express = require('express')
 var http = require('http')
 
