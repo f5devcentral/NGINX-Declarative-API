@@ -16,6 +16,13 @@ NCG -- REST API --> NIM(NGINX Instance Manager)
 NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 ```
 
+## Branches
+
+Two branches are currently available:
+
+- [Python](/NGINX-Config-Generator/tree/main)
+- [Node.js](/NGINX-Config-Generator/tree/nodejs)
+
 ## Input formats
 
 - [X] REST API
