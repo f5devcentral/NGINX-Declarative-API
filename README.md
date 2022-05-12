@@ -32,7 +32,7 @@ Two branches are currently available:
 
 - [X] Plaintext
 - [X] JSON-wrapped Base64-encoded
-- [X] Kubernetes Configmap
+- [ ] Kubernetes Configmap (currently broken)
 - [X] POST to Generic REST API endpoint
 - [ ] NGINX Instance Manager interoperability
   
