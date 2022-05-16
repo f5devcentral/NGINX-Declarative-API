@@ -12,8 +12,9 @@ U([User]) -- Terminal --> IW(Interactive wizard)
 DEVOPS([DevOps]) -- REST API --> CICD
 IW -- REST API --> NCG[NGINX Configuration Generator]
 CICD(CI/CD Pipeline) -- REST API --> NCG
-NCG -- REST API --> NIM(NGINX Instance Manager)
+NCG -- Staged Configs --> NIM(NGINX Instance Manager)
 NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
+NIM -- REST API --> NGINX(NGINX)
 ```
 
 ## Branches
