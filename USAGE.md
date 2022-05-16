@@ -1,6 +1,6 @@
 # Usage
 
-The JSON schema is self explainatory.
+The JSON schema is self explainatory. See also the [sample Postman collection](/postman)
 
 - `.output.type` defines how NGINX configuration will be returned:
   - *plaintext* - plaintext format
@@ -10,6 +10,14 @@ The JSON schema is self explainatory.
     - `.output.configmap.filename` must be set to the NGINX configuration filename
   - *http* - NGINX configuration is POSTed to custom url
     - `.output.http.url` the URL to POST the configuration to
+  - *nms* - NGINX configuration is published as a Staged Config to NGINX Management Suite (NMS)
+    - `.output.nms.url` the NMS URL
+    - `.output.nms.username` the NMS authentication username
+    - `.output.nms.password` the NMS authentication password
+    - `.output.nms.instancegroup` the NMS instance group to publish the configuration to
+    - `.output.nms.auxfiles` an optional array of additional files to be published (ie. TLS certs, keys, ...)
+      - `.output.nms.auxfiles[].name` the absolute file name, it must be under /etc/nginx
+      - `.output.nms.auxfiles[].contents` the base64-encoded file contents
 - `.declaration` describes the NGINX configuration to be created.
 
 Locations `.declaration.servers[].locations[].uri` match modifiers in `.declaration.servers[].locations[].urimatch` can be:

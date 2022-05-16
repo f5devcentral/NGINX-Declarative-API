@@ -16,10 +16,23 @@ class OutputHttp(BaseModel):
     url: str
 
 
+class NmsFile(BaseModel):
+    name: str
+    contents: str
+
+class OutputNMS(BaseModel):
+    url: str
+    username: str
+    password: str
+    instancegroup: str
+    auxfiles: Optional[List[NmsFile]] = ''
+
+
 class Output(BaseModel):
     type: str
     configmap: Optional[OutputConfigMap]
     http: Optional[OutputHttp]
+    nms: Optional[OutputNMS]
 
 
 class Tls(BaseModel):

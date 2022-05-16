@@ -6,9 +6,12 @@ banner = "NGINX Configuration Generator"
 version = "0.1"
 url = "https://github.com/fabriziofiorucci/NGINX-Config-Generator"
 
-# Jinja templates
+# Templates
 [templates]
 root_dir = "../templates"
+nginxmain = "nginx-conf/nginx.conf"
+mimetypes = "nginx-conf/mime.types"
+
 nginxconf = "nginxconf.tmpl"
 configmap = "configmap.tmpl"
 
@@ -16,3 +19,8 @@ configmap = "configmap.tmpl"
 [apiserver]
 host = "localhost"
 port = 5000
+
+# Staged configuration for NGINX Management Suite
+[nms]
+config_dir = '/etc/nginx'
+staged_config_filename = 'conf.d/services.conf'
