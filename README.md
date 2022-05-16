@@ -34,7 +34,7 @@ Two branches are currently available:
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [ ] NGINX Instance Manager interoperability
+- [X] NGINX Instance Manager interoperability
   
 ## Supported NGINX Plus configurations
 
