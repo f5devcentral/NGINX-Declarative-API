@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class OutputConfigMap(BaseModel):
     name: str
+    namespace: Optional[str]
     filename: str
 
 

@@ -71,7 +71,7 @@ def createconfig(declaration: ConfigDeclaration,type: str):
             )
     elif type.lower() == 'configmap':
         # Kubernetes ConfigMap output
-        cm = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=nginxconf,name=d['output']['configmap']['name'],filename=d['output']['configmap']['filename'])
+        cm = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=nginxconf,name=d['output']['configmap']['name'],filename=d['output']['configmap']['filename'],namespace=d['output']['configmap']['namespace'])
 
         return Response(content = cm,headers = { 'Content-Type': 'application/x-yaml' })
     elif type.lower() == 'nms':
