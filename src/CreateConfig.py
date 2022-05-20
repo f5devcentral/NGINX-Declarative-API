@@ -8,7 +8,7 @@ import json
 import time
 
 from jinja2 import Environment, FileSystemLoader
-from fastapi.responses import Response,JSONResponse
+from fastapi.responses import Response, JSONResponse
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
 
@@ -21,40 +21,44 @@ from NcgConfig import NcgConfig
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-def createconfig(declaration: ConfigDeclaration,type: str):
+
+def createconfig(declaration: ConfigDeclaration, decltype: str):
     # Building NGINX configuration for declaration.json()
     d = declaration.dict()
 
-    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir']),trim_blocks=True)
-    nginxconf = j2_env.get_template(NcgConfig.config['templates']['nginxconf']).render(declaration=d['declaration'])
+    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir']), trim_blocks=True)
+    httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
+        declaration=d['declaration']['http'])
+    streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
+        declaration=d['declaration']['layer4'])
 
-    if type.lower() == "plaintext":
+    b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
+    b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
+
+    if decltype.lower() == "plaintext":
         # Plaintext output
-        return nginxconf
-    elif type.lower() == "json" or type.lower() == 'http':
+        return httpConf + streamConf
+    elif decltype.lower() == "json" or decltype.lower() == 'http':
         # JSON-wrapped b64-encoded output
-        b64NginxConf = str(base64.urlsafe_b64encode(nginxconf.encode("utf-8")), "utf-8")
-        payload={"nginx_config": f"{b64NginxConf}"}
+        payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
 
-        if type.lower() == "json":
+        if decltype.lower() == "json":
             return JSONResponse(
                 status_code=200,
                 content=payload
             )
         else:
             try:
-                r = requests.post(d['output']['http']['url'],data=json.dumps(payload),headers={'Content-Type': 'application/json'})
+                r = requests.post(d['output']['http']['url'], data=json.dumps(payload),
+                                  headers={'Content-Type': 'application/json'})
             except:
-                headers = {}
-                headers['Content-Type'] = 'application/json'
-
-                content = {}
-                content['message'] = d['output']['http']['url']+' unreachable'
+                headers = {'Content-Type': 'application/json'}
+                content = {'message': d['output']['http']['url'] + ' unreachable'}
 
                 return JSONResponse(
-                    status_code = 502,
-                    content = content,
-                    headers = headers
+                    status_code=502,
+                    content=content,
+                    headers=headers
                 )
 
             if "Content-Length" in r.headers:
@@ -69,25 +73,40 @@ def createconfig(declaration: ConfigDeclaration,type: str):
                 content=r.text,
                 headers=r.headers
             )
-    elif type.lower() == 'configmap':
+    elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
-        cm = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=nginxconf,name=d['output']['configmap']['name'],filename=d['output']['configmap']['filename'],namespace=d['output']['configmap']['namespace'])
+        cmHttp = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
+                                                                                    name=d['output']['configmap'][
+                                                                                        'name']+'.http',
+                                                                                    filename=d['output']['configmap'][
+                                                                                        'filename']+'.http',
+                                                                                    namespace=d['output']['configmap'][
+                                                                                        'namespace'])
+        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
+                                                                                        name=d['output']['configmap'][
+                                                                                            'name']+'.stream',
+                                                                                        filename=
+                                                                                        d['output']['configmap'][
+                                                                                            'filename']+'.stream',
+                                                                                        namespace=
+                                                                                        d['output']['configmap'][
+                                                                                            'namespace'])
 
-        return Response(content = cm,headers = { 'Content-Type': 'application/x-yaml' })
-    elif type.lower() == 'nms':
+        return Response(content=cmHttp+'\n---\n'+cmStream, headers={'Content-Type': 'application/x-yaml'})
+    elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
 
         # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
-        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['nginxmain'],'r')
+        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['nginxmain'], 'r')
         nginxMainConf = f.read()
         f.close()
-        b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")),"utf-8")
+        b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
 
         # Base64-encoded NGINX mime.types (/etc/nginx/mime.types)
-        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['mimetypes'],'r')
+        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['mimetypes'], 'r')
         nginxMimeTypes = f.read()
         f.close()
-        b64NginxMimeTypes = str(base64.urlsafe_b64encode(nginxMimeTypes.encode("utf-8")),"utf-8")
+        b64NginxMimeTypes = str(base64.urlsafe_b64encode(nginxMimeTypes.encode("utf-8")), "utf-8")
 
         filesMimeType = {'contents': b64NginxMimeTypes, 'name': NcgConfig.config['nms']['config_dir'] + '/mime.types'}
 
@@ -99,17 +118,19 @@ def createconfig(declaration: ConfigDeclaration,type: str):
             newAuxFile = {'contents': dAuxFile['contents'], 'name': dAuxFile['name']}
             auxFiles['files'].append(newAuxFile)
 
-        # Base64-encoded NGINX service configuration
-        b64NginxConf = str(base64.urlsafe_b64encode(nginxconf.encode("utf-8")), "utf-8")
-
+        # Base64-encoded NGINX HTTP service configuration
         filesNginxMain = {'contents': b64NginxMain, 'name': NcgConfig.config['nms']['config_dir'] + '/nginx.conf'}
-        filesNginxConf = {'contents': b64NginxConf,
+        filesHttpConf = {'contents': b64HttpConf,
                           'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
-                              'staged_config_filename']}
+                              'staged_config_http_filename']}
+        filesStreamConf = {'contents': b64StreamConf,
+                          'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
+                              'staged_config_stream_filename']}
 
-        configFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir'] }
+        configFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
         configFiles['files'].append(filesNginxMain)
-        configFiles['files'].append(filesNginxConf)
+        configFiles['files'].append(filesHttpConf)
+        configFiles['files'].append(filesStreamConf)
 
         stagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles,
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
@@ -121,13 +142,14 @@ def createconfig(declaration: ConfigDeclaration,type: str):
         nmsInstanceGroup = d['output']['nms']['instancegroup']
 
         # Retrieve instance group uid
-        ig = requests.get(url = nmsUrl + '/api/platform/v1/instance-groups', auth = (nmsUsername, nmsPassword), verify = False)
+        ig = requests.get(url=nmsUrl + '/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
+                          verify=False)
 
         if ig.status_code != 200:
             return JSONResponse(
-                status_code = ig.status_code,
-                content = ig.text,
-                headers = ig.headers
+                status_code=ig.status_code,
+                content=ig.text,
+                headers=ig.headers
             )
 
         igUid = ''
@@ -139,17 +161,17 @@ def createconfig(declaration: ConfigDeclaration,type: str):
         # Invalid instance group
         if igUid == '':
             return JSONResponse(
-                status_code = 404,
-                content = {"message": f"instance group {nmsInstanceGroup} not found"},
-                headers = {'Content-Type': 'application/json'}
+                status_code=404,
+                content={"message": f"instance group {nmsInstanceGroup} not found"},
+                headers={'Content-Type': 'application/json'}
             )
 
         # Staged configuration publish to NGINX Management Suite
-        r = requests.post(url = nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
-            data = json.dumps(stagedConfig),
-            headers = {'Content-Type': 'application/json'},
-            auth = (nmsUsername, nmsPassword),
-            verify = False)
+        r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
+                          data=json.dumps(stagedConfig),
+                          headers={'Content-Type': 'application/json'},
+                          auth=(nmsUsername, nmsPassword),
+                          verify=False)
 
         publishResponse = json.loads(r.text)
 
@@ -163,7 +185,7 @@ def createconfig(declaration: ConfigDeclaration,type: str):
         # Fetches the deployment status
         time.sleep(5)
         deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'], auth=(nmsUsername, nmsPassword),
-                          verify=False)
+                                       verify=False)
 
         checkJson = json.loads(deploymentCheck.text)
 
@@ -187,6 +209,6 @@ def createconfig(declaration: ConfigDeclaration,type: str):
 
     else:
         return JSONResponse(
-            status_code = 422,
-            content = { "message": f"output type {type} unknown"}
+            status_code=422,
+            content={"message": f"output type {decltype} unknown"}
         )

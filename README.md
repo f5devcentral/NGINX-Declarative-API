@@ -40,7 +40,8 @@ Two branches are currently available:
 ## Supported NGINX Plus configurations
 
 - [X] Upstreams
-- [X] Servers
+- [X] Servers (HTTP services)
+- [X] Servers (TCP & UDP services)
 - [X] TLS
 - [X] Locations
 - [X] Rate limiting

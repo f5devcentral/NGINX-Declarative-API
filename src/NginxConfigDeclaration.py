@@ -50,6 +50,11 @@ class Listen(BaseModel):
     tls: Optional[Tls]
 
 
+class ListenL4(BaseModel):
+    address: Optional[str]
+    protocol: Optional[str] = "tcp"
+
+
 class Log(BaseModel):
     access: Optional[str] = "/dev/null"
     error: Optional[str] = "/dev/null"
@@ -80,6 +85,12 @@ class Server(BaseModel):
     snippet: Optional[str]
 
 
+class L4Server(BaseModel):
+    listen: Optional[ListenL4] = {}
+    upstream: Optional[str]
+    snippet: Optional[str]
+
+
 class Sticky(BaseModel):
     cookie: str
     expires: Optional[str]
@@ -97,10 +108,26 @@ class Origin(BaseModel):
     backup: Optional[bool]
 
 
+class L4Origin(BaseModel):
+    server: str
+    weight: Optional[int]
+    max_fails: Optional[int]
+    fail_timeout: Optional[str]
+    max_conns: Optional[int]
+    slow_start: Optional[str]
+    backup: Optional[bool]
+
+
 class Upstream(BaseModel):
     name: str
     origin: List[Origin]
     sticky: Optional[Sticky] = {}
+    snippet: Optional[str] = ""
+
+
+class L4Upstream(BaseModel):
+    name: str
+    origin: List[L4Origin]
     snippet: Optional[str] = ""
 
 
@@ -128,12 +155,22 @@ class NginxPlusApi(BaseModel):
     allow_acl: Optional[str] = "127.0.0.1"
 
 
-class Declaration(BaseModel):
+class Layer4(BaseModel):
+    servers: Optional[List[L4Server]]
+    upstreams: Optional[List[L4Upstream]]
+
+
+class Http(BaseModel):
     servers: Optional[List[Server]]
     upstreams: Optional[List[Upstream]]
     caching: Optional[List[CachingItem]]
     rate_limit: Optional[List[RateLimitItem]]
     nginx_plus_api: Optional[NginxPlusApi]
+
+
+class Declaration(BaseModel):
+    layer4: Optional[Layer4]
+    http: Optional[Http]
 
 
 class ConfigDeclaration(BaseModel):

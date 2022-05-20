@@ -26,7 +26,7 @@ app = FastAPI(
 
 @app.post("/v0/config", status_code=200, response_class=PlainTextResponse)
 def post_config(d: ConfigDeclaration, response: Response):
-    return CreateConfig.createconfig(declaration=d,type=d.dict()['output']['type'])
+    return CreateConfig.createconfig(declaration=d, decltype=d.dict()['output']['type'])
 
 
 if __name__ == '__main__':
