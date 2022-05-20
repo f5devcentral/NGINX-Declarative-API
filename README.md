@@ -15,6 +15,7 @@ CICD(CI/CD Pipeline) -- REST API --> NCG
 NCG -- Staged Configs --> NIM(NGINX Instance Manager)
 NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
 NIM -- REST API --> NGINX(NGINX)
+NCG -- ConfigMap --> K8S(Kubernetes)
 ```
 
 ## Branches
