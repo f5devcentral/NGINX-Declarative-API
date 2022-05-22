@@ -82,7 +82,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
                                                                                         'filename']+'.http',
                                                                                     namespace=d['output']['configmap'][
                                                                                         'namespace'])
-        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
+        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=streamConf,
                                                                                         name=d['output']['configmap'][
                                                                                             'name']+'.stream',
                                                                                         filename=
