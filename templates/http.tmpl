@@ -60,10 +60,10 @@ server {
     {% if s.listen -%}
     listen {{ s.listen.address }}{% if s.listen.http2 and s.listen.http2 == True %} http2{% endif %}{% if s.listen.tls %} ssl{% endif %};
     {% endif -%}
-    server_name{% for svrname in s.names %} {{ svrname }}{% endfor %};
+    server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
 
     {# --- TLS section --- #}
-    {% if s.listen.tls -%}
+    {%- if s.listen.tls -%}
     ssl_certificate {{ s.listen.tls.certificate }};
     ssl_certificate_key {{ s.listen.tls.key }};
     {% endif -%}
@@ -100,7 +100,11 @@ server {
     {{ loc.uri }} {
         {% if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif %}
 
-        {% if loc.health_check == True %}health_check;{% endif %}
+        {% if loc.health_check -%}
+            {% if loc.health_check.enabled == True -%}
+            health_check{% if loc.health_check.uri %} uri={{ loc.health_check.uri }}{% endif %}{% if loc.health_check.interval %} interval={{ loc.health_check.interval }}{% endif %}{% if loc.health_check.fails %} fails={{ loc.health_check.fails }}{% endif %}{% if loc.health_check.passes %} passes={{ loc.health_check.passes }}{% endif %};
+            {% endif %}
+        {% endif %}
 
         {% if loc.rate_limit -%}
         {% if loc.rate_limit.profile %}limit_req zone={{ loc.rate_limit.profile }}{% if loc.rate_limit.burst %} burst={{ loc.rate_limit.burst }}{% endif %}{% if loc.rate_limit.delay == 0 %} nodelay;{% else %} delay={{ loc.rate_limit.delay }};{% endif %}{% endif %}

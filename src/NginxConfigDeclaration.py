@@ -67,13 +67,21 @@ class RateLimit(BaseModel):
     delay: Optional[int] = 0
 
 
+class HealthCheck(BaseModel):
+    enabled: Optional[bool] = True
+    uri: Optional[str]
+    interval: Optional[int]
+    fails: Optional[int]
+    passes: Optional[int]
+
+
 class Location(BaseModel):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str]
     caching: Optional[str]
     rate_limit: Optional[RateLimit]
-    health_check: Optional[bool]
+    health_check: Optional[HealthCheck]
     snippet: Optional[str]
 
 

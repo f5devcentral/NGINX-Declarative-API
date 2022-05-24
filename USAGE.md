@@ -79,24 +79,22 @@ A sample declaration (to be POSTed to /v0/config) is:
                     },
                     "locations": [
                         {
-                            "uri": "/admin/(.*)$",
-                            "urimatch": "regex",
+                            "uri": "/test",
+                            "urimatch": "exact",
                             "upstream": "http://test_upstream",
-                            "caching": "test_caching",
+                            "health_check": {
+                                "enabled": true,
+                                "uri": "/healthcheck",
+                                "interval": 5,
+                                "fails": 3,
+                                "passes": 2
+                            },
                             "rate_limit": {
                                 "profile": "test_ratelimit",
                                 "httpcode": 429,
                                 "burst": 10,
                                 "delay": 3
                             },
-                            "health_check": true
-                        },
-                        {
-                            "uri": "/test",
-                            "urimatch": "exact",
-                            "upstream": "http://test_upstream",
-                            "caching": "test_caching",
-                            "health_check": true,
                             "snippet": "# This is a location snippet comment"
                         }
                     ],

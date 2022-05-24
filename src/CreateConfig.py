@@ -40,7 +40,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         return httpConf + streamConf
     elif decltype.lower() == "json" or decltype.lower() == 'http':
         # JSON-wrapped b64-encoded output
-        payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
+        payload = {'http_config': b64HttpConf, 'stream_config': b64StreamConf}
 
         if decltype.lower() == "json":
             return JSONResponse(
@@ -76,23 +76,25 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
     elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
         cmHttp = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
-                                                                                    name=d['output']['configmap'][
-                                                                                        'name']+'.http',
-                                                                                    filename=d['output']['configmap'][
-                                                                                        'filename']+'.http',
-                                                                                    namespace=d['output']['configmap'][
-                                                                                        'namespace'])
-        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=streamConf,
                                                                                         name=d['output']['configmap'][
-                                                                                            'name']+'.stream',
+                                                                                                 'name'] + '.http',
                                                                                         filename=
                                                                                         d['output']['configmap'][
-                                                                                            'filename']+'.stream',
+                                                                                            'filename'] + '.http',
                                                                                         namespace=
                                                                                         d['output']['configmap'][
                                                                                             'namespace'])
+        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=streamConf,
+                                                                                          name=d['output']['configmap'][
+                                                                                                   'name'] + '.stream',
+                                                                                          filename=
+                                                                                          d['output']['configmap'][
+                                                                                              'filename'] + '.stream',
+                                                                                          namespace=
+                                                                                          d['output']['configmap'][
+                                                                                              'namespace'])
 
-        return Response(content=cmHttp+'\n---\n'+cmStream, headers={'Content-Type': 'application/x-yaml'})
+        return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
 
@@ -121,11 +123,11 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         # Base64-encoded NGINX HTTP service configuration
         filesNginxMain = {'contents': b64NginxMain, 'name': NcgConfig.config['nms']['config_dir'] + '/nginx.conf'}
         filesHttpConf = {'contents': b64HttpConf,
-                          'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
-                              'staged_config_http_filename']}
+                         'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
+                             'staged_config_http_filename']}
         filesStreamConf = {'contents': b64StreamConf,
-                          'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
-                              'staged_config_stream_filename']}
+                           'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
+                               'staged_config_stream_filename']}
 
         configFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
         configFiles['files'].append(filesNginxMain)
