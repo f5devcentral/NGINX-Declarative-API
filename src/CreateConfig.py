@@ -40,7 +40,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         return httpConf + streamConf
     elif decltype.lower() == "json" or decltype.lower() == 'http':
         # JSON-wrapped b64-encoded output
-        payload = {'http_config': b64HttpConf, 'stream_config': b64StreamConf}
+        payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
 
         if decltype.lower() == "json":
             return JSONResponse(
