@@ -19,7 +19,7 @@ configmap = "configmap.tmpl"
 
 # API Server configuration
 [apiserver]
-host = "localhost"
+host = "0.0.0.0"
 port = 5000
 
 # Staged configuration for NGINX Management Suite
