@@ -40,9 +40,20 @@ class Output(BaseModel, extra=Extra.forbid):
     def check_type(cls, values):
         _type, json, configmap, http, nms = values.get('type'), values.get('json'), values.get('configmap'), values.get('http'), values.get('nms')
 
+        isError = False
         if _type == 'plaintext' or _type == 'json':
             if json is not None or configmap is not None or http is not None or nms is not None:
-                raise ValueError("Illegal extra output data for type '" + values['type'] + "'")
+                isError = True
+        elif _type == 'configmap' and not (configmap is not None and http is None and nms is None):
+            isError = True
+        elif _type == 'http' and not (configmap is None and http is not None and nms is None):
+            isError = True
+        elif _type == 'nms' and not (configmap is None and http is None and nms is not None):
+            isError = True
+
+        if isError:
+            raise ValueError("Invalid output data for type '" + values['type'] + "'")
+
         return values
 
 
