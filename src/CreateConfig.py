@@ -9,6 +9,7 @@ import time
 
 from jinja2 import Environment, FileSystemLoader
 from fastapi.responses import Response, JSONResponse
+from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
 
@@ -23,8 +24,59 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def createconfig(declaration: ConfigDeclaration, decltype: str):
-    # Building NGINX configuration for declaration.json()
+    # Building NGINX configuration for the given declaration
+
+    try:
+        # Pydantic JSON validation
+        ConfigDeclaration(**declaration.dict())
+    except ValidationError as e:
+        print(f'JSON declaration invalid {e}')
+
     d = declaration.dict()
+
+    # Check HTTP upstreams validity
+    all_upstreams = []
+    http = d['declaration']['http']
+    for i in range(len(http['upstreams'])):
+        all_upstreams.append(http['upstreams'][i]['name'])
+
+    for server in d['declaration']['http']['servers']:
+        for loc in server['locations']:
+            if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
+                return JSONResponse(
+                    status_code=422,
+                    content={"message":"invalid HTTP upstream "+loc['upstream']}
+                )
+
+    # Check HTTP rate_limit profiles validity
+    all_ratelimits = []
+    http = d['declaration']['http']
+    if http['rate_limit'] is not None:
+        for i in range(len(http['rate_limit'])):
+            all_ratelimits.append(http['rate_limit'][i]['name'])
+        print(f'XYZ {all_ratelimits}')
+
+        for server in d['declaration']['http']['servers']:
+            for loc in server['locations']:
+                if loc['rate_limit'] is not None:
+                    if loc['rate_limit']['profile'] not in all_ratelimits:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"message":"invalid rate_limit profile "+loc['rate_limit']['profile']}
+                        )
+
+    # Check Layer4/stream upstreams validity
+    all_upstreams = []
+    layer4 = d['declaration']['layer4']
+    for i in range(len(layer4['upstreams'])):
+        all_upstreams.append(layer4['upstreams'][i]['name'])
+
+    for server in d['declaration']['layer4']['servers']:
+        if 'upstream' in server and server['upstream'] not in all_upstreams:
+            return JSONResponse(
+                status_code=422,
+                content={"message":"invalid Layer4 upstream "+server['upstream']}
+                )
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir']), trim_blocks=True)
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
