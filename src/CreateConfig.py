@@ -34,49 +34,51 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
 
     d = declaration.dict()
 
-    # Check HTTP upstreams validity
-    all_upstreams = []
-    http = d['declaration']['http']
-    for i in range(len(http['upstreams'])):
-        all_upstreams.append(http['upstreams'][i]['name'])
-
-    for server in d['declaration']['http']['servers']:
-        for loc in server['locations']:
-            if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
-                return JSONResponse(
-                    status_code=422,
-                    content={"message":"invalid HTTP upstream "+loc['upstream']}
-                )
-
-    # Check HTTP rate_limit profiles validity
-    all_ratelimits = []
-    http = d['declaration']['http']
-    if http['rate_limit'] is not None:
-        for i in range(len(http['rate_limit'])):
-            all_ratelimits.append(http['rate_limit'][i]['name'])
-        print(f'XYZ {all_ratelimits}')
+    if d['declaration']['http'] is not None:
+        # Check HTTP upstreams validity
+        all_upstreams = []
+        http = d['declaration']['http']
+        for i in range(len(http['upstreams'])):
+            all_upstreams.append(http['upstreams'][i]['name'])
 
         for server in d['declaration']['http']['servers']:
             for loc in server['locations']:
-                if loc['rate_limit'] is not None:
-                    if loc['rate_limit']['profile'] not in all_ratelimits:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"message":"invalid rate_limit profile "+loc['rate_limit']['profile']}
-                        )
+                if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"message":"invalid HTTP upstream "+loc['upstream']}
+                    )
 
-    # Check Layer4/stream upstreams validity
-    all_upstreams = []
-    layer4 = d['declaration']['layer4']
-    for i in range(len(layer4['upstreams'])):
-        all_upstreams.append(layer4['upstreams'][i]['name'])
+        # Check HTTP rate_limit profiles validity
+        all_ratelimits = []
+        http = d['declaration']['http']
+        if http['rate_limit'] is not None:
+            for i in range(len(http['rate_limit'])):
+                all_ratelimits.append(http['rate_limit'][i]['name'])
+            print(f'XYZ {all_ratelimits}')
 
-    for server in d['declaration']['layer4']['servers']:
-        if 'upstream' in server and server['upstream'] not in all_upstreams:
-            return JSONResponse(
-                status_code=422,
-                content={"message":"invalid Layer4 upstream "+server['upstream']}
-                )
+            for server in d['declaration']['http']['servers']:
+                for loc in server['locations']:
+                    if loc['rate_limit'] is not None:
+                        if loc['rate_limit']['profile'] not in all_ratelimits:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"message":"invalid rate_limit profile "+loc['rate_limit']['profile']}
+                            )
+
+    if d['declaration']['layer4'] is not None:
+        # Check Layer4/stream upstreams validity
+        all_upstreams = []
+        layer4 = d['declaration']['layer4']
+        for i in range(len(layer4['upstreams'])):
+            all_upstreams.append(layer4['upstreams'][i]['name'])
+
+        for server in d['declaration']['layer4']['servers']:
+            if 'upstream' in server and server['upstream'] not in all_upstreams:
+                return JSONResponse(
+                    status_code=422,
+                    content={"message":"invalid Layer4 upstream "+server['upstream']}
+                    )
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir']), trim_blocks=True)
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
