@@ -54,6 +54,7 @@ Two branches are currently available:
 
 ## How to use
 
+This repository requires Python 3.7 or newer.
 Run NGINX Config Generator using:
 
 ```
