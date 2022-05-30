@@ -202,8 +202,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
             auxFiles['files'].append(newAuxFile)
 
         # Policies management as additional auxfiles
-        all_policies = {}
-        all_policies['app_protect'] = []
+        all_policies = {'app_protect': []}
         for p in d['output']['nms']['policies']:
             all_policies[p['type']].append(p['name'])
             if p['type'] == 'app_protect':
@@ -212,16 +211,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 auxFiles['files'].append(newAuxFile)
 
         # NGINX App Protect log profiles
-        all_log_profiles = []
-        for l in d['output']['nms']['log_profiles']:
-            all_log_profiles.append(l['name'])
+        all_log_profiles = {'app_protect': []}
+        for logprofile in d['output']['nms']['log_profiles']:
+            if logprofile['type'] == 'app_protect':
+                all_log_profiles[logprofile['type']].append(logprofile['app_protect']['name'])
+
             j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                                  trim_blocks=True)
-            logProfileConf = j2_env.get_template(NcgConfig.config['templates']['logformat']).render(log=l)
+            logProfileConf = j2_env.get_template(NcgConfig.config['nms']['nap_logformats_template']).render(log=logprofile['app_protect'])
             b64logProfileConf = str(base64.urlsafe_b64encode(logProfileConf.encode("utf-8")), "utf-8")
 
             logProfileFile = {'contents': b64logProfileConf, 'name': NcgConfig.config['nms']['nap_logformats_dir'] +
-                                                                     '/' + l['name'] + '.json'}
+                                                                     '/' + logprofile['app_protect']['name'] + '.json'}
             auxFiles['files'].append(logProfileFile)
 
         # Check NGINX App Protect policies and log profiles validity
@@ -235,25 +236,27 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                         content={"message": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
                     )
 
-                if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in all_log_profiles:
+                if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
                     return JSONResponse(
                         status_code=422,
-                        content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log']['profile_name']}
+                        content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
+                            'profile_name']}
                     )
 
             # Check app_protect directives in server.location {}
-            for l in server['locations']:
-                if l['app_protect'] is not None:
-                    if l['app_protect']['policy'] not in all_policies['app_protect']:
+            for logprofile in server['locations']:
+                if logprofile['app_protect'] is not None:
+                    if logprofile['app_protect']['policy'] not in all_policies['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect policy " + l['app_protect']['policy']}
+                            content={"message": "Invalid NGINX App Protect policy " + logprofile['app_protect']['policy']}
                         )
 
-                    if 'log' in l['app_protect'] and l['app_protect']['log']['profile_name'] not in all_log_profiles:
+                    if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect log profile " + l['app_protect']['log']['profile_name']}
+                            content={"message": "Invalid NGINX App Protect log profile " + logprofile['app_protect']['log'][
+                                'profile_name']}
                         )
 
         # NGINX main configuration file through template

@@ -2,7 +2,7 @@
 
 This tool creates NGINX Plus configuration files for a given JSON service declaration.
 
-Use cases include quick configuration generation and templating.
+Use cases include quick configuration generation and templating, and CI/CD integration with NGINX Instance Manager's instance groups and staged configs.
 
 ## Architecture
 

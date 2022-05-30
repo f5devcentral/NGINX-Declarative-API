@@ -18,20 +18,22 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
     - `.output.nms.instancegroup` the NMS instance group to publish the configuration to
     - `.output.nms.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
-      - `.output.nms.certificates[].type` the item type (ie. 'certificate', 'key', 'chain')
+      - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nms.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
       - `.output.nms.certificates[].contents` the base64-encoded content
     - `.output.nms.policies` an optional array of NGINX App Protect security policies
-      - `.output.nms.policies[].type` the policy type (ie. 'app_protect')
+      - `.output.nms.policies[].type` the policy type ('app_protect')
       - `.output.nms.policies[].name` the policy name (ie. 'owasp-nap-policy')
       - `.output.nms.policies.contents` the base64-encoded content
     - `.output.nms.log_profiles` an optional array of NGINX App Protect log profiles policies
-      - `.output.nms.log_profiles[].name` the log profile name (ie. 'default_log_profile')
-      - `.output.nms.log_profiles[].format` the log profile format ('default', 'grpc', 'arcsight', 'splunk', 'user-defined')
-      - `.output.nms.log_profiles[].format_string` the log format (ie. "%date_time%|K|%ip_client%|K|%violation_rating%|K|%violations%")
-      - `.output.nms.log_profiles[].type` type of logged requests ('all', 'illegal', 'blocked')
-      - `.output.nms.log_profiles[].max_request_size` limit in bytes for the sizes of the request and request_body_base64 fields in the log. Must be smaller than max_message_size
-      - `.output.nms.log_profiles[].max_message_size` limit in KB for the total size of the message
+      - `.output.nms.log_profiles[].type` the log profile type ('app_protect')
+      - `.output.nms.log_profiles[].app_protect` the NGINX App Protect log profile object
+        - `.output.nms.log_profiles[].app_protect.name` the log profile name (ie. 'default_log_profile')
+        - `.output.nms.log_profiles[].app_protect.format` the log profile format ('default', 'grpc', 'arcsight', 'splunk', 'user-defined')
+        - `.output.nms.log_profiles[].app_protect.format_string` the log format (ie. "%date_time%|K|%ip_client%|K|%violation_rating%|K|%violations%")
+        - `.output.nms.log_profiles[].app_protect.type` type of logged requests ('all', 'illegal', 'blocked')
+        - `.output.nms.log_profiles[].app_protect.max_request_size` limit in bytes for the sizes of the request and request_body_base64 fields in the log. Must be smaller than max_message_size
+        - `.output.nms.log_profiles[].app_protect.max_message_size` limit in KB for the total size of the message
 - `.declaration` describes the NGINX configuration to be created.
 
 Locations `.declaration.servers[].locations[].uri` match modifiers in `.declaration.servers[].locations[].urimatch` can be:
@@ -86,19 +88,25 @@ A sample declaration (to be POSTed to /v1/config) is:
             ],
             "log_profiles": [
                 {
-                    "name": "okta",
-                    "format": "user-defined",
-                    "format_string": "%date_time%|K|%ip_client%|K|%violation_rating%|K|%violations%",
-                    "type": "all",
-                    "max_request_size": "any",
-                    "max_message_size": "5k"
+                    "type": "app_protect",
+                    "app_protect": {
+                        "name": "okta",
+                        "format": "user-defined",
+                        "format_string": "%date_time%|K|%ip_client%|K|%violation_rating%|K|%violations%",
+                        "type": "all",
+                        "max_request_size": "any",
+                        "max_message_size": "5k"
+                    }
                 },
                 {
-                    "name": "default",
-                    "format": "default",
-                    "type": "all",
-                    "max_request_size": "any",
-                    "max_message_size": "5k"
+                    "type": "app_protect",
+                    "app_protect": {
+                        "name": "default",
+                        "format": "default",
+                        "type": "all",
+                        "max_request_size": "any",
+                        "max_message_size": "5k"
+                    }
                 }
             ]
         }

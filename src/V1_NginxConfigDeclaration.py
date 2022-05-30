@@ -67,6 +67,28 @@ class AppProtectLogProfile(BaseModel, extra=Extra.forbid):
         return values
 
 
+class LogProfile(BaseModel, extra=Extra.forbid):
+    type: str
+    app_protect: Optional[AppProtectLogProfile] = []
+
+    @root_validator()
+    def check_type(cls, values):
+        _type, app_protect = values.get('type'), values.get('app_protect')
+
+        valid = ['app_protect']
+        if _type not in valid:
+            raise ValueError("Invalid log profile type '" + _type + "' must be one of " + str(valid))
+
+        isError = False
+        if _type == 'app_protect':
+            if app_protect is None:
+                isError = True
+
+        if isError:
+            raise ValueError("Invalid log profile data for type '" + _type + "'")
+
+        return values
+
 class OutputNMS(BaseModel, extra=Extra.forbid):
     url: str
     username: str
@@ -75,7 +97,7 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsFile]] = []
     policies: Optional[List[NmsPolicy]] = []
-    log_profiles: Optional[List[AppProtectLogProfile]] = []
+    log_profiles: Optional[List[LogProfile]] = []
 
 
 class Output(BaseModel, extra=Extra.forbid):
@@ -89,6 +111,10 @@ class Output(BaseModel, extra=Extra.forbid):
         _type, json, configmap, http, nms = values.get('type'), values.get('json'), values.get('configmap'), values.get(
             'http'), values.get('nms')
 
+        valid = ['plaintext', 'configmap', 'http', 'nms']
+        if _type not in valid:
+            raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
+
         isError = False
         if _type == 'plaintext' or _type == 'json':
             if json is not None or configmap is not None or http is not None or nms is not None:
@@ -101,7 +127,7 @@ class Output(BaseModel, extra=Extra.forbid):
             isError = True
 
         if isError:
-            raise ValueError("Invalid output data for type '" + values['type'] + "'")
+            raise ValueError("Invalid output data for type '" + _type + "'")
 
         return values
 
