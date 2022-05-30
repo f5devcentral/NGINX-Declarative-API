@@ -53,7 +53,7 @@ NGINX App Protect `.declaration.servers[].app_protect.log_type` currently suppor
 
 A sample Postman collection can be found [here](/postman)
 
-A sample declaration (to be POSTed to /v0/config) is:
+A sample declaration (to be POSTed to /v1/config) is:
 
 ```
 {
