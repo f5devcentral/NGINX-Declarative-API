@@ -42,15 +42,6 @@ Locations `.declaration.servers[].locations[].uri` match modifiers in `.declarat
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
 
-NGINX App Protect `.declaration.servers[].app_protect.log_type` currently supports:
-
-- *all* - Logs all HTTP requests
-- *illegal* - Logs all illegal HTTP requests
-- *blocked* - Logs all blocked HTTP requests
-- *grpc_all* - Logs all gRPC requests
-- *grpc_illegal* - Logs all illegal gRPC requests
-- *grpc_blocked* - Logs all blocked gRPC requests
-
 A sample Postman collection can be found [here](/postman)
 
 A sample declaration (to be POSTed to /v1/config) is:
