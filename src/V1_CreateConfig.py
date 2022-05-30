@@ -14,7 +14,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
 
 # pydantic models
-from NginxConfigDeclaration import *
+from V1_NginxConfigDeclaration import *
 
 # NGINX Configuration Generator modules
 from NcgConfig import NcgConfig
@@ -23,7 +23,7 @@ from NcgConfig import NcgConfig
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def createconfig(declaration: ConfigDeclaration, decltype: str):
+def createconfig(declaration: ConfigDeclaration, apiversion: str):
     # Building NGINX configuration for the given declaration
 
     try:
@@ -33,6 +33,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         print(f'JSON declaration invalid {e}')
 
     d = declaration.dict()
+    decltype = d['output']['type']
 
     if d['declaration']['http'] is not None:
         # Check HTTP upstreams validity
@@ -46,7 +47,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
                         status_code=422,
-                        content={"message":"invalid HTTP upstream "+loc['upstream']}
+                        content={"message": "invalid HTTP upstream " + loc['upstream']}
                     )
 
         # Check HTTP rate_limit profiles validity
@@ -55,7 +56,6 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         if http['rate_limit'] is not None:
             for i in range(len(http['rate_limit'])):
                 all_ratelimits.append(http['rate_limit'][i]['name'])
-            print(f'XYZ {all_ratelimits}')
 
             for server in d['declaration']['http']['servers']:
                 for loc in server['locations']:
@@ -63,7 +63,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
                         if loc['rate_limit']['profile'] not in all_ratelimits:
                             return JSONResponse(
                                 status_code=422,
-                                content={"message":"invalid rate_limit profile "+loc['rate_limit']['profile']}
+                                content={"message": "invalid rate_limit profile " + loc['rate_limit']['profile']}
                             )
 
     if d['declaration']['layer4'] is not None:
@@ -77,14 +77,16 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
                     status_code=422,
-                    content={"message":"invalid Layer4 upstream "+server['upstream']}
-                    )
+                    content={"message": "invalid Layer4 upstream " + server['upstream']}
+                )
 
-    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir']), trim_blocks=True)
+    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
+                         trim_blocks=True)
+
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
-        declaration=d['declaration']['http'])
+        declaration=d['declaration']['http'], ncgconfig=NcgConfig.config)
     streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
-        declaration=d['declaration']['layer4'])
+        declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config)
 
     b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
     b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
@@ -151,28 +153,128 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
+        auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
+
+        # Check TLS items validity
+        certs = d['output']['nms']['certificates']
+        all_tls = {'certificate': {}, 'key': {}, 'chain': {}}
+        for i in range(len(certs)):
+            all_tls[certs[i]['type']][certs[i]['name']] = True
+
+        for server in d['declaration']['http']['servers']:
+            if server['listen']['tls'] is not None:
+                cert_name = server['listen']['tls']['certificate']
+                if cert_name not in all_tls['certificate']:
+                    return JSONResponse(
+                        status_code=422,
+                        content={
+                            "message": "invalid TLS certificate " + cert_name + " for server" + str(server['names'])}
+                    )
+
+                cert_key = server['listen']['tls']['key']
+                if cert_key not in all_tls['key']:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"message": "invalid TLS key " + cert_key + " for server" + str(server['names'])}
+                    )
+
+                if server['listen']['tls']['chain'] is not None:
+                    cert_chain = server['listen']['tls']['chain']
+                    if cert_chain not in all_tls['chain']:
+                        return JSONResponse(
+                            status_code=422,
+                            content={
+                                "message": "invalid TLS chain " + cert_chain + " for server" + str(server['names'])}
+                        )
+
+        # Adds optional certificates specified under output.nms.certificates
+        for c in d['output']['nms']['certificates']:
+            extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
+            if c['type'] not in extensions_map:
+                return JSONResponse(
+                    status_code=422,
+                    content={"message": f"certificate type {c} not valid"},
+                    headers={'Content-Type': 'application/json'}
+                )
+
+            newAuxFile = {'contents': c['contents'], 'name': NcgConfig.config['nms']['certs_dir'] +
+                                                             '/' + c['name'] + extensions_map[c['type']]}
+            auxFiles['files'].append(newAuxFile)
+
+        # Policies management as additional auxfiles
+        all_policies = {}
+        all_policies['app_protect'] = []
+        for p in d['output']['nms']['policies']:
+            all_policies[p['type']].append(p['name'])
+            if p['type'] == 'app_protect':
+                newAuxFile = {'contents': p['contents'], 'name': NcgConfig.config['nms']['nap_policies_dir'] +
+                                                                 '/' + p['name'] + '.json'}
+                auxFiles['files'].append(newAuxFile)
+
+        # NGINX App Protect log profiles
+        all_log_profiles = []
+        for l in d['output']['nms']['log_profiles']:
+            all_log_profiles.append(l['name'])
+            j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
+                                 trim_blocks=True)
+            logProfileConf = j2_env.get_template(NcgConfig.config['templates']['logformat']).render(log=l)
+            b64logProfileConf = str(base64.urlsafe_b64encode(logProfileConf.encode("utf-8")), "utf-8")
+
+            logProfileFile = {'contents': b64logProfileConf, 'name': NcgConfig.config['nms']['nap_logformats_dir'] +
+                                                                     '/' + l['name'] + '.json'}
+            auxFiles['files'].append(logProfileFile)
+
+        # Check NGINX App Protect policies and log profiles validity
+        for server in d['declaration']['http']['servers']:
+
+            # Check app_protect directives in server {}
+            if server['app_protect'] is not None:
+                if server['app_protect']['policy'] not in all_policies['app_protect']:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"message": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
+                    )
+
+                if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in all_log_profiles:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log']['profile_name']}
+                    )
+
+            # Check app_protect directives in server.location {}
+            for l in server['locations']:
+                if l['app_protect'] is not None:
+                    if l['app_protect']['policy'] not in all_policies['app_protect']:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"message": "Invalid NGINX App Protect policy " + l['app_protect']['policy']}
+                        )
+
+                    if 'log' in l['app_protect'] and l['app_protect']['log']['profile_name'] not in all_log_profiles:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"message": "Invalid NGINX App Protect log profile " + l['app_protect']['log']['profile_name']}
+                        )
+
+        # NGINX main configuration file through template
+        j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
+                             trim_blocks=True)
+        nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
+            nginxconf={'modules': d['output']['nms']['modules']})
 
         # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
-        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['nginxmain'], 'r')
-        nginxMainConf = f.read()
-        f.close()
         b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
 
         # Base64-encoded NGINX mime.types (/etc/nginx/mime.types)
-        f = open(NcgConfig.config['templates']['root_dir'] + '/' + NcgConfig.config['templates']['mimetypes'], 'r')
+        f = open(NcgConfig.config['templates']['root_dir'] + '/' + apiversion + '/' + NcgConfig.config['templates'][
+            'mimetypes'], 'r')
         nginxMimeTypes = f.read()
         f.close()
         b64NginxMimeTypes = str(base64.urlsafe_b64encode(nginxMimeTypes.encode("utf-8")), "utf-8")
 
         filesMimeType = {'contents': b64NginxMimeTypes, 'name': NcgConfig.config['nms']['config_dir'] + '/mime.types'}
 
-        auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
         auxFiles['files'].append(filesMimeType)
-
-        # Adds optional auxfiles specified under output.nms.auxfiles
-        for dAuxFile in d['output']['nms']['auxfiles']:
-            newAuxFile = {'contents': dAuxFile['contents'], 'name': dAuxFile['name']}
-            auxFiles['files'].append(newAuxFile)
 
         # Base64-encoded NGINX HTTP service configuration
         filesNginxMain = {'contents': b64NginxMain, 'name': NcgConfig.config['nms']['config_dir'] + '/nginx.conf'}
@@ -188,6 +290,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
         configFiles['files'].append(filesHttpConf)
         configFiles['files'].append(filesStreamConf)
 
+        # Full staged config
         stagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles,
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
                         'ignoreConflict': True, 'validateConfig': False}
@@ -208,6 +311,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
                 headers=ig.headers
             )
 
+        # Get the instance group id
         igUid = ''
         igJson = json.loads(ig.text)
         for i in igJson['items']:
@@ -229,6 +333,7 @@ def createconfig(declaration: ConfigDeclaration, decltype: str):
                           auth=(nmsUsername, nmsPassword),
                           verify=False)
 
+        # Publish staged config to instance group
         publishResponse = json.loads(r.text)
 
         if r.status_code != 202:

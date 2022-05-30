@@ -36,19 +36,20 @@ Two branches are currently available:
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [X] NGINX Instance Manager interoperability
+- [X] NGINX Instance Manager 2.1.0+ staged config / instance group interoperability
   
 ## Supported NGINX Plus configurations
 
 - [X] Upstreams
 - [X] Servers (HTTP services)
 - [X] Servers (TCP & UDP services)
-- [X] TLS
+- [X] TLS (HTTP services)
 - [X] Locations
 - [X] Rate limiting
 - [X] Active healthchecks
 - [X] Cookie-based stickiness
 - [X] NGINX Plus REST API access
+- [X] NGINX App Protect policies and log formats (at `server` and `location` level)
 - [X] Custom configuration snippets (for upstreams, servers, locations)
 - [ ] Caching
 

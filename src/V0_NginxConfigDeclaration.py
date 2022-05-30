@@ -27,7 +27,7 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
     username: str
     password: str
     instancegroup: str
-    auxfiles: Optional[List[NmsFile]] = ''
+    auxfiles: Optional[List[NmsFile]] = []
 
 
 class Output(BaseModel, extra=Extra.forbid):
@@ -60,7 +60,7 @@ class Output(BaseModel, extra=Extra.forbid):
 class Tls(BaseModel, extra=Extra.forbid):
     certificate: str
     key: str
-    trusted_ca: Optional[str]
+    chain: Optional[str]
     ciphers: Optional[str]
     protocols: Optional[List[str]] = ["TLSv1.3"]
 
