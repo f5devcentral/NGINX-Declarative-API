@@ -22,8 +22,23 @@ upstream {{ u.name }} {
 {% for s in declaration.servers %}
 server {
     {% if s.listen -%}
-    listen {{ s.listen.address }}{% if s.listen.protocol %} {{ s.listen.protocol }}{% endif %};
+    listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %};
+    {% endif %}
+
+    {# --- TLS section --- #}
+    {%- if s.listen.tls -%}
+    ssl_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.certificate }}.crt;
+    ssl_certificate_key {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.key }}.key;
     {% endif -%}
+    {% if s.listen.tls.chain -%}
+    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.chain }}.chain;
+    {% endif -%}
+    {% if s.listen.tls.ciphers -%}
+    ssl_ciphers {{ s.listen.tls.ciphers }};
+    {% endif -%}
+    {% if s.listen.tls.protocols -%}
+    ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
+    {% endif %}
 
     {% if s.upstream -%}
     proxy_pass {{ s.upstream }};

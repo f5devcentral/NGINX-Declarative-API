@@ -117,7 +117,17 @@ A sample declaration (to be POSTed to /v1/config) is:
                 {
                     "listen": {
                         "address": "10053",
-                        "protocol": "udp"
+                        "protocol": "tcp",
+                        "tls": {
+                            "certificate": "test_cert",
+                            "key": "test_key",
+                            "chain": "test_chain",
+                            "ciphers": "DEFAULT",
+                            "protocols": [
+                                "TLSv1.2",
+                                "TLSv1.3"
+                            ]
+                        }
                     },
                     "upstream": "l4_upstream"
                 }

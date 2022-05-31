@@ -43,7 +43,7 @@ Two branches are currently available:
 - [X] Upstreams
 - [X] Servers (HTTP services)
 - [X] Servers (TCP & UDP services)
-- [X] TLS (HTTP services)
+- [X] TLS (HTTP and TCP services)
 - [X] Locations
 - [X] Rate limiting
 - [X] Active healthchecks

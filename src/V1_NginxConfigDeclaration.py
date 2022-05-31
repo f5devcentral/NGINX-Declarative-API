@@ -111,7 +111,7 @@ class Output(BaseModel, extra=Extra.forbid):
         _type, json, configmap, http, nms = values.get('type'), values.get('json'), values.get('configmap'), values.get(
             'http'), values.get('nms')
 
-        valid = ['plaintext', 'configmap', 'http', 'nms']
+        valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
         if _type not in valid:
             raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
 
@@ -149,14 +149,19 @@ class Listen(BaseModel, extra=Extra.forbid):
 class ListenL4(BaseModel, extra=Extra.forbid):
     address: Optional[str]
     protocol: Optional[str] = "tcp"
+    tls: Optional[Tls] = None
 
     @root_validator()
     def check_type(cls, values):
         protocol = values.get('protocol')
+        tls = values.get('tls')
 
         valid = ['tcp', 'udp']
         if protocol not in valid:
             raise ValueError("Invalid protocol '" + protocol + "'")
+
+        if protocol != 'tcp' and tls is not None:
+            raise ValueError("TLS termination over UDP is not supported")
 
         return values
 
