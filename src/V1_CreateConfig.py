@@ -81,7 +81,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 )
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
-                         trim_blocks=True)
+                         trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
         declaration=d['declaration']['http'], ncgconfig=NcgConfig.config)
@@ -161,31 +161,33 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
         for i in range(len(certs)):
             all_tls[certs[i]['type']][certs[i]['name']] = True
 
-        for server in d['declaration']['http']['servers']:
-            if server['listen']['tls'] is not None:
-                cert_name = server['listen']['tls']['certificate']
-                if cert_name not in all_tls['certificate']:
-                    return JSONResponse(
-                        status_code=422,
-                        content={
-                            "message": "invalid TLS certificate " + cert_name + " for server" + str(server['names'])}
-                    )
+        if d['declaration']['http'] is not None:
+            if d['declaration']['http']['servers'] is not None:
+                for server in d['declaration']['http']['servers']:
+                    if server['listen']['tls'] is not None:
+                        cert_name = server['listen']['tls']['certificate']
+                        if cert_name not in all_tls['certificate']:
+                            return JSONResponse(
+                                status_code=422,
+                                content={
+                                    "message": "invalid TLS certificate " + cert_name + " for server" + str(server['names'])}
+                            )
 
-                cert_key = server['listen']['tls']['key']
-                if cert_key not in all_tls['key']:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"message": "invalid TLS key " + cert_key + " for server" + str(server['names'])}
-                    )
+                        cert_key = server['listen']['tls']['key']
+                        if cert_key not in all_tls['key']:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"message": "invalid TLS key " + cert_key + " for server" + str(server['names'])}
+                            )
 
-                if server['listen']['tls']['chain'] is not None:
-                    cert_chain = server['listen']['tls']['chain']
-                    if cert_chain not in all_tls['chain']:
-                        return JSONResponse(
-                            status_code=422,
-                            content={
-                                "message": "invalid TLS chain " + cert_chain + " for server" + str(server['names'])}
-                        )
+                        if server['listen']['tls']['chain'] is not None:
+                            cert_chain = server['listen']['tls']['chain']
+                            if cert_chain not in all_tls['chain']:
+                                return JSONResponse(
+                                    status_code=422,
+                                    content={
+                                        "message": "invalid TLS chain " + cert_chain + " for server" + str(server['names'])}
+                                )
 
         # Adds optional certificates specified under output.nms.certificates
         for c in d['output']['nms']['certificates']:
@@ -217,7 +219,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 all_log_profiles[logprofile['type']].append(logprofile['app_protect']['name'])
 
             j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
-                                 trim_blocks=True)
+                                 trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
+
             logProfileConf = j2_env.get_template(NcgConfig.config['nms']['nap_logformats_template']).render(log=logprofile['app_protect'])
             b64logProfileConf = str(base64.urlsafe_b64encode(logProfileConf.encode("utf-8")), "utf-8")
 
@@ -226,42 +229,44 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
             auxFiles['files'].append(logProfileFile)
 
         # Check NGINX App Protect policies and log profiles validity
-        for server in d['declaration']['http']['servers']:
+        if d['declaration']['http'] is not None:
+            for server in d['declaration']['http']['servers']:
 
-            # Check app_protect directives in server {}
-            if server['app_protect'] is not None:
-                if server['app_protect']['policy'] not in all_policies['app_protect']:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"message": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
-                    )
-
-                if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
-                            'profile_name']}
-                    )
-
-            # Check app_protect directives in server.location {}
-            for logprofile in server['locations']:
-                if logprofile['app_protect'] is not None:
-                    if logprofile['app_protect']['policy'] not in all_policies['app_protect']:
+                # Check app_protect directives in server {}
+                if server['app_protect'] is not None:
+                    if server['app_protect']['policy'] not in all_policies['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect policy " + logprofile['app_protect']['policy']}
+                            content={"message": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
                         )
 
-                    if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
+                    if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect log profile " + logprofile['app_protect']['log'][
+                            content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
                                 'profile_name']}
                         )
 
+                # Check app_protect directives in server.location {}
+                for logprofile in server['locations']:
+                    if logprofile['app_protect'] is not None:
+                        if logprofile['app_protect']['policy'] not in all_policies['app_protect']:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"message": "Invalid NGINX App Protect policy " + logprofile['app_protect']['policy']}
+                            )
+
+                        if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log']['profile_name'] not in all_log_profiles['app_protect']:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"message": "Invalid NGINX App Protect log profile " + logprofile['app_protect']['log'][
+                                    'profile_name']}
+                            )
+
         # NGINX main configuration file through template
         j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
-                             trim_blocks=True)
+                             trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
+
         nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
             nginxconf={'modules': d['output']['nms']['modules']})
 
@@ -330,8 +335,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
             )
 
         # Staged configuration publish to NGINX Management Suite
+        postPayload = json.dumps(stagedConfig)
         r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
-                          data=json.dumps(stagedConfig),
+                          data=postPayload,
                           headers={'Content-Type': 'application/json'},
                           auth=(nmsUsername, nmsPassword),
                           verify=False)

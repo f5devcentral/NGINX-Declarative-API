@@ -208,6 +208,16 @@ class Location(BaseModel, extra=Extra.forbid):
     app_protect: Optional[AppProtect] = None
     snippet: Optional[str]
 
+    @root_validator()
+    def check_type(cls, values):
+        urimatch = values.get('urimatch')
+
+        valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
+        if urimatch not in valid:
+            raise ValueError("Invalid URI match type '" + urimatch + "' must be one of " + str(valid))
+
+        return values
+
 
 class Server(BaseModel, extra=Extra.forbid):
     names: List[str]
@@ -289,6 +299,27 @@ class NginxPlusApi(BaseModel, extra=Extra.forbid):
     allow_acl: Optional[str] = "127.0.0.1"
 
 
+class MapEntry(BaseModel, extra=Extra.forbid):
+    key: str
+    keymatch: str
+    value: str
+
+    @root_validator()
+    def check_type(cls, values):
+        keymatch = values.get('keymatch')
+
+        valid = ['exact', 'regex', 'iregex']
+        if keymatch not in valid:
+            raise ValueError("Invalid key match type '" + keymatch + "' must be one of " + str(valid))
+
+        return values
+
+class Map(BaseModel, extra=Extra.forbid):
+    match: str
+    variable: str
+    entries: Optional[List[MapEntry]] = []
+
+
 class Layer4(BaseModel, extra=Extra.forbid):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
@@ -300,6 +331,8 @@ class Http(BaseModel, extra=Extra.forbid):
     caching: Optional[List[CachingItem]] = []
     rate_limit: Optional[List[RateLimitItem]] = []
     nginx_plus_api: Optional[NginxPlusApi] = []
+    maps: Optional[List[Map]] = []
+    snippet: Optional[str] = ""
 
 
 class Declaration(BaseModel, extra=Extra.forbid):

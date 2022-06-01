@@ -50,7 +50,8 @@ Two branches are currently available:
 - [X] Cookie-based stickiness
 - [X] NGINX Plus REST API access
 - [X] NGINX App Protect policies and log formats (at `server` and `location` level)
-- [X] Custom configuration snippets (for upstreams, servers, locations)
+- [X] Maps (for `http`)
+- [X] Custom configuration snippets (for `upstreams`, `servers`, `locations`, `streams`, `http`)
 - [ ] Caching
 
 ## How to use

@@ -36,13 +36,19 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
         - `.output.nms.log_profiles[].app_protect.max_message_size` limit in KB for the total size of the message
 - `.declaration` describes the NGINX configuration to be created.
 
-Locations `.declaration.servers[].locations[].uri` match modifiers in `.declaration.servers[].locations[].urimatch` can be:
+Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.declaration.http.servers[].locations[].urimatch` can be:
 
 - *prefix* - prefix URI matching
 - *exact* - exact URI matching
 - *regex* - case sensitive regex matching
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
+
+Map entries `.declaration.maps[].entries.keymatch` can be:
+
+- *exact* - exact variable matching
+- *regex* - case sensitive regex matching
+- *iregex* - case insensitive regex matching
 
 A sample Postman collection can be found [here](/postman)
 
@@ -129,7 +135,8 @@ A sample declaration (to be POSTed to /v1/config) is:
                             ]
                         }
                     },
-                    "upstream": "l4_upstream"
+                    "upstream": "l4_upstream",
+                    "snippet": "IyBUaGlzIGlzIGEgbDQgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg=="
                 }
             ],
             "upstreams": [
@@ -187,7 +194,7 @@ A sample declaration (to be POSTed to /v1/config) is:
                                     "destination": "192.168.1.5:514"
                                 }
                             },
-                            "snippet": "# This is a location snippet comment"
+                            "snippet": "IyBUaGlzIGlzIGEgbG9jYXRpb24gc25pcHBldCBjb21tZW50Cg=="
                         }
                     ],
                     "app_protect": {
@@ -199,7 +206,7 @@ A sample declaration (to be POSTed to /v1/config) is:
                             "destination": "192.168.1.5:514"
                         }
                     },
-                    "snippet": "# This is a server snippet comment"
+                    "snippet": "IyBUaGlzIGlzIGEgc2VydmVyIHNuaXBwZXQgY29tbWVudAo="
                 },
                 {
                     "names": [
@@ -250,7 +257,7 @@ A sample declaration (to be POSTed to /v1/config) is:
                         "domain": ".testserver",
                         "path": "/"
                     },
-                    "snippet": "# This is a upstream snippet comment"
+                    "snippet": "IyBUaGlzIGlzIGEgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg=="
                 }
             ],
             "rate_limit": [
@@ -261,11 +268,30 @@ A sample declaration (to be POSTed to /v1/config) is:
                     "rate": "1r/s"
                 }
             ],
+            "maps": [
+                {
+                    "match": "$host$request_uri",
+                    "variable": "$backend",
+                    "entries": [
+                        {
+                            "key": "www.test.lab/app1/",
+                            "keymatch": "iregex",
+                            "value": "upstream_1"
+                        },
+                        {
+                            "key": "(.*).test.lab/app2/",
+                            "keymatch": "regex",
+                            "value": "upstream_2"
+                        }
+                    ]
+                }
+            ],
             "nginx_plus_api": {
                 "write": true,
                 "listen": "127.0.0.1:8080",
                 "allow_acl": "0.0.0.0/0"
-            }
+            },
+            "snippet": "IyBUaGlzIGlzIGEgSFRUUCBzbmlwcGV0IGNvbW1lbnQK"
         }
     }
 }

@@ -5,5 +5,6 @@ requests
 datetime
 pydantic
 jinja2
+jinja2-base64-filters
 toml
 requests
