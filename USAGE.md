@@ -20,11 +20,11 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
     - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
       - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nms.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
-      - `.output.nms.certificates[].contents` the base64-encoded content
+      - `.output.nms.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically
     - `.output.nms.policies` an optional array of NGINX App Protect security policies
       - `.output.nms.policies[].type` the policy type ('app_protect')
       - `.output.nms.policies[].name` the policy name (ie. 'owasp-nap-policy')
-      - `.output.nms.policies.contents` the base64-encoded content
+      - `.output.nms.policies.contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically
     - `.output.nms.log_profiles` an optional array of NGINX App Protect log profiles policies
       - `.output.nms.log_profiles[].type` the log profile type ('app_protect')
       - `.output.nms.log_profiles[].app_protect` the NGINX App Protect log profile object

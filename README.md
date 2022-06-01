@@ -43,13 +43,13 @@ Two branches are currently available:
 - [X] Upstreams
 - [X] Servers (HTTP services)
 - [X] Servers (TCP & UDP services)
-- [X] TLS (HTTP and TCP services)
+- [X] TLS (HTTP and TCP services) - certificates, keys, chains can be dynamically fetched from source of truth
 - [X] Locations
 - [X] Rate limiting
 - [X] Active healthchecks
 - [X] Cookie-based stickiness
 - [X] NGINX Plus REST API access
-- [X] NGINX App Protect policies and log formats (at `server` and `location` level)
+- [X] NGINX App Protect policies and log formats (at `server` and `location` level)  - security policies can be dynamically fetched from source of truth
 - [X] Maps (for `http`)
 - [X] Custom configuration snippets (for `upstreams`, `servers`, `locations`, `streams`, `http`)
 - [ ] Caching
