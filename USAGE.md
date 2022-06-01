@@ -36,6 +36,8 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
         - `.output.nms.log_profiles[].app_protect.max_message_size` limit in KB for the total size of the message
 - `.declaration` describes the NGINX configuration to be created.
 
+### Locations ###
+
 Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.declaration.http.servers[].locations[].urimatch` can be:
 
 - *prefix* - prefix URI matching
@@ -44,6 +46,8 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
 
+### Maps ###
+
 Map entries `.declaration.maps[].entries.keymatch` can be:
 
 - *exact* - exact variable matching
@@ -51,6 +55,13 @@ Map entries `.declaration.maps[].entries.keymatch` can be:
 - *iregex* - case insensitive regex matching
 
 A sample Postman collection can be found [here](/postman)
+
+### Snippets ###
+
+All snippets must be base64-encoded
+
+
+### Sample declaration ###
 
 A sample declaration (to be POSTed to /v1/config) is:
 
