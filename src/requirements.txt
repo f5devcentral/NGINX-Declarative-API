@@ -8,3 +8,8 @@ jinja2
 jinja2-base64-filters
 toml
 requests
+redis
+uuid
+schedule
+pickle
+threading

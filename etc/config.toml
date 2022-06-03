@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Configuration Generator"
-version = "1.0"
+version = "1.2"
 url = "https://github.com/fabriziofiorucci/NGINX-Config-Generator"
 
 # Templates
@@ -21,10 +21,18 @@ configmap = "configmap.tmpl"
 host = "0.0.0.0"
 port = 5000
 
+# Redis backend for CI/CD automation
+[redis]
+host = "127.0.0.1"
+port = 6379
+
 # Staged configuration for NGINX Management Suite
 [nms]
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
+
+# Time to wait to get status after committing a staged config
+staged_config_publish_waittime = 5
 
 nap_policies_dir = '/etc/nginx/waf/policies'
 nap_logformats_dir = '/etc/nginx/waf/logformats'

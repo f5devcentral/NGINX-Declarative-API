@@ -6,7 +6,9 @@ import base64
 import requests
 import json
 import time
-import sys
+import uuid
+import schedule
+import pickle
 
 from jinja2 import Environment, FileSystemLoader
 from fastapi.responses import Response, JSONResponse
@@ -20,6 +22,7 @@ from V1_NginxConfigDeclaration import *
 
 # NGINX Configuration Generator modules
 from NcgConfig import NcgConfig
+from NcgRedis import NcgRedis
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -35,7 +38,20 @@ def fetchfromsourceoftruth(url):
     return reply.status_code, reply.text
 
 
-def createconfig(declaration: ConfigDeclaration, apiversion: str):
+def getuniqueid():
+    return uuid.uuid4()
+
+
+def configautosync(configUid):
+    print("Autosyncing configuid ["+configUid+"]")
+
+    declaration = pickle.loads(NcgRedis.redis.get('ncg.declaration.' + configUid))
+    apiversion = NcgRedis.redis.get('ncg.apiversion.' + configUid).decode()
+
+    createconfig(declaration = declaration, apiversion = apiversion, runfromautosync = True, configUid = configUid)
+
+
+def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
     # Building NGINX configuration for the given declaration
 
     try:
@@ -59,7 +75,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
                         status_code=422,
-                        content={"message": "invalid HTTP upstream " + loc['upstream']}
+                        content={"code": 422, "details": "invalid HTTP upstream " + loc['upstream']}
                     )
 
         # Check HTTP rate_limit profiles validity
@@ -75,7 +91,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                         if loc['rate_limit']['profile'] not in all_ratelimits:
                             return JSONResponse(
                                 status_code=422,
-                                content={"message": "invalid rate_limit profile " + loc['rate_limit']['profile']}
+                                content={"code": 422,
+                                         "details": "invalid rate_limit profile " + loc['rate_limit']['profile']}
                             )
 
     if d['declaration']['layer4'] is not None:
@@ -89,7 +106,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
                     status_code=422,
-                    content={"message": "invalid Layer4 upstream " + server['upstream']}
+                    content={"code": 422, "details": "invalid Layer4 upstream " + server['upstream']}
                 )
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
@@ -181,17 +198,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                         if cert_name not in all_tls['certificate']:
                             return JSONResponse(
                                 status_code=422,
-                                content={
-                                    "message": "invalid TLS certificate " + cert_name + " for server" + str(
-                                        server['names'])}
+                                content={"code": 422,
+                                         "details": "invalid TLS certificate " + cert_name + " for server" + str(
+                                             server['names'])}
                             )
 
                         cert_key = server['listen']['tls']['key']
                         if cert_key not in all_tls['key']:
                             return JSONResponse(
                                 status_code=422,
-                                content={
-                                    "message": "invalid TLS key " + cert_key + " for server" + str(server['names'])}
+                                content={"code": 422,
+                                         "details": "invalid TLS key " + cert_key + " for server" + str(
+                                             server['names'])}
                             )
 
                         if server['listen']['tls']['chain'] is not None:
@@ -199,24 +217,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                             if cert_chain not in all_tls['chain']:
                                 return JSONResponse(
                                     status_code=422,
-                                    content={
-                                        "message": "invalid TLS chain " + cert_chain + " for server" + str(
-                                            server['names'])}
+                                    content={"code": 422,
+                                             "details": "invalid TLS chain " + cert_chain + " for server" + str(
+                                                 server['names'])}
                                 )
 
         # Adds optional certificates specified under output.nms.certificates
+        extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
         for c in d['output']['nms']['certificates']:
-            extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
-            if c['type'] not in extensions_map:
-                return JSONResponse(
-                    status_code=422,
-                    content={"message": f"certificate type {c} not valid"},
-                    headers={'Content-Type': 'application/json'}
-                )
-
             certContent = c['contents']
 
-            # If certificate content start with http:// or https:// fetch it as a plaintext file from external repository
+            # If certificate content start with http:// or https:// fetch it as a plaintext file from external
+            # repository
             if certContent.lower().startswith("http://") or certContent.lower().startswith("https://"):
                 # Policy is fetched from external repository
                 status_code, certFromRepo = fetchfromsourceoftruth(certContent)
@@ -224,14 +236,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 if status_code != 200:
                     return JSONResponse(
                         status_code=422,
-                        content={"message": "Invalid TLS certificate policy " + certFromRepo + " HTTP code " + str(
-                            status_code)}
+                        content={"code": 422,
+                                 "details": "Invalid TLS certificate policy " + certFromRepo + " HTTP code " + str(
+                                     status_code)}
                     )
 
                 certContent = base64.b64encode(bytes(certFromRepo, 'utf-8')).decode('utf-8')
 
             newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
-                                                             '/' + c['name'] + extensions_map[c['type']]}
+                                                           '/' + c['name'] + extensions_map[c['type']]}
             auxFiles['files'].append(newAuxFile)
 
         # Policies management as additional auxfiles
@@ -248,7 +261,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                 if status_code != 200:
                     return JSONResponse(
                         status_code=422,
-                        content={"message": "Invalid NGINX App Protect policy " + policyBody + " HTTP code " + str(status_code) }
+                        content={"code": 422,
+                                 "details": "Invalid NGINX App Protect policy " + policyBody + " HTTP code " + str(
+                                     status_code)}
                     )
 
                 policyBody = base64.b64encode(bytes(policyFromRepo, 'utf-8')).decode('utf-8')
@@ -284,15 +299,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                     if server['app_protect']['policy'] not in all_policies['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
+                            content={"code": 422,
+                                     "details": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
                         )
 
                     if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in \
                             all_log_profiles['app_protect']:
                         return JSONResponse(
                             status_code=422,
-                            content={"message": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
-                                'profile_name']}
+                            content={"code": 422,
+                                     "details": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
+                                         'profile_name']}
                         )
 
                 # Check app_protect directives in server.location {}
@@ -301,17 +318,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
                         if logprofile['app_protect']['policy'] not in all_policies['app_protect']:
                             return JSONResponse(
                                 status_code=422,
-                                content={"message": "Invalid NGINX App Protect policy " + logprofile['app_protect'][
-                                    'policy']}
+                                content={"code": 422,
+                                         "details": "Invalid NGINX App Protect policy " + logprofile['app_protect'][
+                                             'policy']}
                             )
 
                         if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log'][
                             'profile_name'] not in all_log_profiles['app_protect']:
                             return JSONResponse(
                                 status_code=422,
-                                content={"message": "Invalid NGINX App Protect log profile " +
-                                                    logprofile['app_protect']['log'][
-                                                        'profile_name']}
+                                content={"code": 422, "details": "Invalid NGINX App Protect log profile " +
+                                                                 logprofile['app_protect']['log'][
+                                                                     'profile_name']}
                             )
 
         # NGINX main configuration file through template
@@ -330,9 +348,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
         nginxMimeTypes = f.read()
         f.close()
         b64NginxMimeTypes = str(base64.urlsafe_b64encode(nginxMimeTypes.encode("utf-8")), "utf-8")
-
         filesMimeType = {'contents': b64NginxMimeTypes, 'name': NcgConfig.config['nms']['config_dir'] + '/mime.types'}
-
         auxFiles['files'].append(filesMimeType)
 
         # Base64-encoded NGINX HTTP service configuration
@@ -349,84 +365,115 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str):
         configFiles['files'].append(filesHttpConf)
         configFiles['files'].append(filesStreamConf)
 
-        # Full staged config
+        # Staged config
+        baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles }
         stagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles,
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
                         'ignoreConflict': True, 'validateConfig': False}
 
-        nmsUrl = d['output']['nms']['url']
-        nmsUsername = d['output']['nms']['username']
-        nmsPassword = d['output']['nms']['password']
-        nmsInstanceGroup = d['output']['nms']['instancegroup']
+        redisBaseStagedConfig = NcgRedis.redis.get('ncg.basestagedconfig.'+configUid)
 
-        # Retrieve instance group uid
-        ig = requests.get(url=nmsUrl + '/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
-                          verify=False)
+        if redisBaseStagedConfig is not None and json.dumps(baseStagedConfig) == redisBaseStagedConfig.decode('utf-8'):
+            print(f'Staged config {configUid} not changed')
+        else:
+            # Configuration objects have changed, publish to NIM needed
+            print(f'Staged config {configUid} changed, publishing to NMS')
 
-        if ig.status_code != 200:
+            nmsUrl = d['output']['nms']['url']
+            nmsUsername = d['output']['nms']['username']
+            nmsPassword = d['output']['nms']['password']
+            nmsInstanceGroup = d['output']['nms']['instancegroup']
+            nmsSynctime = d['output']['nms']['synctime']
+
+            # Retrieve instance group uid
+            ig = requests.get(url=nmsUrl + '/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
+                              verify=False)
+
+            if ig.status_code != 200:
+                return JSONResponse(
+                    status_code=ig.status_code,
+                    content={"code": ig.status_code, "details": json.loads(ig.text)}
+                )
+
+            # Get the instance group id
+            igUid = ''
+            igJson = json.loads(ig.text)
+            for i in igJson['items']:
+                if i['name'] == nmsInstanceGroup:
+                    igUid = i['uid']
+
+            # Invalid instance group
+            if igUid == '':
+                return JSONResponse(
+                    status_code=404,
+                    content={"code": 404, "details": f"instance group {nmsInstanceGroup} not found"},
+                    headers={'Content-Type': 'application/json'}
+                )
+
+            # Staged configuration publish to NGINX Management Suite
+            stagedConfigPayload = json.dumps(stagedConfig)
+            r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
+                              data=stagedConfigPayload,
+                              headers={'Content-Type': 'application/json'},
+                              auth=(nmsUsername, nmsPassword),
+                              verify=False)
+
+            # Publish staged config to instance group
+            publishResponse = json.loads(r.text)
+
+            if r.status_code != 202:
+                return JSONResponse(
+                    status_code=r.status_code,
+                    content={"code": r.status_code, "details": json.loads(r.text)},
+                    headers={'Content-Type': 'application/json'}
+                )
+
+            # Fetches the deployment status
+            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+            deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'], auth=(nmsUsername, nmsPassword),
+                                           verify=False)
+
+            checkJson = json.loads(deploymentCheck.text)
+
+            if len(checkJson['details']['failure']) >0 :
+                # Staged config publish to NIM failed
+                jsonResponse = checkJson['details']['failure'][0]
+                deploymentCheck.status_code = 422
+            else:
+                # Staged config publish to NIM succeeded
+                jsonResponse = json.loads(deploymentCheck.text)
+
+                if nmsSynctime > 0 and runfromautosync == False:
+                    # GitOps autosync
+                    configUid = str(getuniqueid())
+
+                    # Stores the staged config to redis
+                    # Redis keys:
+                    # ncg.declaration.[configUid] = config declaration
+                    # ncg.basestagedconfig.[configUid] = base staged configuration
+                    # ncg.apiversion.[configUid] = ncg API version
+                    # ncg.status.[configUid] = latest status
+
+                    job = schedule.every(nmsSynctime).seconds.do(lambda: configautosync(configUid))
+                    NcgRedis.autoSyncJobs[configUid] = job
+
+                    NcgRedis.redis.set('ncg.declaration.'+configUid, pickle.dumps(declaration))
+                    NcgRedis.redis.set('ncg.basestagedconfig.'+configUid, json.dumps(baseStagedConfig))
+                    NcgRedis.redis.set('ncg.apiversion.'+configUid, apiversion)
+
+            if nmsSynctime > 0:
+                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+
+                # Updates status, declaration and basestagedconfig in redis
+                NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
+                NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
+                NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
+
             return JSONResponse(
-                status_code=ig.status_code,
-                content=ig.text,
-                headers=ig.headers
-            )
-
-        # Get the instance group id
-        igUid = ''
-        igJson = json.loads(ig.text)
-        for i in igJson['items']:
-            if i['name'] == nmsInstanceGroup:
-                igUid = i['uid']
-
-        # Invalid instance group
-        if igUid == '':
-            return JSONResponse(
-                status_code=404,
-                content={"message": f"instance group {nmsInstanceGroup} not found"},
+                status_code=deploymentCheck.status_code,
+                content=responseContent,
                 headers={'Content-Type': 'application/json'}
             )
-
-        # Staged configuration publish to NGINX Management Suite
-        postPayload = json.dumps(stagedConfig)
-        r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
-                          data=postPayload,
-                          headers={'Content-Type': 'application/json'},
-                          auth=(nmsUsername, nmsPassword),
-                          verify=False)
-
-        # Publish staged config to instance group
-        publishResponse = json.loads(r.text)
-
-        if r.status_code != 202:
-            return JSONResponse(
-                status_code=r.status_code,
-                content=json.loads(r.text),
-                headers=r.headers
-            )
-
-        # Fetches the deployment status
-        time.sleep(5)
-        deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'], auth=(nmsUsername, nmsPassword),
-                                       verify=False)
-
-        checkJson = json.loads(deploymentCheck.text)
-
-        if len(checkJson['details']['failure']) != 0:
-            responseBody = json.dumps(checkJson['details']['failure'][0])
-        else:
-            responseBody = r.text
-
-        if "Content-Length" in r.headers:
-            r.headers.pop("Content-Length")
-        if "Server" in r.headers:
-            r.headers.pop("Server")
-        if "Date" in r.headers:
-            r.headers.pop("Date")
-
-        return JSONResponse(
-            status_code=r.status_code,
-            content=json.loads(responseBody),
-            headers=r.headers
-        )
 
     else:
         return JSONResponse(

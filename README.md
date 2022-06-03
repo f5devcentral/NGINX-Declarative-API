@@ -1,28 +1,35 @@
 # NGINX-Config-Generator
 
 This tool creates NGINX Plus configuration files for a given JSON service declaration.
+GitOps integration is supported when used with NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync
 
-Use cases include quick configuration generation and templating, and CI/CD integration with NGINX Instance Manager's instance groups and staged configs.
+Use cases include:
+
+- Rapid configuration generation and templating
+- CI/CD integration with NGINX Instance Manager (instance groups and staged configs)
+- GitOps integration with automated NGINX App Protect policies and TLS certificates, keys and chains/bundles sync
 
 ## Architecture
 
 ```mermaid
 graph TD
-U([User]) -- Terminal --> IW(Interactive wizard)
 DEVOPS([DevOps]) -- REST API --> CICD
-IW -- REST API --> NCG[NGINX Configuration Generator]
-CICD(CI/CD Pipeline) -- REST API --> NCG
+User([User]) -- REST API --> NCG
+CICD(CI/CD Pipeline) -- REST API --> NCG[[NGINX Config Generator]]
 NCG -- Staged Configs --> NIM(NGINX Instance Manager)
-NCG -- REST API --> Generic(Generic REST API endpoint) & IW & CICD
-NIM -- REST API --> NGINX(NGINX)
+NCG -- REST API --> Generic(Generic REST API endpoint)
+NCG -- AutoSync / GitOps --> CICD
+NIM -- REST API --> NGINX(NGINX Plus) & NGINXOSS(NGINX OSS)
 NCG -- ConfigMap --> K8S(Kubernetes)
+REDIS[[Redis backend]] --> NCG
+NCG --> REDIS
 ```
 
 ## Branches
 
 Two branches are currently available:
 
-- [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main)
+- [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main) - Main branch, actively developed
 - [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/nodejs)
 
 ## Input formats
@@ -56,7 +63,9 @@ Two branches are currently available:
 
 ## How to use
 
-This repository requires Python 3.7 or newer.
+This repository has been tested with and requires Python 3.9 or newer.
+A running instance of [redis](https://redis.io/) is required: redis host and port can be configured in the `config.toml` file.
+
 Run NGINX Config Generator using:
 
 ```
@@ -67,7 +76,7 @@ $ python3 main.py
 
 Usage details and JSON schema are available [here](/USAGE.md)
 
-A sample Postman collection can be found [here](/postman)
+A sample Postman collection and usage instructions can be found [here](/postman)
 
 ## REST API documentation
 

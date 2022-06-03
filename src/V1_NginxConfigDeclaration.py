@@ -17,10 +17,20 @@ class OutputHttp(BaseModel, extra=Extra.forbid):
     url: str
 
 
-class NmsFile(BaseModel, extra=Extra.forbid):
+class NmsCertificate(BaseModel, extra=Extra.forbid):
     type: str
     name: str
     contents: str
+
+    @root_validator()
+    def check_type(cls, values):
+        _type = values.get('type')
+
+        valid = ['certificate', 'key', 'chain']
+        if _type not in valid:
+            raise ValueError("Invalid certificate type '" + _type + "' must be one of " + str(valid))
+
+        return values
 
 
 class NmsPolicy(BaseModel, extra=Extra.forbid):
@@ -34,7 +44,7 @@ class NmsPolicy(BaseModel, extra=Extra.forbid):
 
         valid = ['app_protect']
         if _type not in valid:
-            raise ValueError("Invalid policy type type '" + _type + "'")
+            raise ValueError("Invalid policy type '" + _type + "' must be one of " + str(valid))
 
         return values
 
@@ -94,8 +104,9 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
     username: str
     password: str
     instancegroup: str
+    synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
-    certificates: Optional[List[NmsFile]] = []
+    certificates: Optional[List[NmsCertificate]] = []
     policies: Optional[List[NmsPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 

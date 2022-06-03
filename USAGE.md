@@ -11,11 +11,12 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
     - `.output.configmap.namespace` the optional namespace for the ConfigMap
   - *http* - NGINX configuration is POSTed to custom url
     - `.output.http.url` the URL to POST the configuration to
-  - *nms* - NGINX configuration is published as a Staged Config to NGINX Management Suite (NMS)
+  - *nms* - NGINX configuration is published as a Staged Config to NGINX Instance Manager
     - `.output.nms.url` the NMS URL
     - `.output.nms.username` the NMS authentication username
     - `.output.nms.password` the NMS authentication password
     - `.output.nms.instancegroup` the NMS instance group to publish the configuration to
+    - `.output.nms.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NMS
     - `.output.nms.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
       - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
@@ -74,6 +75,7 @@ A sample declaration (to be POSTed to /v1/config) is:
             "username": "admin",
             "password": "nimadmin",
             "instancegroup": "test-instancegroup-v2",
+            "synctime": 10,
             "modules": [
                 "ngx_http_app_protect_module",
                 "ngx_http_js_module",
@@ -93,14 +95,14 @@ A sample declaration (to be POSTed to /v1/config) is:
                 {
                     "type": "chain",
                     "name": "test_chain",
-                    "contents": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+                    "contents": "http://acme.gitlab.local/test.chain"
                 }
             ],
             "policies": [
                 {
                     "type": "app_protect",
                     "name": "test_policy",
-                    "contents": "eyJwb2xpY3kiOnsiYXBwbGljYXRpb25MYW5ndWFnZSI6InV0Zi04IiwiYmxvY2tpbmctc2V0dGluZ3MiOnsiZXZhc2lvbnMiOlt7ImRlc2NyaXB0aW9uIjoiQXBhY2hlIHdoaXRlc3BhY2UiLCJlbmFibGVkIjp0cnVlfSx7ImRlc2NyaXB0aW9uIjoiQmFkIHVuZXNjYXBlIiwiZW5hYmxlZCI6dHJ1ZX0seyJkZXNjcmlwdGlvbiI6IkJhcmUgYnl0ZSBkZWNvZGluZyIsImVuYWJsZWQiOnRydWV9LHsiZGVzY3JpcHRpb24iOiJEaXJlY3RvcnkgdHJhdmVyc2FscyIsImVuYWJsZWQiOnRydWV9LHsiZGVzY3JpcHRpb24iOiJJSVMgVW5pY29kZSBjb2RlcG9pbnRzIiwiZW5hYmxlZCI6dHJ1ZX0seyJkZXNjcmlwdGlvbiI6IklJUyBiYWNrc2xhc2hlcyIsImVuYWJsZWQiOnRydWV9LHsiZGVzY3JpcHRpb24iOiJNdWx0aXBsZSBkZWNvZGluZyIsImVuYWJsZWQiOnRydWUsIm1heERlY29kaW5nUGFzc2VzIjoyfV0sImh0dHAtcHJvdG9jb2xzIjpbeyJkZXNjcmlwdGlvbiI6IkhlYWRlciBuYW1lIHdpdGggbm8gaGVhZGVyIHZhbHVlIiwiZW5hYmxlZCI6dHJ1ZX1dLCJ2aW9sYXRpb25zIjpbeyJhbGFybSI6dHJ1ZSwiYmxvY2siOmZhbHNlLCJuYW1lIjoiVklPTF9EQVRBX0dVQVJEIn0seyJhbGFybSI6dHJ1ZSwiYmxvY2siOnRydWUsIm5hbWUiOiJWSU9MX0hUVFBfUFJPVE9DT0wifSx7ImFsYXJtIjp0cnVlLCJibG9jayI6dHJ1ZSwibmFtZSI6IlZJT0xfRklMRVRZUEUifSx7ImFsYXJtIjp0cnVlLCJibG9jayI6dHJ1ZSwibmFtZSI6IlZJT0xfSEVBREVSX01FVEFDSEFSIn0seyJhbGFybSI6dHJ1ZSwiYmxvY2siOnRydWUsIm5hbWUiOiJWSU9MX0VWQVNJT04ifV19LCJkYXRhLWd1YXJkIjp7ImNyZWRpdENhcmROdW1iZXJzIjp0cnVlLCJlbmFibGVkIjp0cnVlLCJlbmZvcmNlbWVudE1vZGUiOiJpZ25vcmUtdXJscy1pbi1saXN0IiwiZW5mb3JjZW1lbnRVcmxzIjpbXSwibWFza0RhdGEiOnRydWUsInVzU29jaWFsU2VjdXJpdHlOdW1iZXJzIjp0cnVlfSwiZW5mb3JjZW1lbnRNb2RlIjoiYmxvY2tpbmciLCJmaWxldHlwZXMiOlt7ImFsbG93ZWQiOnRydWUsImNoZWNrUG9zdERhdGFMZW5ndGgiOmZhbHNlLCJjaGVja1F1ZXJ5U3RyaW5nTGVuZ3RoIjp0cnVlLCJjaGVja1JlcXVlc3RMZW5ndGgiOmZhbHNlLCJjaGVja1VybExlbmd0aCI6dHJ1ZSwibmFtZSI6IioiLCJwb3N0RGF0YUxlbmd0aCI6NDA5NiwicXVlcnlTdHJpbmdMZW5ndGgiOjIwNDgsInJlcXVlc3RMZW5ndGgiOjgxOTIsInJlc3BvbnNlQ2hlY2siOmZhbHNlLCJ0eXBlIjoid2lsZGNhcmQiLCJ1cmxMZW5ndGgiOjIwNDh9LHsiYWxsb3dlZCI6ZmFsc2UsIm5hbWUiOiJiYXQifV0sImdlbmVyYWwiOnsidHJ1c3RYZmYiOnRydWV9LCJuYW1lIjoibmdpbngtcG9saWN5Iiwic2lnbmF0dXJlLXNldHMiOlt7ImFsYXJtIjp0cnVlLCJibG9jayI6dHJ1ZSwibmFtZSI6IkNvbW1hbmQgRXhlY3V0aW9uIFNpZ25hdHVyZXMifSx7ImFsYXJtIjp0cnVlLCJibG9jayI6dHJ1ZSwibmFtZSI6IkNyb3NzIFNpdGUgU2NyaXB0aW5nIFNpZ25hdHVyZXMifSx7ImFsYXJtIjp0cnVlLCJibG9jayI6dHJ1ZSwibmFtZSI6IlNRTCBJbmplY3Rpb24gU2lnbmF0dXJlcyJ9XSwic2lnbmF0dXJlLXNldHRpbmdzIjp7Im1pbmltdW1BY2N1cmFjeUZvckF1dG9BZGRlZFNpZ25hdHVyZXMiOiJsb3cifSwidGVtcGxhdGUiOnsibmFtZSI6IlBPTElDWV9URU1QTEFURV9OR0lOWF9CQVNFIn19fQo="
+                    "contents": "http://acme.gitlab.local/testpolicy.nap"
                 }
             ],
             "log_profiles": [
