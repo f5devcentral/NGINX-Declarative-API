@@ -468,6 +468,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
                 NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
                 NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
+            else:
+                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse}
 
             return JSONResponse(
                 status_code=deploymentCheck.status_code,
