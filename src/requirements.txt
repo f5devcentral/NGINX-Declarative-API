@@ -11,5 +11,4 @@ requests
 redis
 uuid
 schedule
-pickle
-threading
+future

@@ -61,7 +61,9 @@ Two branches are currently available:
 - [X] Custom configuration snippets (for `upstreams`, `servers`, `locations`, `streams`, `http`)
 - [ ] Caching
 
-## How to use
+## How to run
+
+### On a Linux Virtual Machine
 
 This repository has been tested with and requires Python 3.9 or newer.
 A running instance of [redis](https://redis.io/) is required: redis host and port can be configured in the `config.toml` file.
@@ -69,9 +71,21 @@ A running instance of [redis](https://redis.io/) is required: redis host and por
 Run NGINX Config Generator using:
 
 ```
-$ cd src
+$ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
+$ cd NGINX-Config-Generator/src
 $ pip install -r requirements.txt
 $ python3 main.py
+```
+
+### As a Docker image
+
+The docker image can be built and run using:
+
+```
+$ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
+$ cd NGINX-Config-Generator
+$ docker build -t nginx-config-generator:1.0 -f contrib/docker/Dockerfile .
+$ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:1.0 
 ```
 
 Usage details and JSON schema are available [here](/USAGE.md)
