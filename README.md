@@ -84,8 +84,8 @@ The docker image can be built and run using:
 ```
 $ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
 $ cd NGINX-Config-Generator
-$ docker build -t nginx-config-generator:1.0 -f contrib/docker/Dockerfile .
-$ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:1.0 
+$ docker build -t nginx-config-generator:latest -f contrib/docker/Dockerfile .
+$ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:latest
 ```
 
 A pre-built docker image is available on Docker Hub and can be run using:
