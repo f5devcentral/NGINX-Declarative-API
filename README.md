@@ -88,6 +88,12 @@ $ docker build -t nginx-config-generator:1.0 -f contrib/docker/Dockerfile .
 $ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:1.0 
 ```
 
+A pre-built docker image is available on Docker Hub and can be run using:
+
+```
+$ docker run --name nginx-cg -d -p 5000:5000 fiorucci/nginx-config-generator:latest
+```
+
 Usage details and JSON schema are available [here](/USAGE.md)
 
 A sample Postman collection and usage instructions can be found [here](/postman)
