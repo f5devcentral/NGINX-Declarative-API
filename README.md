@@ -98,8 +98,8 @@ Available images are:
 
 | Image name                                    | Architecture |
 | --------------------------------------------- |--------------|
-| fiorucci/nginx-config-generator:latest        | amd64        |
-| fiorucci/nginx-config-generator:arm64-latest  | arm64        |
+| fiorucci/nginx-config-generator:latest        | linux/amd64  |
+| fiorucci/nginx-config-generator:arm64-latest  | linux/arm64  |
 
 Usage details and JSON schema are available [here](/USAGE.md)
 
