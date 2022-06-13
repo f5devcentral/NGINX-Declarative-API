@@ -88,11 +88,18 @@ $ docker build -t nginx-config-generator:latest -f contrib/docker/Dockerfile .
 $ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:latest
 ```
 
-A pre-built docker image is available on Docker Hub and can be run using:
+Pre-built docker images are available on Docker Hub and can be run using:
 
 ```
-$ docker run --name nginx-cg -d -p 5000:5000 fiorucci/nginx-config-generator:latest
+$ docker run --name nginx-cg -d -p 5000:5000 <IMAGE_NAME>
 ```
+
+Available images are:
+
+| Image name                                    | Architecture |
+| --------------------------------------------- |--------------|
+| fiorucci/nginx-config-generator:latest        | amd64        |
+| fiorucci/nginx-config-generator:arm64-latest  | arm64        |
 
 Usage details and JSON schema are available [here](/USAGE.md)
 
