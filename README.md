@@ -59,7 +59,6 @@ Two branches are currently available:
 - [X] NGINX App Protect policies and log formats (at `server` and `location` level) - security policies can be dynamically fetched from source of truth
 - [X] Maps (for `http`)
 - [X] Custom configuration snippets (for `upstreams`, `servers`, `locations`, `streams`, `http`) - snippets can be dynamically fetched from source of truth
-- [ ] Caching
 
 ## How to run
 

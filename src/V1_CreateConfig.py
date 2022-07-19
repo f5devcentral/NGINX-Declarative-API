@@ -198,7 +198,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     if status_code != 200:
                         return JSONResponse(
-                            status_code=422,
+                            status_code = 422,
                             content={"code": 422,
                                      "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
                                          status_code)}
