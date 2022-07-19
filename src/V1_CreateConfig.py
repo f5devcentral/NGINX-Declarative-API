@@ -64,16 +64,99 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     decltype = d['output']['type']
 
     if d['declaration']['http'] is not None:
+
+        if d['declaration']['http']['snippet'] is not None:
+            snippet = d['declaration']['http']['snippet']
+
+            # If snippet content start with http:// or https:// fetch it as a base64-encoded
+            # file from external repository
+            if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
+                # Policy is fetched from external repository
+                status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
+
+                if status_code != 200:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"code": 422,
+                                 "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
+                                     status_code)}
+                    )
+
+                d['declaration']['http']['snippet'] = snippetFromRepo
+
         # Check HTTP upstreams validity
         all_upstreams = []
         http = d['declaration']['http']
         for i in range(len(http['upstreams'])):
+
+            upstream = http['upstreams'][i]
+
+            if upstream['snippet'] is not None:
+                snippet = upstream['snippet']
+
+                # If snippet content start with http:// or https:// fetch it as a base64-encoded
+                # file from external repository
+                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
+                    # Policy is fetched from external repository
+                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
+
+                    if status_code != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": 422,
+                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
+                                         status_code)}
+                        )
+
+                    d['declaration']['http']['upstreams'][i]['snippet'] = snippetFromRepo
+
             all_upstreams.append(http['upstreams'][i]['name'])
 
         for server in d['declaration']['http']['servers']:
+
+            if server['snippet'] is not None:
+                snippet = server['snippet']
+
+                # If snippet content start with http:// or https:// fetch it as a base64-encoded
+                # file from external repository
+                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
+                    # Policy is fetched from external repository
+                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
+
+                    if status_code != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": 422,
+                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
+                                         status_code)}
+                        )
+
+                    server['snippet'] = snippetFromRepo
+
             for loc in server['locations']:
+
+                if loc['snippet'] is not None:
+                    snippet = loc['snippet']
+
+                    # If snippet content start with http:// or https:// fetch it as a base64-encoded
+                    # file from external repository
+                    if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
+                        # Policy is fetched from external repository
+                        status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
+
+                        if status_code != 200:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"code": 422,
+                                         "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
+                                             status_code)}
+                            )
+
+                        loc['snippet'] = snippetFromRepo
+
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
+
                         status_code=422,
                         content={"code": 422, "details": "invalid HTTP upstream " + loc['upstream']}
                     )
@@ -103,6 +186,26 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             all_upstreams.append(layer4['upstreams'][i]['name'])
 
         for server in d['declaration']['layer4']['servers']:
+
+            if server['snippet'] is not None:
+                snippet = server['snippet']
+
+                # If snippet content start with http:// or https:// fetch it as a base64-encoded
+                # file from external repository
+                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
+                    # Policy is fetched from external repository
+                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
+
+                    if status_code != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": 422,
+                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
+                                         status_code)}
+                        )
+
+                    server['snippet'] = snippetFromRepo
+
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
                     status_code=422,
@@ -366,7 +469,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         configFiles['files'].append(filesStreamConf)
 
         # Staged config
-        baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles }
+        baseStagedConfig = {'auxFibase64les': auxFiles, 'configFiles': configFiles }
         stagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles,
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
                         'ignoreConflict': True, 'validateConfig': False}
