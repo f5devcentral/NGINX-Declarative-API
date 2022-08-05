@@ -59,8 +59,9 @@ A sample Postman collection can be found [here](/postman)
 
 ### Snippets ###
 
-All snippets must be base64-encoded
-
+Snippets for http, upstream, server and location can be specified as:
+- base64-encoded content
+- HTTP(S) URL of a source of truth/repository to fetch snippet content from. Content must be base64-encoded
 
 ### Sample declaration ###
 
