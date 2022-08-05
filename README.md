@@ -101,7 +101,7 @@ Available images are:
 
 Usage details and JSON schema are available [here](/USAGE.md)
 
-A sample Postman collection and usage instructions can be found [here](/postman)
+A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
 ## REST API documentation
 

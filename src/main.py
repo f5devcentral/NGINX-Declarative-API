@@ -103,6 +103,8 @@ def delete_config(configuid: str):
             headers={'Content-Type': 'application/json'}
         )
     else:
+        print(f"Terminating autosync for configuid [{configuid}]")
+
         job = redis.autoSyncJobs[configuid]
         redis.autoSyncJobs.pop(configuid,None)
         redis.redis.delete('ncg.declaration.'+configuid)

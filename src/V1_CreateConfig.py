@@ -44,8 +44,10 @@ def getuniqueid():
 
 def isBase64(s):
     try:
+        print(f"base64: {s}")
         return base64.b64encode(base64.b64decode(s)) == s
     except Exception:
+        print(f"not BASE64: {s}")
         return False
 
 
@@ -89,8 +91,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                      status_code)}
                     )
 
-                d['declaration']['http']['snippet'] = snippetFromRepo \
-                    if isBase64(snippetFromRepo) else base64.b64encode(bytes(snippetFromRepo, 'utf-8')).decode('utf-8')
+                d['declaration']['http']['snippet'] = snippetFromRepo
 
         # Check HTTP upstreams validity
         all_upstreams = []
@@ -116,9 +117,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                          status_code)}
                         )
 
-                    d['declaration']['http']['upstreams'][i]['snippet'] = snippetFromRepo \
-                        if isBase64(snippetFromRepo) else base64.b64encode(bytes(snippetFromRepo, 'utf-8')).decode(
-                        'utf-8')
+                    d['declaration']['http']['upstreams'][i]['snippet'] = snippetFromRepo
 
             all_upstreams.append(http['upstreams'][i]['name'])
 
@@ -141,9 +140,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                          status_code)}
                         )
 
-                    server['snippet'] = snippetFromRepo \
-                        if isBase64(snippetFromRepo) else base64.b64encode(bytes(snippetFromRepo, 'utf-8')).decode(
-                        'utf-8')
+                    server['snippet'] = snippetFromRepo
 
             for loc in server['locations']:
 
@@ -164,9 +161,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              status_code)}
                             )
 
-                        loc['snippet'] = snippetFromRepo \
-                            if isBase64(snippetFromRepo) else base64.b64encode(bytes(snippetFromRepo, 'utf-8')).decode(
-                            'utf-8')
+                        loc['snippet'] = snippetFromRepo
 
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
@@ -218,9 +213,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                          status_code)}
                         )
 
-                    server['snippet'] = snippetFromRepo \
-                        if isBase64(snippetFromRepo) else base64.b64encode(bytes(snippetFromRepo, 'utf-8')).decode(
-                        'utf-8')
+                    server['snippet'] = snippetFromRepo
 
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
@@ -360,9 +353,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                      status_code)}
                     )
 
-                certContent = certFromRepo \
-                    if isBase64(certFromRepo) else base64.b64encode(bytes(certFromRepo, 'utf-8')).decode(
-                    'utf-8')
+                certContent = base64.b64encode(bytes(certFromRepo, 'utf-8')).decode('utf-8')
 
             newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
                                                            '/' + c['name'] + extensions_map[c['type']]}
@@ -374,7 +365,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             all_policies[p['type']].append(p['name'])
             policyBody = p['contents']
 
-            # If policy content start with http:// or https:// fetch it as a plaintext file from external repository
+            # If policy content starts with http:// or https:// fetch it
+            # as a plaintext/JSON file from external repository
             if policyBody.lower().startswith("http://") or policyBody.lower().startswith("https://"):
                 # Policy is fetched from external repository
                 status_code, policyFromRepo = fetchfromsourceoftruth(policyBody)
@@ -387,8 +379,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                      status_code)}
                     )
 
-                policyBody = policyFromRepo \
-                    if isBase64(policyFromRepo) else base64.b64encode(bytes(policyFromRepo, 'utf-8')).decode('utf-8')
+                policyBody = base64.b64encode(bytes(policyFromRepo, 'utf-8')).decode('utf-8')
 
             if p['type'] == 'app_protect':
                 newAuxFile = {'contents': policyBody, 'name': NcgConfig.config['nms']['nap_policies_dir'] +
@@ -569,6 +560,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 if nmsSynctime > 0 and runfromautosync == False:
                     # GitOps autosync
                     configUid = str(getuniqueid())
+                    print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
 
                     # Stores the staged config to redis
                     # Redis keys:
