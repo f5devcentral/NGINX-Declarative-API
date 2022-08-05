@@ -42,15 +42,6 @@ def getuniqueid():
     return uuid.uuid4()
 
 
-def isBase64(s):
-    try:
-        print(f"base64: {s}")
-        return base64.b64encode(base64.b64decode(s)) == s
-    except Exception:
-        print(f"not BASE64: {s}")
-        return False
-
-
 def configautosync(configUid):
     print("Autosyncing configuid [" + configUid + "]")
 
