@@ -83,7 +83,15 @@ Two branches are currently available:
 
 ## How to run
 
-### On a Linux Virtual Machine
+Usage details and JSON schema are available [here](/USAGE.md)
+
+A sample Postman collection and usage instructions can be found [here](/contrib/postman)
+
+### Using docker-compose
+
+This is the recommended method to run NGINX Config Generator on a Linux virtual machine. Refer to [installation instructions](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main/contrib/docker-compose)
+
+### As a Python application
 
 This repository has been tested with and requires Python 3.9 or newer.
 A running instance of [redis](https://redis.io/) is required: redis host and port can be configured in the `config.toml` file.
@@ -120,9 +128,7 @@ Available images are:
 | --------------------------------------------- |--------------|
 | fiorucci/nginx-config-generator:latest        | linux/amd64  |
 
-Usage details and JSON schema are available [here](/USAGE.md)
-
-A sample Postman collection and usage instructions can be found [here](/contrib/postman)
+Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-cg container.
 
 ## REST API documentation
 
