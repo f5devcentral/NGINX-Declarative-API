@@ -2,8 +2,6 @@
 
 NGINX Config Generator can be deployed using docker compose on a Linux virtual machine running Docker.
 
-The current version of the `docker-compose.yaml` file uses no persistent storage for redis.
-
 Usage:
 
 ```
