@@ -43,7 +43,8 @@ GitLab ->> Config Generator : Updated policies
 Config Generator->> Config Generator: Build staged config
 Config Generator->> NGINX Instance Manager: POST staged config to instance group
 
-NGINX Instance Manager ->> NGINX: Publish config to NGINX instances```
+NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
+```
 
 ## Branches
 
