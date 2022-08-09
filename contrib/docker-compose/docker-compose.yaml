@@ -1,0 +1,19 @@
+services:
+
+  redis:
+    image: redis
+    user: "${USERID}:${USERGROUP}"
+    container_name: "redis"
+    restart: always
+    ports:
+      - "6379:6379"
+
+  nginx-cg:
+    image: fiorucci/nginx-config-generator:latest
+    user: "${USERID}:${USERGROUP}"
+    container_name: "nginx-cg"
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "5000:5000"
