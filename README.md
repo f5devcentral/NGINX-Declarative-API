@@ -25,6 +25,26 @@ REDIS[[Redis backend]] --> NCG
 NCG --> REDIS
 ```
 
+## GitOps
+
+```mermaid
+sequenceDiagram
+
+title GitOps with NGINX Instance Manager
+
+User ->> GitLab: Push policy update
+Config Generator ->> GitLab: Check for updates
+GitLab ->> Config Generator: Latest timestamp
+
+Config Generator->> Config Generator: If updates available
+Config Generator->> GitLab: Fetch updated policies
+GitLab ->> Config Generator : Updated policies
+
+Config Generator->> Config Generator: Build staged config
+Config Generator->> NGINX Instance Manager: POST staged config to instance group
+
+NGINX Instance Manager ->> NGINX: Publish config to NGINX instances```
+
 ## Branches
 
 Two branches are currently available:
