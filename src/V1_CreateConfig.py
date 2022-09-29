@@ -516,23 +516,23 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             # Staged configuration publish to NGINX Management Suite
             stagedConfigPayload = json.dumps(stagedConfig)
+
+            # Publish staged config to instance group
             r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
                               data=stagedConfigPayload,
                               headers={'Content-Type': 'application/json'},
                               auth=(nmsUsername, nmsPassword),
                               verify=False)
 
-            # Publish staged config to instance group
-            publishResponse = json.loads(r.text)
-
             if r.status_code != 202:
                 return JSONResponse(
                     status_code=r.status_code,
-                    content={"code": r.status_code, "details": json.loads(r.text)},
+                    content={"code": r.status_code, "details": r.text},
                     headers={'Content-Type': 'application/json'}
                 )
 
             # Fetches the deployment status
+            publishResponse = json.loads(r.text)
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
             deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
                                            auth=(nmsUsername, nmsPassword),
