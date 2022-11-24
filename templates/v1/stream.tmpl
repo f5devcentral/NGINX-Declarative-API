@@ -25,6 +25,8 @@ server {
     listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %};
     {% endif %}
 
+    status_zone {{ s.listen.address }}{% if s.listen.protocol == "udp" %}-{{ s.listen.protocol }}{% endif %};
+
     {# --- TLS section --- #}
     {%- if s.listen.tls -%}
     ssl_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.certificate }}.crt;
