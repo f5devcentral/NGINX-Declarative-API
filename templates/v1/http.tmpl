@@ -80,6 +80,7 @@ server {
     listen {{ s.listen.address }}{% if s.listen.http2 and s.listen.http2 == True %} http2{% endif %}{% if s.listen.tls %} ssl{% endif %};
     {% endif -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
+    status_zone {{ s.names[0] }};
 
     {% if s.app_protect -%}
     app_protect_enable {% if s.app_protect.enabled == True %}on{% else %}off{% endif %};
