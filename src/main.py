@@ -65,7 +65,6 @@ def get_config_declaration(configuid: str):
         )
     else:
         obj = pickle.loads(cfg)
-        d = obj.dict()
 
         return JSONResponse(
             status_code=200,

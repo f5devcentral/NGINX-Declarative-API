@@ -1,7 +1,9 @@
-# NGINX-Config-Generator
+# NGINX-Declarative-API
 
-This tool creates NGINX Plus configuration files for a given JSON service declaration.
-GitOps integration is supported when used with NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync
+This tool provides a set of declarative REST API for NGINX Management Suite.
+
+It can be used to generate and deploy NGINX Plus configuration files for a given declarative JSON service declaration.
+GitOps integration is supported when used with NGINX Management Suite / NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync
 
 Use cases include:
 
