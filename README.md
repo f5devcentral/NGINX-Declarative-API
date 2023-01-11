@@ -17,7 +17,7 @@ Use cases include:
 graph TD
 DEVOPS([DevOps]) -- REST API --> CICD
 User([User]) -- REST API --> NCG
-CICD(CI/CD Pipeline) -- REST API --> NCG[[NGINX Config Generator]]
+CICD(CI/CD Pipeline) -- REST API --> NCG[[NGINX Declarative API]]
 NCG -- Staged Configs --> NIM(NGINX Instance Manager)
 NCG -- REST API --> Generic(Generic REST API endpoint)
 NCG -- AutoSync / GitOps --> CICD
@@ -35,15 +35,15 @@ sequenceDiagram
 title GitOps with NGINX Instance Manager
 
 User ->> GitLab: Push policy update
-Config Generator ->> GitLab: Check for updates
-GitLab ->> Config Generator: Latest timestamp
+NGINX Declarative API ->> GitLab: Check for updates
+GitLab ->> NGINX Declarative API: Latest timestamp
 
-Config Generator->> Config Generator: If updates available
-Config Generator->> GitLab: Fetch updated policies
-GitLab ->> Config Generator : Updated policies
+NGINX Declarative API->> NGINX Declarative API: If updates available
+NGINX Declarative API->> GitLab: Fetch updated policies
+GitLab ->> NGINX Declarative API : Updated policies
 
-Config Generator->> Config Generator: Build staged config
-Config Generator->> NGINX Instance Manager: POST staged config to instance group
+NGINX Declarative API->> NGINX Declarative API: Build staged config
+NGINX Declarative API->> NGINX Instance Manager: POST staged config to instance group
 
 NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 ```
@@ -91,18 +91,18 @@ A sample Postman collection and usage instructions can be found [here](/contrib/
 
 ### Using docker-compose
 
-This is the recommended method to run NGINX Config Generator on a Linux virtual machine. Refer to [installation instructions](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main/contrib/docker-compose)
+This is the recommended method to run NGINX Declarative API on a Linux virtual machine. Refer to [installation instructions](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main/contrib/docker-compose)
 
 ### As a Python application
 
 This repository has been tested with and requires Python 3.9 or newer.
 A running instance of [redis](https://redis.io/) is required: redis host and port can be configured in the `config.toml` file.
 
-Run NGINX Config Generator using:
+Run NGINX Declarative API using:
 
 ```
-$ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
-$ cd NGINX-Config-Generator/src
+$ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
+$ cd NGINX-Declarative-API/src
 $ pip install -r requirements.txt
 $ python3 main.py
 ```
@@ -134,7 +134,7 @@ Pre-built images are configured to access the redis instance on host:port `redis
 
 ## REST API documentation
 
-When NGINX Config Generator is running, REST API documentation can be accessed at:
+When NGINX Declarative API is running, REST API documentation can be accessed at:
 
 - Documentation and testing: http://127.0.0.1:5000/docs
 - Redoc documentation: http://127.0.0.1:5000/redoc
