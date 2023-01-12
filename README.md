@@ -131,7 +131,7 @@ Available images are:
 | --------------------------------------------- |--------------|
 | fiorucci/nginx-declarative-api:latest         | linux/amd64  |
 
-Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-cg container.
+Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
 
 ## REST API documentation
 
