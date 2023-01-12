@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "2a3be0f1-fce7-47e7-8df5-91babb24d7c4",
-		"name": "NGINX Configuration Generator",
+		"_postman_id": "818253d0-57ff-4396-a5e5-f6bb428c97c1",
+		"name": "NGINX Declarative API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416"
 	},
@@ -573,7 +573,7 @@
 		},
 		{
 			"key": "github_root",
-			"value": "https://raw.githubusercontent.com/fabriziofiorucci/NGINX-Config-Generator/main/contrib/sample-source-of-truth/configs/",
+			"value": "https://raw.githubusercontent.com/fabriziofiorucci/NGINX-Declarative-API/main/contrib/sample-source-of-truth/configs/",
 			"type": "string"
 		},
 		{

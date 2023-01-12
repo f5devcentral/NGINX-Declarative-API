@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-NGINX Configuration Generator
+NGINX Declarative API
 """
 import uvicorn
 import threading
@@ -17,7 +17,7 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import V0_NginxConfigDeclaration
 import V1_NginxConfigDeclaration
 
-# NGINX Configuration Generator modules
+# NGINX Declarative API modules
 import NcgConfig
 import NcgRedis
 

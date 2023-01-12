@@ -20,7 +20,7 @@ from datetime import datetime
 # pydantic models
 from V1_NginxConfigDeclaration import *
 
-# NGINX Configuration Generator modules
+# NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 

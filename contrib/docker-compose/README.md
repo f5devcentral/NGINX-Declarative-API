@@ -1,6 +1,6 @@
 # Docker compose
 
-NGINX Config Generator can be deployed using docker compose on a Linux virtual machine running Docker.
+NGINX Declarative API can be deployed using docker compose on a Linux virtual machine running Docker.
 
 Usage:
 
@@ -8,7 +8,7 @@ Usage:
 $ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
 $ cd NGINX-Declarative-API/contrib/docker-compose
 $ ./nginx-dapi.sh 
-NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Config-Generator/
+NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/
 
  This script is used to deploy/undeploy NGINX Declarative API using docker-compose
 

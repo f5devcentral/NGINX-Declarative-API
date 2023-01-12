@@ -21,7 +21,7 @@ exit 1
 }
 
 #
-# NGINX Config Generator deployment
+# NGINX Declarative API deployment
 #
 nginx_dapi_start() {
 
@@ -30,12 +30,12 @@ USERNAME=`whoami`
 export USERID=`id -u $USERNAME`
 export USERGROUP=`id -g $USERNAME`
 
-echo "-> Deploying NGINX Config Generator"
+echo "-> Deploying NGINX Declarative API"
 COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML up -d --remove-orphans
 }
 
 #
-# NGINX Config Generator removal
+# NGINX Declarative API removal
 #
 nginx_dapi_stop() {
 
@@ -44,7 +44,7 @@ USERNAME=`whoami`
 export USERID=`id -u $USERNAME`
 export USERGROUP=`id -g $USERNAME`
 
-echo "-> Undeploying NGINX Config Generator"
+echo "-> Undeploying NGINX Declarative API"
 COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML down
 }
 

@@ -19,8 +19,8 @@ class NcgRedis(object):
                 cls.redis = redis.Redis(host, port)
                 print(f"Connecting to redis at {host}:{port}")
 
-                cls.redis.set('NGINX_Config_Generator','test')
-                cls.redis.delete('NGINX_Config_Generator')
+                cls.redis.set('NGINX_Declarative_API','test')
+                cls.redis.delete('NGINX_Declarative_API')
             except Exception as e:
                 print("Cannot connect to redis on %s:%s : %s" % (host, port, e))
                 sys.exit(1)
