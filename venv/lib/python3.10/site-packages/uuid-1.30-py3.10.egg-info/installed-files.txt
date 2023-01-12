@@ -1,0 +1,6 @@
+../__pycache__/uuid.cpython-310.pyc
+../uuid.py
+PKG-INFO
+SOURCES.txt
+dependency_links.txt
+top_level.txt

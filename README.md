@@ -1,4 +1,6 @@
-# NGINX-Config-Generator
+# NGINX-Declarative-API
+
+**This branch is outdated and not actively maintained, it's kept here for archival purposes. The main branch should be used**
 
 This tool creates NGINX Plus configuration files for a given JSON service declaration.
 
