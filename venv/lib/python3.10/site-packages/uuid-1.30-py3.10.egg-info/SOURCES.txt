@@ -1,6 +1,0 @@
-setup.py
-uuid.py
-uuid.egg-info/PKG-INFO
-uuid.egg-info/SOURCES.txt
-uuid.egg-info/dependency_links.txt
-uuid.egg-info/top_level.txt
