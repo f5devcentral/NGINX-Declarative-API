@@ -53,7 +53,7 @@ NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 Two branches are currently available:
 
 - [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main) - Main branch, actively developed
-- [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/nodejs)
+- [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/nodejs) - Not actively developed, kept here for archival purposes
 
 ## Input formats
 
