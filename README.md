@@ -2,8 +2,9 @@
 
 This tool provides a set of declarative REST API for NGINX Management Suite.
 
-It can be used to generate and deploy NGINX Plus configuration files for a given declarative JSON service declaration.
-GitOps integration is supported when used with NGINX Management Suite / NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync
+It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
+
+GitOps integration is supported when used with NGINX Management Suite / NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync.
 
 Use cases include:
 
@@ -52,8 +53,8 @@ NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 
 Two branches are currently available:
 
-- [Python](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main) - Main branch, actively developed
-- [Node.js](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/nodejs) - Not actively developed, kept here for archival purposes
+- [Python](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/main) - Main branch, actively developed
+- [Node.js](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/nodejs) - Not actively developed, kept here for archival purposes
 
 ## Input formats
 
@@ -91,7 +92,7 @@ A sample Postman collection and usage instructions can be found [here](/contrib/
 
 ### Using docker-compose
 
-This is the recommended method to run NGINX Declarative API on a Linux virtual machine. Refer to [installation instructions](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main/contrib/docker-compose)
+This is the recommended method to run NGINX Declarative API on a Linux virtual machine. Refer to [installation instructions](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/main/contrib/docker-compose)
 
 ### As a Python application
 
@@ -112,23 +113,23 @@ $ python3 main.py
 The docker image can be built and run using:
 
 ```
-$ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
-$ cd NGINX-Config-Generator
-$ docker build -t nginx-config-generator:latest -f contrib/docker/Dockerfile .
-$ docker run --name nginx-cg -d -p 5000:5000 nginx-config-generator:latest
+$ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
+$ cd NGINX-Declarative-API
+$ docker build -t nginx-declarative-api:latest -f contrib/docker/Dockerfile .
+$ docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api:latest
 ```
 
 Pre-built docker images are available on Docker Hub and can be run using:
 
 ```
-$ docker run --name nginx-cg -d -p 5000:5000 <IMAGE_NAME>
+$ docker run --name nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
 ```
 
 Available images are:
 
 | Image name                                    | Architecture |
 | --------------------------------------------- |--------------|
-| fiorucci/nginx-config-generator:latest        | linux/amd64  |
+| fiorucci/nginx-declarative-api:latest         | linux/amd64  |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-cg container.
 

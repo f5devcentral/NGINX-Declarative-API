@@ -14,10 +14,10 @@ services:
     volumes:
       - redis_data:/data:rw
 
-  nginx-cg:
-    image: fiorucci/nginx-config-generator:latest
+  nginx-dapi:
+    image: fiorucci/nginx-declarative-api:latest
     user: "${USERID}:${USERGROUP}"
-    container_name: "nginx-cg"
+    container_name: "nginx-dapi"
     restart: always
     depends_on:
       - redis

@@ -4,16 +4,16 @@
 # Usage
 #
 usage() {
-BANNER="NGINX Config Generator - https://github.com/fabriziofiorucci/NGINX-Config-Generator/\n\n
-This script is used to deploy/undeploy NGINX Config Generator using docker-compose\n\n
+BANNER="NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/\n\n
+This script is used to deploy/undeploy NGINX Declarative API using docker-compose\n\n
 === Usage:\n\n
 $0 [options]\n\n
 === Options:\n\n
 -h\t\t\t- This help\n
 -c [start|stop]\t- Deployment command\n\n
 === Examples:\n\n
-Deploy NGINX CG:\t$0 -c start\n
-Remove NGINX CG:\t$0 -c stop\n
+Deploy NGINX DAPI:\t$0 -c start\n
+Remove NGINX DAPI:\t$0 -c stop\n
 "
 
 echo -e $BANNER 2>&1
@@ -23,7 +23,7 @@ exit 1
 #
 # NGINX Config Generator deployment
 #
-nginx_cg_start() {
+nginx_dapi_start() {
 
 # Docker compose variables
 USERNAME=`whoami`
@@ -37,7 +37,7 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 #
 # NGINX Config Generator removal
 #
-nginx_cg_stop() {
+nginx_dapi_stop() {
 
 # Docker compose variables
 USERNAME=`whoami`
@@ -53,7 +53,7 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 #
 
 DOCKER_COMPOSE_YAML=docker-compose.yaml
-PROJECT_NAME=nginx-cg
+PROJECT_NAME=nginx-dapi
 
 while getopts 'hc:' OPTION
 do
@@ -72,4 +72,4 @@ then
 	usage
 fi
 
-nginx_cg_$ACTION
+nginx_dapi_$ACTION

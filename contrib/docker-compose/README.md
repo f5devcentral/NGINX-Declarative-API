@@ -5,16 +5,16 @@ NGINX Config Generator can be deployed using docker compose on a Linux virtual m
 Usage:
 
 ```
-$ git clone https://github.com/fabriziofiorucci/NGINX-Config-Generator
-$ cd NGINX-Config-Generator/contrib/docker-compose
-$ ./nginx-cg.sh 
-NGINX Config Generator - https://github.com/fabriziofiorucci/NGINX-Config-Generator/
+$ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
+$ cd NGINX-Declarative-API/contrib/docker-compose
+$ ./nginx-dapi.sh 
+NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Config-Generator/
 
- This script is used to deploy/undeploy NGINX Config Generator using docker-compose
+ This script is used to deploy/undeploy NGINX Declarative API using docker-compose
 
  === Usage:
 
- ./nginx-cg.sh [options]
+ ./nginx-dapi.sh [options]
 
  === Options:
 
@@ -23,35 +23,35 @@ NGINX Config Generator - https://github.com/fabriziofiorucci/NGINX-Config-Genera
 
  === Examples:
 
- Deploy NGINX CG:       ./nginx-cg.sh -c start
- Remove NGINX CG:       ./nginx-cg.sh -c stop
+ Deploy NGINX DAPI:       ./nginx-dapi.sh -c start
+ Remove NGINX DAPI:       ./nginx-dapi.sh -c stop
 ```
 
 ## How to deploy
 
-1. Start NGINX Config Generator using the provided `nginx-cg.sh` script
-2. Start Postman using the collection provided [here](https://github.com/fabriziofiorucci/NGINX-Config-Generator/tree/main/contrib/postman) or refer to the [usage page](https://github.com/fabriziofiorucci/NGINX-Config-Generator/blob/main/USAGE.md) for CI/CD integration
+1. Start NGINX Declarative API using the provided `nginx-dapi.sh` script
+2. Start Postman using the collection provided [here](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/main/contrib/postman) or refer to the [usage page](https://github.com/fabriziofiorucci/NGINX-Declarative-API/blob/main/USAGE.md) for CI/CD integration
 
 ## Starting & stopping with docker-compose
 
-Starting NGINX Config Generator:
+Starting NGINX Declarative API:
 
 ```
-$ ./nginx-cg.sh -c start
--> Deploying NGINX Config Generator
-Creating network "nginx-cg_default" with the default driver
+$ ./nginx-dapi.sh -c start
+-> Deploying NGINX Declarative API
+Creating network "nginx-dapi_default" with the default driver
 Creating redis ... done
-Creating nginx-cg ... done
+Creating nginx-dapi ... done
 $
 ```
 
-Stopping NGINX Config Generator:
+Stopping NGINX Declarative API:
 
 ```
-$ ./nginx-cg.sh -c stop
--> Undeploying NGINX Config Generator
+$ ./nginx-dapi.sh -c stop
+-> Undeploying NGINX Declarative API
 Removing redis ... done
-Removing nginx-cg ... done
-Removing network nginx-cg_default
+Removing nginx-dapi ... done
+Removing network nginx-dapi_default
 $
 ```
