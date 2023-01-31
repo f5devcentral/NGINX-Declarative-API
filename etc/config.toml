@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "2.0"
+version = "4.0"
 url = "https://github.com/fabriziofiorucci/NGINX-Declarative-API"
 
 # Templates
@@ -34,9 +34,15 @@ certs_dir = '/etc/nginx/ssl'
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 5
 
+# API v0 & V1
 nap_policies_dir = '/etc/nginx/waf/policies'
 nap_logformats_dir = '/etc/nginx/waf/logformats'
 nap_logformats_template = "logformat.tmpl"
 
+# API v2 - support for v2 Policy Compiler
+nap_policies_dir_pum = '/etc/nms'
+nap_logformats_dir_pum = '/etc/nms'
+
+# Staged configuration filenames
 staged_config_http_filename = 'conf.d/services.conf'
 staged_config_stream_filename = 'stream-conf.d/services.conf'

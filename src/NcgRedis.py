@@ -10,8 +10,12 @@ class NcgRedis(object):
     _instance = None
     redis
 
-    # Scheduled Gitops sync jobs { configUid: job }
-    autoSyncJobs = {}
+    # All submitted config declarations
+    # For each entry key is the configUid
+    # Value is:
+    # - the threaded autosync job for autosync declarations
+    # - "static" for declarations not in autosync mode
+    declarationsList = {}
 
     def __new__(cls, host, port):
         if cls._instance is None:

@@ -10,19 +10,17 @@ import schedule
 import json
 import pickle
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
 
 # pydantic models
-import V0_NginxConfigDeclaration
-import V1_NginxConfigDeclaration
 
 # NGINX Declarative API modules
 import NcgConfig
 import NcgRedis
 
-import V0_CreateConfig
-import V1_CreateConfig
+from src import V0_CreateConfig, V0_NginxConfigDeclaration, V1_CreateConfig, V1_NginxConfigDeclaration, \
+    V2_NginxConfigDeclaration, V2_CreateConfig
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
@@ -52,8 +50,21 @@ def post_config_v1(d: V1_NginxConfigDeclaration.ConfigDeclaration, response: Res
     return V1_CreateConfig.createconfig(declaration=d, apiversion='v1')
 
 
+# Submit a declaration using v2 API
+@app.post("/v2/config", status_code=200, response_class=PlainTextResponse)
+def post_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+    return V2_CreateConfig.createconfig(declaration=d, apiversion='v2')
+
+
+# Modify a declaration using v2 API
+@app.put("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def put_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+    return V2_CreateConfig.putconfig(declaration=d, apiversion='v2')
+
+
 # Get a Gitops declaration
 @app.get("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+@app.get("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def get_config_declaration(configuid: str):
     cfg = redis.redis.get('ncg.declaration.' + configuid)
 
@@ -75,6 +86,7 @@ def get_config_declaration(configuid: str):
 
 # Get a Gitops declaration status
 @app.get("/v1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
+@app.get("/v2/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
     status = redis.redis.get('ncg.status.' + configuid)
 
@@ -93,9 +105,10 @@ def get_config_status(configuid: str):
 
 # Delete a Gitops declaration
 @app.delete("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+@app.delete("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str):
 
-    if configuid not in redis.autoSyncJobs:
+    if configuid not in redis.declarationsList:
         return JSONResponse(
             status_code=404,
             content={'code': 404, 'details': {'message': f'configuration {configuid} not found'}},
@@ -104,14 +117,17 @@ def delete_config(configuid: str):
     else:
         print(f"Terminating autosync for configuid [{configuid}]")
 
-        job = redis.autoSyncJobs[configuid]
-        redis.autoSyncJobs.pop(configuid,None)
+        job = redis.declarationsList[configuid]
+
+        if job != "static":
+            # Kills autosync GitOps config thread
+            schedule.cancel_job(job)
+
+        redis.declarationsList.pop(configuid, None)
         redis.redis.delete('ncg.declaration.'+configuid)
         redis.redis.delete('ncg.apiversion.'+configuid)
         redis.redis.delete('ncg.status.'+configuid)
         redis.redis.delete('ncg.basestagedconfig.'+configuid)
-
-        schedule.cancel_job(job)
 
         return JSONResponse(
             status_code=200,

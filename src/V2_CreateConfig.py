@@ -13,29 +13,22 @@ import pickle
 from jinja2 import Environment, FileSystemLoader
 from fastapi.responses import Response, JSONResponse
 from pydantic import ValidationError
-from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
-from requests.packages.urllib3.exceptions import InsecureRequestWarning, HTTPError
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
 
 # pydantic models
-from V1_NginxConfigDeclaration import *
+from V2_NginxConfigDeclaration import *
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
+# NGINX App Protect helper functions
+import Contrib.NAPUtils
+import Contrib.GitOps
+
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
-def fetchfromsourceoftruth(url):
-    # Policy must be fetched from external repository
-    try:
-        reply = requests.get(url=url, verify=False)
-    except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):
-        return 503, "URL " + url + " unreachable"
-
-    return reply.status_code, reply.text
 
 
 def getuniqueid():
@@ -66,23 +59,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     if d['declaration']['http'] is not None:
 
         if d['declaration']['http']['snippet'] is not None:
-            snippet = d['declaration']['http']['snippet']
-
-            # If snippet content start with http:// or https:// fetch it as a base64-encoded
-            # file from external repository
-            if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
-                # Snippet is fetched from external repository
-                status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
-
-                if status_code != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": 422,
-                                 "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
-                                     status_code)}
-                    )
-
-                d['declaration']['http']['snippet'] = snippetFromRepo
+            d['declaration']['http']['snippet'] = Contrib.GitOps.getObjectFromRepo(d['declaration']['http']['snippet'])
 
         # Check HTTP upstreams validity
         all_upstreams = []
@@ -92,67 +69,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             upstream = http['upstreams'][i]
 
             if upstream['snippet'] is not None:
-                snippet = upstream['snippet']
-
-                # If snippet content start with http:// or https:// fetch it as a base64-encoded
-                # file from external repository
-                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
-                    # Policy is fetched from external repository
-                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
-
-                    if status_code != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": 422,
-                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
-                                         status_code)}
-                        )
-
-                    d['declaration']['http']['upstreams'][i]['snippet'] = snippetFromRepo
+                d['declaration']['http']['upstreams'][i]['snippet'] = Contrib.GitOps.getObjectFromRepo(
+                    upstream['snippet'])
 
             all_upstreams.append(http['upstreams'][i]['name'])
 
         for server in d['declaration']['http']['servers']:
-
             if server['snippet'] is not None:
-                snippet = server['snippet']
-
-                # If snippet content start with http:// or https:// fetch it as a base64-encoded
-                # file from external repository
-                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
-                    # Snippet is fetched from external repository
-                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
-
-                    if status_code != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": 422,
-                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
-                                         status_code)}
-                        )
-
-                    server['snippet'] = snippetFromRepo
+                server['snippet'] = Contrib.GitOps.getObjectFromRepo(server['snippet'])
 
             for loc in server['locations']:
-
                 if loc['snippet'] is not None:
-                    snippet = loc['snippet']
-
-                    # If snippet content start with http:// or https:// fetch it as a base64-encoded
-                    # file from external repository
-                    if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
-                        # Snippet is fetched from external repository
-                        status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
-
-                        if status_code != 200:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422,
-                                         "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
-                                             status_code)}
-                            )
-
-                        loc['snippet'] = snippetFromRepo
+                    loc['snippet'] = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
 
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
@@ -188,23 +116,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         for server in d['declaration']['layer4']['servers']:
 
             if server['snippet'] is not None:
-                snippet = server['snippet']
-
-                # If snippet content start with http:// or https:// fetch it as a base64-encoded
-                # file from external repository
-                if snippet.lower().startswith("http://") or snippet.lower().startswith("https://"):
-                    # Snippet is fetched from external repository
-                    status_code, snippetFromRepo = fetchfromsourceoftruth(snippet)
-
-                    if status_code != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": 422,
-                                     "details": "Invalid snippet " + snippetFromRepo + " HTTP code " + str(
-                                         status_code)}
-                        )
-
-                    server['snippet'] = snippetFromRepo
+                server['snippet'] = Contrib.GitOps.getObjectFromRepo(server['snippet'])
 
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
@@ -285,6 +197,12 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
+        nmsUrl = d['output']['nms']['url']
+        nmsUsername = d['output']['nms']['username']
+        nmsPassword = d['output']['nms']['password']
+        nmsInstanceGroup = d['output']['nms']['instancegroup']
+        nmsSynctime = d['output']['nms']['synctime']
+
         auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
         # Check TLS items validity
@@ -328,71 +246,46 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Adds optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
         for c in d['output']['nms']['certificates']:
-            certContent = c['contents']
-
-            # If certificate content start with http:// or https:// fetch it as a plaintext file from external
-            # repository
-            if certContent.lower().startswith("http://") or certContent.lower().startswith("https://"):
-                # Certificate is fetched from external repository
-                status_code, certFromRepo = fetchfromsourceoftruth(certContent)
-
-                if status_code != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": 422,
-                                 "details": "Invalid TLS certificate policy " + certFromRepo + " HTTP code " + str(
-                                     status_code)}
-                    )
-
-                certContent = base64.b64encode(bytes(certFromRepo, 'utf-8')).decode('utf-8')
+            certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
 
             newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
                                                            '/' + c['name'] + extensions_map[c['type']]}
             auxFiles['files'].append(newAuxFile)
 
-        # Policies management as additional auxfiles
+        ### / Adds optional certificates specified under output.nms.certificates
+
+        # NGINX App Protect policies - each policy supports multiple tagged versions
         all_policies = {'app_protect': []}
         for p in d['output']['nms']['policies']:
-            all_policies[p['type']].append(p['name'])
-            policyBody = p['contents']
 
-            # If policy content starts with http:// or https:// fetch it
-            # as a plaintext/JSON file from external repository
-            if policyBody.lower().startswith("http://") or policyBody.lower().startswith("https://"):
-                # Policy is fetched from external repository
-                status_code, policyFromRepo = fetchfromsourceoftruth(policyBody)
+            # Iterates over all NGINX App Protect policies
+            if p['type'] == 'app_protect':
+                # Iterates over all policy versions
+                for policyVersion in p['versions']:
+                    policyBody = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
 
-                if status_code != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": 422,
-                                 "details": "Invalid NGINX App Protect policy " + policyBody + " HTTP code " + str(
-                                     status_code)}
+                    # Create the NGINX App Protect policy on NMS
+                    r = Contrib.NAPUtils.createPolicy(
+                        nmsUrl = nmsUrl, nmsUsername = nmsUsername, nmsPassword = nmsPassword,
+                        policyName = p['name'],
+                        policyDisplayName = policyVersion['displayName'],
+                        policyDescription = policyVersion['description'],
+                        policyJson = policyBody
                     )
 
-                policyBody = base64.b64encode(bytes(policyFromRepo, 'utf-8')).decode('utf-8')
+                    # Check for errors creating NGINX App Protect policy
+                    if r.status_code != 201:
+                        return JSONResponse(
+                            status_code=r.status_code,
+                            content={"code": r.status_code, "details": json.loads(r.text)}
+                        )
 
-            if p['type'] == 'app_protect':
-                newAuxFile = {'contents': policyBody, 'name': NcgConfig.config['nms']['nap_policies_dir'] +
-                                                              '/' + p['name'] + '.json'}
-                auxFiles['files'].append(newAuxFile)
+                # Stores the policy name in the global dictionary of available policies
+                all_policies[p['type']].append(p['name'])
 
-        # NGINX App Protect log profiles
-        all_log_profiles = {'app_protect': []}
-        for logprofile in d['output']['nms']['log_profiles']:
-            if logprofile['type'] == 'app_protect':
-                all_log_profiles[logprofile['type']].append(logprofile['app_protect']['name'])
 
-            j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
-                                 trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
-            logProfileConf = j2_env.get_template(NcgConfig.config['nms']['nap_logformats_template']).render(
-                log=logprofile['app_protect'])
-            b64logProfileConf = str(base64.urlsafe_b64encode(logProfileConf.encode("utf-8")), "utf-8")
-
-            logProfileFile = {'contents': b64logProfileConf, 'name': NcgConfig.config['nms']['nap_logformats_dir'] +
-                                                                     '/' + logprofile['app_protect']['name'] + '.json'}
-            auxFiles['files'].append(logProfileFile)
+        ### / NGINX App Protect policies - each policy supports multiple tagged versions
 
         # Check NGINX App Protect policies and log profiles validity
         if d['declaration']['http'] is not None:
@@ -408,7 +301,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         )
 
                     if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in \
-                            all_log_profiles['app_protect']:
+                            ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']:
                         return JSONResponse(
                             status_code=422,
                             content={"code": 422,
@@ -428,7 +321,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             )
 
                         if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log'][
-                            'profile_name'] not in all_log_profiles['app_protect']:
+                            'profile_name'] not in ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']:
                             return JSONResponse(
                                 status_code=422,
                                 content={"code": 422, "details": "Invalid NGINX App Protect log profile " +
@@ -482,12 +375,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         else:
             # Configuration objects have changed, publish to NIM needed
             print(f'Staged config {configUid} changed, publishing to NMS')
-
-            nmsUrl = d['output']['nms']['url']
-            nmsUsername = d['output']['nms']['username']
-            nmsPassword = d['output']['nms']['password']
-            nmsInstanceGroup = d['output']['nms']['instancegroup']
-            nmsSynctime = d['output']['nms']['synctime']
 
             # Retrieve instance group uid
             ig = requests.get(url=nmsUrl + '/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
@@ -548,34 +435,42 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 # Staged config publish to NIM succeeded
                 jsonResponse = json.loads(deploymentCheck.text)
 
-                if nmsSynctime > 0 and runfromautosync == False:
-                    # GitOps autosync
+                if configUid == "":
+                    # No configuration is found, generate one
                     configUid = str(getuniqueid())
-                    print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
 
                     # Stores the staged config to redis
                     # Redis keys:
-                    # ncg.declaration.[configUid] = config declaration
+                    # ncg.declaration.[configUid] = original config declaration
                     # ncg.basestagedconfig.[configUid] = base staged configuration
                     # ncg.apiversion.[configUid] = ncg API version
                     # ncg.status.[configUid] = latest status
-
-                    job = schedule.every(nmsSynctime).seconds.do(lambda: configautosync(configUid))
-                    NcgRedis.declarationsList[configUid] = job
 
                     NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
                     NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
                     NcgRedis.redis.set('ncg.apiversion.' + configUid, apiversion)
 
-            if nmsSynctime > 0:
-                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+                # If deploying a new configuration in GitOps mode start autosync
+                if nmsSynctime > 0 and runfromautosync == False:
+                    # GitOps autosync
+                    print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
 
+                    job = schedule.every(nmsSynctime).seconds.do(lambda: configautosync(configUid))
+
+                    # Keep track of GitOps configs, key is the threaded job
+                    NcgRedis.declarationsList[configUid] = job
+                else:
+                    # Keep track of non-GitOps configs, key is "static"
+                    NcgRedis.declarationsList[configUid] = "static"
+
+            responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+
+            # Configuration push completed, update redis keys
+            if configUid != "":
                 # Updates status, declaration and basestagedconfig in redis
                 NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
                 NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
                 NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
-            else:
-                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse}
 
             return JSONResponse(
                 status_code=deploymentCheck.status_code,
@@ -588,3 +483,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             status_code=422,
             content={"message": f"output type {decltype} unknown"}
         )
+
+
+def putconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
+    return JSONResponse(status_code=418,content={"message":"WORK IN PROGRESS"})

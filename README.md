@@ -58,8 +58,7 @@ Two branches are currently available:
 
 ## Input formats
 
-- [X] REST API
-- [ ] Interactive wizard
+- [X] Declarative REST API
 
 ## Output formats
 
@@ -69,24 +68,26 @@ Two branches are currently available:
 - [X] POST to Generic REST API endpoint
 - [X] NGINX Instance Manager 2.1.0+ staged config / instance group interoperability
   
-## Supported NGINX Plus configurations
+## Supported NGINX Plus features
 
-- [X] Upstreams
-- [X] Servers (HTTP services)
-- [X] Servers (TCP & UDP services)
-- [X] TLS (HTTP and TCP services) - certificates, keys, chains can be dynamically fetched from source of truth
-- [X] Locations
-- [X] Rate limiting
-- [X] Active healthchecks
-- [X] Cookie-based stickiness
-- [X] NGINX Plus REST API access
-- [X] NGINX App Protect policies and log formats (at `server` and `location` level) - security policies can be dynamically fetched from source of truth
-- [X] Maps (for `http`)
-- [X] Custom configuration snippets (for `upstreams`, `servers`, `locations`, `streams`, `http`) - snippets can be dynamically fetched from source of truth
+| Feature | API v1 | API v2 (alpha release) | Notes |
+| --------| ------ | ------ | ----- |
+| Upstreams | X | X | Snippets supported: static and from source of truth |
+| HTTP servers | X | X | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers | X | X | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
+| TLS | X | X | Certificates, keys, chains can be dynamically fetched from source of truth |
+| Rate limiting | X | X | |
+| Active healthchecks | X | X | |
+| Cookie-based stickiness | X | X | |
+| Maps | X | X | |
+| NGINX Plus REST API access | X | X | |
+| NGINX App Protect WAF | policies & log formats at `server` and `location` level | policies at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth | 
 
 ## How to run
 
-Usage details and JSON schema are available [here](/USAGE.md)
+Usage details and JSON schema are available here:
+- [API v1](/USAGE-v1.md)
+- [API v2](/USAGE-v2.md) - alpha release
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
@@ -127,9 +128,9 @@ $ docker run --name nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
 
 Available images are:
 
-| Image name                                    | Architecture |
-| --------------------------------------------- |--------------|
-| fiorucci/nginx-declarative-api:latest         | linux/amd64  |
+| Image name                                    | Architecture | API version |
+| --------------------------------------------- | ------------ | ----------- |
+| fiorucci/nginx-declarative-api:latest         | linux/amd64  | v1          |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
 

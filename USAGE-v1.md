@@ -1,4 +1,4 @@
-# Usage
+# Usage for API v1
 
 The JSON schema is self explainatory. See also the [sample Postman collection](/postman)
 
