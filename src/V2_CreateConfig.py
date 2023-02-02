@@ -26,6 +26,7 @@ from NcgRedis import NcgRedis
 # NGINX App Protect helper functions
 import Contrib.NAPUtils
 import Contrib.GitOps
+import Contrib.NIMUtils
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -59,7 +60,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     if d['declaration']['http'] is not None:
 
         if d['declaration']['http']['snippet'] is not None:
-            d['declaration']['http']['snippet'] = Contrib.GitOps.getObjectFromRepo(d['declaration']['http']['snippet'])
+            status, snippet = Contrib.GitOps.getObjectFromRepo(d['declaration']['http']['snippet'])
+
+            if status != 200:
+                return JSONResponse(
+                    status_code=422,
+                    content={"code": status,
+                             "details": snippet}
+                )
+
+            d['declaration']['http']['snippet'] = snippet
 
         # Check HTTP upstreams validity
         all_upstreams = []
@@ -69,18 +79,44 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             upstream = http['upstreams'][i]
 
             if upstream['snippet'] is not None:
-                d['declaration']['http']['upstreams'][i]['snippet'] = Contrib.GitOps.getObjectFromRepo(
-                    upstream['snippet'])
+                status, snippet = Contrib.GitOps.getObjectFromRepo(upstream['snippet'])
+
+                if status != 200:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"code": status,
+                                 "details": snippet}
+                    )
+
+                d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
             all_upstreams.append(http['upstreams'][i]['name'])
 
         for server in d['declaration']['http']['servers']:
             if server['snippet'] is not None:
-                server['snippet'] = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+                status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+
+                if status != 200:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"code": status,
+                                 "details": snippet}
+                    )
+
+                server['snippet'] = snippet
 
             for loc in server['locations']:
                 if loc['snippet'] is not None:
-                    loc['snippet'] = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
+                    status, snippet = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
+
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status,
+                                     "details": snippet}
+                        )
+
+                    loc['snippet'] = snippet
 
                 if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
                     return JSONResponse(
@@ -116,7 +152,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         for server in d['declaration']['layer4']['servers']:
 
             if server['snippet'] is not None:
-                server['snippet'] = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+                status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+
+                if status != 200:
+                    return JSONResponse(
+                        status_code=422,
+                        content={"code": status,
+                                 "details": snippet}
+                    )
+
+                server['snippet'] = snippet
 
             if 'upstream' in server and server['upstream'] not in all_upstreams:
                 return JSONResponse(
@@ -246,88 +291,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Adds optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
         for c in d['output']['nms']['certificates']:
-            certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
+            status, certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
+
+            if status != 200:
+                return JSONResponse(
+                    status_code=422,
+                    content={"code": status,
+                             "details": certContent}
+                )
 
             newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
                                                            '/' + c['name'] + extensions_map[c['type']]}
             auxFiles['files'].append(newAuxFile)
 
         ### / Adds optional certificates specified under output.nms.certificates
-
-        # NGINX App Protect policies - each policy supports multiple tagged versions
-        all_policies = {'app_protect': []}
-        for p in d['output']['nms']['policies']:
-
-            # Iterates over all NGINX App Protect policies
-            if p['type'] == 'app_protect':
-                # Iterates over all policy versions
-                for policyVersion in p['versions']:
-                    policyBody = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
-
-                    # Create the NGINX App Protect policy on NMS
-                    r = Contrib.NAPUtils.createPolicy(
-                        nmsUrl = nmsUrl, nmsUsername = nmsUsername, nmsPassword = nmsPassword,
-                        policyName = p['name'],
-                        policyDisplayName = policyVersion['displayName'],
-                        policyDescription = policyVersion['description'],
-                        policyJson = policyBody
-                    )
-
-                    # Check for errors creating NGINX App Protect policy
-                    if r.status_code != 201:
-                        return JSONResponse(
-                            status_code=r.status_code,
-                            content={"code": r.status_code, "details": json.loads(r.text)}
-                        )
-
-                # Stores the policy name in the global dictionary of available policies
-                all_policies[p['type']].append(p['name'])
-
-
-
-        ### / NGINX App Protect policies - each policy supports multiple tagged versions
-
-        # Check NGINX App Protect policies and log profiles validity
-        if d['declaration']['http'] is not None:
-            for server in d['declaration']['http']['servers']:
-
-                # Check app_protect directives in server {}
-                if server['app_protect'] is not None:
-                    if server['app_protect']['policy'] not in all_policies['app_protect']:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": 422,
-                                     "details": "Invalid NGINX App Protect policy " + server['app_protect']['policy']}
-                        )
-
-                    if 'log' in server['app_protect'] and server['app_protect']['log']['profile_name'] not in \
-                            ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": 422,
-                                     "details": "Invalid NGINX App Protect log profile " + server['app_protect']['log'][
-                                         'profile_name']}
-                        )
-
-                # Check app_protect directives in server.location {}
-                for logprofile in server['locations']:
-                    if logprofile['app_protect'] is not None:
-                        if logprofile['app_protect']['policy'] not in all_policies['app_protect']:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422,
-                                         "details": "Invalid NGINX App Protect policy " + logprofile['app_protect'][
-                                             'policy']}
-                            )
-
-                        if 'log' in logprofile['app_protect'] and logprofile['app_protect']['log'][
-                            'profile_name'] not in ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422, "details": "Invalid NGINX App Protect log profile " +
-                                                                 logprofile['app_protect']['log'][
-                                                                     'profile_name']}
-                            )
 
         # NGINX main configuration file through template
         j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
@@ -371,13 +348,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         redisBaseStagedConfig = NcgRedis.redis.get('ncg.basestagedconfig.' + configUid)
 
         if redisBaseStagedConfig is not None and json.dumps(baseStagedConfig) == redisBaseStagedConfig.decode('utf-8'):
-            print(f'Staged config {configUid} not changed')
+            print(f'Staged config [{configUid}] not changed')
         else:
             # Configuration objects have changed, publish to NIM needed
-            print(f'Staged config {configUid} changed, publishing to NMS')
+            print(f'Staged config [{configUid}] changed, publishing to NMS')
 
             # Retrieve instance group uid
-            ig = requests.get(url=nmsUrl + '/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
+            ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
                               verify=False)
 
             if ig.status_code != 200:
@@ -387,38 +364,51 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 )
 
             # Get the instance group id
-            igUid = ''
-            igJson = json.loads(ig.text)
-            for i in igJson['items']:
-                if i['name'] == nmsInstanceGroup:
-                    igUid = i['uid']
+            igUid = Contrib.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                                                            nmsPassword=nmsPassword, instanceGroupName=nmsInstanceGroup)
 
             # Invalid instance group
-            if igUid == '':
+            if igUid is None:
                 return JSONResponse(
                     status_code=404,
                     content={"code": 404, "details": f"instance group {nmsInstanceGroup} not found"},
                     headers={'Content-Type': 'application/json'}
                 )
 
-            # Staged configuration publish to NGINX Management Suite
-            stagedConfigPayload = json.dumps(stagedConfig)
+            ### NGINX App Protect policies support - commits policies to control plane
 
-            # Publish staged config to instance group
+            # Check NGINX App Protect WAF policies configuration sanity
+            status, description = Contrib.NAPUtils.checkDeclarationPolicies(d)
+
+            if status != 200:
+                return JSONResponse(
+                    status_code=422,
+                    content={"code": status,
+                             "details": description}
+                )
+
+            # Provision NGINX App Protect WAF policies to NGINX Management Suite
+            provisionedNapPolicies, activePolicyUids = Contrib.NAPUtils.provisionPolicies(
+                nmsUrl=nmsUrl, nmsUsername=nmsUsername,nmsPassword=nmsPassword, declaration=d)
+
+            ### / NGINX App Protect policies support
+
+            ### Publish staged config to instance group
             r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
-                              data=stagedConfigPayload,
+                              data=json.dumps(stagedConfig),
                               headers={'Content-Type': 'application/json'},
                               auth=(nmsUsername, nmsPassword),
                               verify=False)
 
             if r.status_code != 202:
+                # Configuration push failed
                 return JSONResponse(
                     status_code=r.status_code,
                     content={"code": r.status_code, "details": r.text},
                     headers={'Content-Type': 'application/json'}
                 )
 
-            # Fetches the deployment status
+            # Fetch the deployment status
             publishResponse = json.loads(r.text)
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
             deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
@@ -446,9 +436,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     # ncg.apiversion.[configUid] = ncg API version
                     # ncg.status.[configUid] = latest status
 
-                    NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
-                    NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
-                    NcgRedis.redis.set('ncg.apiversion.' + configUid, apiversion)
+                    NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+                    NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+                    NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+
+                # Makes NGINX App Protect policies active
+                Contrib.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
+                                                  activePolicyUids=activePolicyUids, instanceGroupUid=igUid)
+
+                # Clean up NGINX App Protect WAF policies not used anymore
+                # and not defined in the declaration just pushed
+                time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+                Contrib.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                                                      nmsPassword=nmsPassword,
+                                                      currentPolicies=provisionedNapPolicies)
 
                 # If deploying a new configuration in GitOps mode start autosync
                 if nmsSynctime > 0 and runfromautosync == False:
@@ -468,9 +469,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             # Configuration push completed, update redis keys
             if configUid != "":
                 # Updates status, declaration and basestagedconfig in redis
-                NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
-                NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
-                NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
+                NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent))
+                NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+                NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
 
             return JSONResponse(
                 status_code=deploymentCheck.status_code,
@@ -486,4 +487,4 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
 
 def putconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
-    return JSONResponse(status_code=418,content={"message":"WORK IN PROGRESS"})
+    return JSONResponse(status_code=418, content={"message": "WORK IN PROGRESS"})

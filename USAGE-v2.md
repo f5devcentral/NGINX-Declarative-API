@@ -7,7 +7,7 @@ Version 2 API requires:
 - NGINX App Protect Policy Compiler 4.2.0+
 - NGINX Plus instances running App Protect WAF 4.2.0+ using `precompiled_publication: true` in `/etc/nginx-agent/nginx-agent.conf`
 
-The JSON schema is self explainatory. See also the [sample Postman collection](/postman)
+The JSON schema is self explainatory. See also the [sample Postman collection](/contrib/postman)
 
 - `.output.type` defines how NGINX configuration will be returned:
   - *plaintext* - plaintext format

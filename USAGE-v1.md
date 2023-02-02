@@ -1,6 +1,6 @@
 # Usage for API v1
 
-The JSON schema is self explainatory. See also the [sample Postman collection](/postman)
+The JSON schema is self explainatory. See also the [sample Postman collection](/contrib/postman)
 
 - `.output.type` defines how NGINX configuration will be returned:
   - *plaintext* - plaintext format

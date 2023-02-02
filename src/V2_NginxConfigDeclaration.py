@@ -128,7 +128,7 @@ class Output(BaseModel, extra=Extra.forbid):
 
     @root_validator()
     def check_type(cls, values):
-        _type, json, configmap, http, nms = values.get('type'), values.get('json'), values.get('configmap'), values.get(
+        _type, configmap, http, nms = values.get('type'), values.get('configmap'), values.get(
             'http'), values.get('nms')
 
         valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
@@ -137,7 +137,7 @@ class Output(BaseModel, extra=Extra.forbid):
 
         isError = False
         if _type == 'plaintext' or _type == 'json':
-            if json is not None or configmap is not None or http is not None or nms is not None:
+            if configmap is not None or http is not None or nms is not None:
                 isError = True
         elif _type == 'configmap' and not (configmap is not None and http is None and nms is None):
             isError = True
@@ -214,8 +214,8 @@ class AppProtectLog(BaseModel, extra=Extra.forbid):
 
 class AppProtect(BaseModel, extra=Extra.forbid):
     enabled: Optional[bool] = False
-    policy: str
-    log: AppProtectLog
+    policy: str = ""
+    log: AppProtectLog = ""
 
 
 class Location(BaseModel, extra=Extra.forbid):
@@ -225,7 +225,7 @@ class Location(BaseModel, extra=Extra.forbid):
     caching: Optional[str]
     rate_limit: Optional[RateLimit]
     health_check: Optional[HealthCheck]
-    app_protect: Optional[AppProtect] = None
+    app_protect: Optional[AppProtect] = []
     snippet: Optional[str]
 
     @root_validator()
@@ -242,16 +242,16 @@ class Location(BaseModel, extra=Extra.forbid):
 class Server(BaseModel, extra=Extra.forbid):
     name: str
     names: List[str]
-    listen: Optional[Listen] = None
-    log: Optional[Log] = None
+    listen: Optional[Listen] = []
+    log: Optional[Log] = []
     locations: Optional[List[Location]] = []
-    app_protect: Optional[AppProtect] = None
+    app_protect: Optional[AppProtect] = []
     snippet: Optional[str]
 
 
 class L4Server(BaseModel, extra=Extra.forbid):
     name: str
-    listen: Optional[ListenL4] = None
+    listen: Optional[ListenL4] = []
     upstream: Optional[str]
     snippet: Optional[str]
 
@@ -286,7 +286,7 @@ class L4Origin(BaseModel, extra=Extra.forbid):
 class Upstream(BaseModel, extra=Extra.forbid):
     name: str
     origin: List[Origin]
-    sticky: Optional[Sticky] = None
+    sticky: Optional[Sticky]
     snippet: Optional[str] = ""
 
 
@@ -336,6 +336,7 @@ class MapEntry(BaseModel, extra=Extra.forbid):
 
         return values
 
+
 class Map(BaseModel, extra=Extra.forbid):
     match: str
     variable: str
@@ -358,8 +359,8 @@ class Http(BaseModel, extra=Extra.forbid):
 
 
 class Declaration(BaseModel, extra=Extra.forbid):
-    layer4: Optional[Layer4]
-    http: Optional[Http]
+    layer4: Optional[Layer4] = []
+    http: Optional[Http] = []
 
 
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
