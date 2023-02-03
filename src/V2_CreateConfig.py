@@ -39,8 +39,12 @@ def getuniqueid():
 def configautosync(configUid):
     print("Autosyncing configuid [" + configUid + "]")
 
-    declaration = pickle.loads(NcgRedis.redis.get('ncg.declaration.' + configUid))
-    apiversion = NcgRedis.redis.get('ncg.apiversion.' + configUid).decode()
+    declaration = ''
+    declFromRedis = NcgRedis.redis.get(f'ncg.declaration.{configUid}')
+
+    if declFromRedis is not None:
+        declaration = pickle.loads(declFromRedis)
+    apiversion = NcgRedis.redis.get(f'ncg.apiversion.{configUid}').decode()
 
     createconfig(declaration=declaration, apiversion=apiversion, runfromautosync=True, configUid=configUid)
 
@@ -57,9 +61,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     d = declaration.dict()
     decltype = d['output']['type']
 
-    if d['declaration']['http'] is not None:
-
-        if d['declaration']['http']['snippet'] is not None:
+    if 'http' in d['declaration']:
+        if 'snippet' in d['declaration']['http']:
             status, snippet = Contrib.GitOps.getObjectFromRepo(d['declaration']['http']['snippet'])
 
             if status != 200:
@@ -74,40 +77,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Check HTTP upstreams validity
         all_upstreams = []
         http = d['declaration']['http']
-        for i in range(len(http['upstreams'])):
 
-            upstream = http['upstreams'][i]
+        if 'upstreams' in http:
+            for i in range(len(http['upstreams'])):
 
-            if upstream['snippet'] is not None:
-                status, snippet = Contrib.GitOps.getObjectFromRepo(upstream['snippet'])
+                upstream = http['upstreams'][i]
 
-                if status != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": status,
-                                 "details": snippet}
-                    )
-
-                d['declaration']['http']['upstreams'][i]['snippet'] = snippet
-
-            all_upstreams.append(http['upstreams'][i]['name'])
-
-        for server in d['declaration']['http']['servers']:
-            if server['snippet'] is not None:
-                status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
-
-                if status != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": status,
-                                 "details": snippet}
-                    )
-
-                server['snippet'] = snippet
-
-            for loc in server['locations']:
-                if loc['snippet'] is not None:
-                    status, snippet = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
+                if upstream['snippet'] is not None:
+                    status, snippet = Contrib.GitOps.getObjectFromRepo(upstream['snippet'])
 
                     if status != 200:
                         return JSONResponse(
@@ -116,58 +93,93 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                      "details": snippet}
                         )
 
-                    loc['snippet'] = snippet
+                    d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
-                if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
-                    return JSONResponse(
+                all_upstreams.append(http['upstreams'][i]['name'])
 
-                        status_code=422,
-                        content={"code": 422, "details": "invalid HTTP upstream " + loc['upstream']}
-                    )
+        if 'servers' in d['declaration']['http']:
+            for server in d['declaration']['http']['servers']:
+                if server['snippet'] is not None:
+                    status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status,
+                                     "details": snippet}
+                        )
+
+                    server['snippet'] = snippet
+
+                for loc in server['locations']:
+                    if loc['snippet'] is not None:
+                        status, snippet = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
+
+                        if status != 200:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"code": status,
+                                         "details": snippet}
+                            )
+
+                        loc['snippet'] = snippet
+
+                    if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
+                        return JSONResponse(
+
+                            status_code=422,
+                            content={"code": 422, "details": "invalid HTTP upstream " + loc['upstream']}
+                        )
 
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
         http = d['declaration']['http']
-        if http['rate_limit'] is not None:
-            for i in range(len(http['rate_limit'])):
-                all_ratelimits.append(http['rate_limit'][i]['name'])
 
-            for server in d['declaration']['http']['servers']:
-                for loc in server['locations']:
-                    if loc['rate_limit'] is not None:
-                        if loc['rate_limit']['profile'] not in all_ratelimits:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422,
-                                         "details": "invalid rate_limit profile " + loc['rate_limit']['profile']}
-                            )
+        if 'rate_limit' in http:
+            if http['rate_limit'] is not None:
+                for i in range(len(http['rate_limit'])):
+                    all_ratelimits.append(http['rate_limit'][i]['name'])
 
-    if d['declaration']['layer4'] is not None:
+                for server in d['declaration']['http']['servers']:
+                    for loc in server['locations']:
+                        if loc['rate_limit'] is not None:
+                            if loc['rate_limit']['profile'] not in all_ratelimits:
+                                return JSONResponse(
+                                    status_code=422,
+                                    content={"code": 422,
+                                             "details": "invalid rate_limit profile " + loc['rate_limit']['profile']}
+                                )
+
+    if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
         all_upstreams = []
+
         layer4 = d['declaration']['layer4']
-        for i in range(len(layer4['upstreams'])):
-            all_upstreams.append(layer4['upstreams'][i]['name'])
 
-        for server in d['declaration']['layer4']['servers']:
+        if 'upstreams' in layer4:
+            for i in range(len(layer4['upstreams'])):
+                all_upstreams.append(layer4['upstreams'][i]['name'])
 
-            if server['snippet'] is not None:
-                status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+        if 'servers' in d['declaration']['layer4']:
+            for server in d['declaration']['layer4']['servers']:
 
-                if status != 200:
+                if server['snippet'] is not None:
+                    status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status,
+                                     "details": snippet}
+                        )
+
+                    server['snippet'] = snippet
+
+                if 'upstream' in server and server['upstream'] not in all_upstreams:
                     return JSONResponse(
                         status_code=422,
-                        content={"code": status,
-                                 "details": snippet}
+                        content={"code": 422, "details": "invalid Layer4 upstream " + server['upstream']}
                     )
-
-                server['snippet'] = snippet
-
-            if 'upstream' in server and server['upstream'] not in all_upstreams:
-                return JSONResponse(
-                    status_code=422,
-                    content={"code": 422, "details": "invalid Layer4 upstream " + server['upstream']}
-                )
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
@@ -183,6 +195,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     if decltype.lower() == "plaintext":
         # Plaintext output
         return httpConf + streamConf
+
     elif decltype.lower() == "json" or decltype.lower() == 'http':
         # JSON-wrapped b64-encoded output
         payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
@@ -218,6 +231,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 content=r.text,
                 headers=r.headers
             )
+
     elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
         cmHttp = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
@@ -240,6 +254,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                                               'namespace'])
 
         return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
+
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
         nmsUrl = d['output']['nms']['url']
@@ -250,35 +265,53 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
+        # Fetch NGINX App Protect WAF policies from source of truth if needed
+        if 'policies' in d['output']['nms']:
+            for policy in d['output']['nms']['policies']:
+                if 'versions' in policy:
+                    for policyVersion in policy['versions']:
+                        status, content = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
+
+                        if status != 200:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"code": status,
+                                         "details": content}
+                            )
+
+                        policyVersion['contents'] = content
+
         # Check TLS items validity
         certs = d['output']['nms']['certificates']
         all_tls = {'certificate': {}, 'key': {}, 'chain': {}}
         for i in range(len(certs)):
             all_tls[certs[i]['type']][certs[i]['name']] = True
 
-        if d['declaration']['http'] is not None:
-            if d['declaration']['http']['servers'] is not None:
+        if 'http' in d['declaration']:
+            if 'servers' in d['declaration']['http']:
                 for server in d['declaration']['http']['servers']:
-                    if server['listen']['tls'] is not None:
-                        cert_name = server['listen']['tls']['certificate']
-                        if cert_name not in all_tls['certificate']:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422,
-                                         "details": "invalid TLS certificate " + cert_name + " for server" + str(
-                                             server['names'])}
-                            )
+                    if 'tls' in server['listen']:
+                        if 'certificate' in server['listen']['tls']:
+                            cert_name = server['listen']['tls']['certificate']
+                            if cert_name not in all_tls['certificate']:
+                                return JSONResponse(
+                                    status_code=422,
+                                    content={"code": 422,
+                                             "details": "invalid TLS certificate " + cert_name + " for server" + str(
+                                                 server['names'])}
+                                )
 
-                        cert_key = server['listen']['tls']['key']
-                        if cert_key not in all_tls['key']:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": 422,
-                                         "details": "invalid TLS key " + cert_key + " for server" + str(
-                                             server['names'])}
-                            )
+                        if 'key' in server['listen']['tls']:
+                            cert_key = server['listen']['tls']['key']
+                            if cert_key not in all_tls['key']:
+                                return JSONResponse(
+                                    status_code=422,
+                                    content={"code": 422,
+                                             "details": "invalid TLS key " + cert_key + " for server" + str(
+                                                 server['names'])}
+                                )
 
-                        if server['listen']['tls']['chain'] is not None:
+                        if 'chain' in server['listen']['tls']:
                             cert_chain = server['listen']['tls']['chain']
                             if cert_chain not in all_tls['chain']:
                                 return JSONResponse(
@@ -345,13 +378,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
                         'ignoreConflict': True, 'validateConfig': False}
 
-        redisBaseStagedConfig = NcgRedis.redis.get('ncg.basestagedconfig.' + configUid)
+        redisBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}')
+        redisDeclarationRendered = NcgRedis.redis.get(f'ncg.declarationrendered.{configUid}')
 
-        if redisBaseStagedConfig is not None and json.dumps(baseStagedConfig) == redisBaseStagedConfig.decode('utf-8'):
-            print(f'Staged config [{configUid}] not changed')
+        #if redisBaseStagedConfig is not None and json.dumps(baseStagedConfig) == redisBaseStagedConfig.decode('utf-8'):
+        if redisDeclarationRendered is not None and json.dumps(d) == redisDeclarationRendered.decode('utf-8'):
+                print(f'Configuration [{configUid}] not changed')
         else:
             # Configuration objects have changed, publish to NIM needed
-            print(f'Staged config [{configUid}] changed, publishing to NMS')
+            print(f'Configuration [{configUid}] changed, publishing to NMS')
 
             # Retrieve instance group uid
             ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
@@ -425,18 +460,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 # Staged config publish to NIM succeeded
                 jsonResponse = json.loads(deploymentCheck.text)
 
-                if configUid == "":
+                if nmsSynctime > 0 and runfromautosync == False:
                     # No configuration is found, generate one
                     configUid = str(getuniqueid())
 
                     # Stores the staged config to redis
                     # Redis keys:
                     # ncg.declaration.[configUid] = original config declaration
+                    # ncg.declarationrendered.[configUid] = original config declaration - rendered
                     # ncg.basestagedconfig.[configUid] = base staged configuration
                     # ncg.apiversion.[configUid] = ncg API version
                     # ncg.status.[configUid] = latest status
 
                     NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+                    NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
                     NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
                     NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
@@ -460,18 +497,25 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # Keep track of GitOps configs, key is the threaded job
                     NcgRedis.declarationsList[configUid] = job
-                else:
-                    # Keep track of non-GitOps configs, key is "static"
-                    NcgRedis.declarationsList[configUid] = "static"
+
+                    NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+                    NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+                    NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
+                    NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
 
             responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
 
             # Configuration push completed, update redis keys
-            if configUid != "":
+            if nmsSynctime > 0:
+                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+
                 # Updates status, declaration and basestagedconfig in redis
-                NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent))
-                NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-                NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+                NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
+                NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
+                NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
+                NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
+            else:
+                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse}
 
             return JSONResponse(
                 status_code=deploymentCheck.status_code,

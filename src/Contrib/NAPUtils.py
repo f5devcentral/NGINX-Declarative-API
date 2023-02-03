@@ -241,11 +241,13 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
     allNMSPolicies = __getAllPolicies__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword)
     allNMSPoliciesJson = json.loads(allNMSPolicies.text)
 
-    # Build a list of all uids for policies currently available on the control plane
+    # Build a list of all uids for policies currently available on the control plane whose names match
+    # currentPolicies (policies that have just been pushed to data plane)
     allUidsOnNMS = []
     for p in allNMSPoliciesJson['items']:
         #print(f"==> {p['metadata']['uid']}")
-        allUidsOnNMS.append(p['metadata']['uid'])
+        if p['metadata']['name'] in currentPolicies:
+            allUidsOnNMS.append(p['metadata']['uid'])
 
     allCurrentPoliciesUIDs = []
     for policyName in currentPolicies:

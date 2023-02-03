@@ -119,15 +119,17 @@ def delete_config(configuid: str):
 
         job = redis.declarationsList[configuid]
 
+        redis.declarationsList.pop(configuid, None)
+        redis.redis.delete('ncg.declaration.' + configuid)
+        redis.redis.delete('ncg.declarationrendered.' + configuid)
+        redis.redis.delete('ncg.apiversion.' + configuid)
+        redis.redis.delete('ncg.status.' + configuid)
+        redis.redis.delete('ncg.basestagedconfig.' + configuid)
+
+        schedule.cancel_job(job)
         if job != "static":
             # Kills autosync GitOps config thread
             schedule.cancel_job(job)
-
-        redis.declarationsList.pop(configuid, None)
-        redis.redis.delete('ncg.declaration.'+configuid)
-        redis.redis.delete('ncg.apiversion.'+configuid)
-        redis.redis.delete('ncg.status.'+configuid)
-        redis.redis.delete('ncg.basestagedconfig.'+configuid)
 
         return JSONResponse(
             status_code=200,

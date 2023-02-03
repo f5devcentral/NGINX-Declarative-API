@@ -153,8 +153,8 @@ class Output(BaseModel, extra=Extra.forbid):
 
 
 class Tls(BaseModel, extra=Extra.forbid):
-    certificate: str
-    key: str
+    certificate: str = ""
+    key: str = ""
     chain: Optional[str]
     ciphers: Optional[str]
     protocols: Optional[List[str]] = ["TLSv1.3"]
@@ -163,13 +163,13 @@ class Tls(BaseModel, extra=Extra.forbid):
 class Listen(BaseModel, extra=Extra.forbid):
     address: Optional[str]
     http2: Optional[bool]
-    tls: Optional[Tls]
+    tls: Optional[Tls] = []
 
 
 class ListenL4(BaseModel, extra=Extra.forbid):
     address: Optional[str]
     protocol: Optional[str] = "tcp"
-    tls: Optional[Tls] = None
+    tls: Optional[Tls] = []
 
     @root_validator()
     def check_type(cls, values):
