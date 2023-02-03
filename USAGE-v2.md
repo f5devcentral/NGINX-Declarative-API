@@ -28,7 +28,7 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
     - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
       - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nms.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
-      - `.output.nms.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically
+      - `.output.nms.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
     - `.output.nms.policies[]` an optional array of NGINX App Protect security policies
       - `.output.nms.policies[].type` the policy type ('app_protect')
       - `.output.nms.policies[].name` the policy name (ie. 'prod-policy')
@@ -37,7 +37,7 @@ The JSON schema is self explainatory. See also the [sample Postman collection](/
       - `.output.nms.policies[].versions[].tag` the policy version's tag name
       - `.output.nms.policies[].versions[].displayName` the policy version's display name
       - `.output.nms.policies[].versions[].description` the policy version's description
-      - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically
+      - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
 - `.declaration` describes the NGINX configuration to be created.
 
 ### Locations ###
@@ -64,7 +64,7 @@ A sample Postman collection can be found [here](/postman)
 
 Snippets for http, upstream, server and location can be specified as:
 - base64-encoded content
-- HTTP(S) URL of a source of truth/repository to fetch snippet content from. Content on the source of truth must be plaintext, it will be automatically base64-encoded 
+- HTTP(S) URL of a source of truth to fetch snippet content from. Content on the source of truth must be plaintext, it will be automatically base64-encoded 
 
 ### Sample declaration ###
 
