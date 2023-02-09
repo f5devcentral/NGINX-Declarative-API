@@ -15,7 +15,7 @@ services:
       - redis_data:/data:rw
 
   nginx-dapi:
-    image: fiorucci/nginx-declarative-api:latest
+    image: fiorucci/nginx-declarative-api:v1
     user: "${USERID}:${USERGROUP}"
     container_name: "nginx-dapi"
     restart: always
