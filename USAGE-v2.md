@@ -1,4 +1,4 @@
-# Usage for API v2 - beta release
+# Usage for API v2
 
 Version 2 API requires:
 - NGINX Instance Manager 2.8.0+
@@ -58,7 +58,6 @@ Map entries `.declaration.maps[].entries.keymatch` can be:
 - *regex* - case sensitive regex matching
 - *iregex* - case insensitive regex matching
 
-A sample Postman collection can be found [here](/postman)
 
 ### Snippets ###
 
@@ -70,8 +69,14 @@ Snippets for http, upstream, server and location can be specified as:
 
 - `POST /v2/config/` - Publish a new declaration
 - `PATCH /v2/config/{config_uid}` - Update an existing declaration
+  - Per-HTTP server CRUD
+  - Per-HTTP upstream CRUD
+  - Per-Stream server CRUD
+  - Per-Stream upstream CRUD
 - `GET /v2/config/{config_uid}` - Retrieve an existing declaration
 - `DELETE /v2/config/{config_uid}` - Delete an existing declaration
+
+A sample Postman collection is available [here](/postman)
 
 ### Sample declaration ###
 

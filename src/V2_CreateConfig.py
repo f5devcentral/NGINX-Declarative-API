@@ -158,7 +158,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     server['snippet'] = snippet
 
-                if 'upstream' in server and server['upstream'] not in all_upstreams:
+                if 'upstream' in server and server['upstream'] and server['upstream'] not in all_upstreams:
                     return {"status_code": 422,
                             "message": {
                                 "status_code": status,
@@ -504,20 +504,37 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
 
     # Handles declaration updates
     if 'declaration' in declarationToPatch:
+        # HTTP
         if 'http' in declarationToPatch['declaration']:
             if 'upstreams' in declarationToPatch['declaration']['http']:
-                # Upstream patch
+                # HTTPu pstream patch
                 for u in declarationToPatch['declaration']['http']['upstreams']:
                     # print(f"Patching HTTP upstream [{u['name']}]")
                     currentDeclaration = Contrib.DeclarationPatcher.patchHttpUpstream(
                         sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
 
             if 'servers' in declarationToPatch['declaration']['http']:
-                # Servers patch
+                # HTTP servers patch
                 for s in declarationToPatch['declaration']['http']['servers']:
                     # print(f"Patching HTTP server [{s['name']}]")
                     currentDeclaration = Contrib.DeclarationPatcher.patchHttpServer(
                         sourceDeclaration=currentDeclaration, patchedHttpServer=s)
+
+        # Stream / Layer4
+        if 'layer4' in declarationToPatch['declaration']:
+            if 'upstreams' in declarationToPatch['declaration']['layer4']:
+                # Stream upstream patch
+                for u in declarationToPatch['declaration']['layer4']['upstreams']:
+                    # print(f"Patching Stream upstream [{u['name']}]")
+                    currentDeclaration = Contrib.DeclarationPatcher.patchStreamUpstream(
+                        sourceDeclaration=currentDeclaration, patchedStreamUpstream=u)
+
+            if 'servers' in declarationToPatch['declaration']['layer4']:
+                # Stream servers patch
+                for s in declarationToPatch['declaration']['layer4']['servers']:
+                    # print(f"Patching Stream server [{s['name']}]")
+                    currentDeclaration = Contrib.DeclarationPatcher.patchStreamServer(
+                        sourceDeclaration=currentDeclaration, patchedStreamServer=s)
 
     # Apply the updated declaration
     configDeclaration = ConfigDeclaration.parse_raw(json.dumps(currentDeclaration))

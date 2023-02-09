@@ -83,7 +83,7 @@ def get_config_declaration(configuid: str):
     if status_code == 404:
         return JSONResponse(
             status_code=404,
-            content={'code': 404, 'details': {'message': f'declaration {configUid} not found'}},
+            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
             headers={'Content-Type': 'application/json'}
         )
 

@@ -76,12 +76,12 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature | API v1 | API v2 (beta release)                                                             | Notes |
+| Feature | API v1 | API v2                                                                            | Notes |
 | --------| ------ |-----------------------------------------------------------------------------------| ----- |
-| Upstreams | X | X                                                                                 | Snippets supported: static and from source of truth |
-| HTTP servers | X | X                                                                                 | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers | X | X                                                                                 | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
-| TLS | X | X                                                                                 | Certificates, keys, chains can be dynamically fetched from source of truth |
+| Upstreams | X | Per-upstream CRUD                                                                 | Snippets supported: static and from source of truth |
+| HTTP servers | X | Per-server CRUD                                                                   | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers | X | Per-server CRUD                                                                   | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
+| TLS | X | Per-TLS configuration CRUD                                                        | Certificates, keys, chains can be dynamically fetched from source of truth |
 | Rate limiting | X | X                                                                                 | |
 | Active healthchecks | X | X                                                                                 | |
 | Cookie-based stickiness | X | X                                                                                 | |

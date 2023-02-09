@@ -4,6 +4,8 @@
 
 {% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
+{% if u.name %}
+{% if u.origin %}
 upstream {{ u.name }} {
     zone {{ u.name }} 64k;
     {% for o in u.origin -%}
@@ -13,6 +15,8 @@ upstream {{ u.name }} {
     {% if u.snippet %}{{ u.snippet }}{% endif %}
 
 }
+{% endif %}
+{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -20,16 +24,21 @@ upstream {{ u.name }} {
 {# --- Stream server section --- #}
 
 {% for s in declaration.servers %}
+    {%- if s.listen %}
+    {%- if s.listen.address %}
 server {
-    {% if s.listen -%}
     listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %};
-    {% endif %}
-
     status_zone {{ s.listen.address }}{% if s.listen.protocol == "udp" %}-{{ s.listen.protocol }}{% endif %};
+    {% endif -%}
+    {% endif -%}
+
 
     {# --- TLS section --- #}
     {%- if s.listen.tls -%}
+    {%- if s.listen.tls.certificate -%}
     ssl_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.certificate }}.crt;
+    {% endif -%}
+    {%- if s.listen.tls.key -%}
     ssl_certificate_key {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.key }}.key;
     {% endif -%}
     {% if s.listen.tls.chain -%}
@@ -41,13 +50,19 @@ server {
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
     {% endif %}
+    {% endif -%}
 
-    {% if s.upstream -%}
+    {%- if s.upstream -%}
     proxy_pass {{ s.upstream }};
-    {% endif %}
+    {% endif -%}
 
     {% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
 
-}
+    {%- if s.listen %}
+    {%- if s.listen.address %}
 
-{% endfor %}
+}
+    {% endif -%}
+    {% endif -%}
+
+{%- endfor %}
