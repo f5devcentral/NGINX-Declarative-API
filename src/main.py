@@ -50,41 +50,51 @@ def post_config_v1(d: V1_NginxConfigDeclaration.ConfigDeclaration, response: Res
     return V1_CreateConfig.createconfig(declaration=d, apiversion='v1')
 
 
-# Submit a declaration using v2 API
+# Get declaration - v1 API
+@app.get("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def get_config_declaration(configuid: str):
+    return V1_CreateConfig.get_config(configUid=configuid)
+
+
+# Submit declaration using v2 API
 @app.post("/v2/config", status_code=200, response_class=PlainTextResponse)
 def post_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    return V2_CreateConfig.createconfig(declaration=d, apiversion='v2')
+    output = V2_CreateConfig.createconfig(declaration=d, apiversion='v2')
+
+    headers = output['headers'] if 'headers' in output else {'Content-Type': 'application/json'}
+
+    if type(output) is str:
+        return output
+
+    return JSONResponse(content=output['message']['message'], status_code=output['status_code'], headers=headers)
 
 
-# Modify a declaration using v2 API
-@app.put("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def put_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    return V2_CreateConfig.putconfig(declaration=d, apiversion='v2')
+# Modify eclaration using v2 API
+@app.patch("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def patch_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
+    return V2_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v2')
 
 
-# Get a Gitops declaration
-@app.get("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+# Get declaration - v2 API
 @app.get("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def get_config_declaration(configuid: str):
-    cfg = redis.redis.get('ncg.declaration.' + configuid)
+    status_code, content = V2_CreateConfig.get_declaration(configUid=configuid)
 
-    if cfg is None:
+    if status_code == 404:
         return JSONResponse(
             status_code=404,
-            content={'code': 404, 'details': {'message': f'configuration {configuid} not found'}},
-            headers={'Content-Type': 'application/json'}
-        )
-    else:
-        obj = pickle.loads(cfg)
-
-        return JSONResponse(
-            status_code=200,
-            content=obj.dict(),
+            content={'code': 404, 'details': {'message': f'declaration {configUid} not found'}},
             headers={'Content-Type': 'application/json'}
         )
 
+    return JSONResponse(
+        status_code=200,
+        content=content,
+        headers={'Content-Type': 'application/json'}
+    )
 
-# Get a Gitops declaration status
+
+# Get declaration status - v1 & v2 API
 @app.get("/v1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 @app.get("/v2/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
@@ -93,7 +103,7 @@ def get_config_status(configuid: str):
     if status is None:
         return JSONResponse(
             status_code=404,
-            content={'code': 404, 'details': {'message': f'configuration {configuid} not found'}},
+            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
             headers={'Content-Type': 'application/json'}
         )
     else:
@@ -103,39 +113,39 @@ def get_config_status(configuid: str):
             headers={'Content-Type': 'application/json'}
         )
 
-# Delete a Gitops declaration
+# Delete declaration - v1 & v2 API
 @app.delete("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def delete_config(configuid: str):
+def delete_config(configuid: str = ""):
 
     if configuid not in redis.declarationsList:
         return JSONResponse(
             status_code=404,
-            content={'code': 404, 'details': {'message': f'configuration {configuid} not found'}},
+            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
             headers={'Content-Type': 'application/json'}
         )
-    else:
-        print(f"Terminating autosync for configuid [{configuid}]")
 
-        job = redis.declarationsList[configuid]
+    job = redis.declarationsList[configuid]
 
-        redis.declarationsList.pop(configuid, None)
-        redis.redis.delete('ncg.declaration.' + configuid)
-        redis.redis.delete('ncg.declarationrendered.' + configuid)
-        redis.redis.delete('ncg.apiversion.' + configuid)
-        redis.redis.delete('ncg.status.' + configuid)
-        redis.redis.delete('ncg.basestagedconfig.' + configuid)
+    redis.declarationsList.pop(configuid, None)
+    redis.redis.delete('ncg.declaration.' + configuid)
+    redis.redis.delete('ncg.declarationrendered.' + configuid)
+    redis.redis.delete('ncg.apiversion.' + configuid)
+    redis.redis.delete('ncg.status.' + configuid)
+    redis.redis.delete('ncg.basestagedconfig.' + configuid)
 
+    if job != "static":
+        # Kills autosync GitOps config thread
+        print(f"Terminating autosync for declaration [{configuid}]")
         schedule.cancel_job(job)
-        if job != "static":
-            # Kills autosync GitOps config thread
-            schedule.cancel_job(job)
+    else:
+        print(f"Deleting declaration configuid [{configuid}]")
 
-        return JSONResponse(
-            status_code=200,
-            content={'code': 200, 'details': {'message': f'configuration {configuid} deleted'}},
-            headers={'Content-Type': 'application/json'}
-        )
+    return JSONResponse(
+        status_code=200,
+        content={'code': 200, 'details': {'message': f'declaration {configuid} deleted'}},
+        headers={'Content-Type': 'application/json'}
+    )
 
 
 if __name__ == '__main__':

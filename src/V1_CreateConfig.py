@@ -588,3 +588,23 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             status_code=422,
             content={"message": f"output type {decltype} unknown"}
         )
+
+
+# Gets the given declaration
+def get_config(configUid: str):
+    cfg = NcgRedis.redis.get('ncg.declaration.' + configUid)
+
+    if cfg is None:
+        return JSONResponse(
+            status_code=404,
+            content={'code': 404, 'details': {'message': f'declaration {configUid} not found'}},
+            headers={'Content-Type': 'application/json'}
+        )
+    else:
+        obj = pickle.loads(cfg)
+
+        return JSONResponse(
+            status_code=200,
+            content=obj.dict(),
+            headers={'Content-Type': 'application/json'}
+        )

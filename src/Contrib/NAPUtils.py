@@ -84,10 +84,13 @@ def checkDeclarationPolicies(declaration: dict):
     # { 'policyName': 'activeTag', ... }
     allPolicyNames = {}
 
+    if 'policies' not in declaration['output']['nms']:
+        return 200, ""
+
     for policy in declaration['output']['nms']['policies']:
         #print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
 
-        if policy['name'] in allPolicyNames:
+        if policy['name'] and policy['name'] in allPolicyNames:
             return 422, f"Duplicated NGINX App Protect WAF policy [{policy['name']}]"
 
         allPolicyNames[policy['name']] = policy['active_tag']
@@ -96,24 +99,27 @@ def checkDeclarationPolicies(declaration: dict):
         allPolicyVersionTags = {}
         for policyVersion in policy['versions']:
             #print(f"--> Policy [{policy['name']}] tag [{policyVersion['tag']}]")
-            if policyVersion['tag'] in allPolicyVersionTags:
+            if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
                 return 422, f"Duplicated NGINX App Protect WAF policy tag [{policyVersion['tag']}] " \
                             f"for policy [{policy['name']}]"
 
             allPolicyVersionTags[policyVersion['tag']] = "found"
 
-        if policy['active_tag'] not in allPolicyVersionTags:
+        if policy['active_tag'] and policy['active_tag'] not in allPolicyVersionTags:
             return 422, f"Invalid active tag [{policy['active_tag']}] for policy [{policy['name']}]"
 
     # Check policy names referenced by the declaration inside HTTP servers[]: they must be valid
     if 'servers' in declaration['declaration']['http']:
         for httpServer in declaration['declaration']['http']['servers']:
             if 'app_protect' in httpServer:
-                if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] not in allPolicyNames:
+                if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] \
+                        and httpServer['app_protect']['policy'] not in allPolicyNames:
                     return 422, f"Unknown NGINX App Protect WAF policy [{httpServer['app_protect']['policy']}] " \
                                 f"referenced by HTTP server [{httpServer['name']}]"
 
-                if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log']['profile_name'] \
+                if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
+                        and httpServer['app_protect']['log']['profile_name'] \
+                        and httpServer['app_protect']['log']['profile_name'] \
                         not in available_log_profiles:
                     return 422, f"Invalid NGINX App Protect WAF log profile " \
                                 f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
@@ -122,11 +128,14 @@ def checkDeclarationPolicies(declaration: dict):
             # Check policy names referenced in HTTP servers[].locations[]
             for location in httpServer['locations']:
                 if 'app_protect' in location:
-                    if 'policy' in location['app_protect'] and location['app_protect']['policy'] not in allPolicyNames:
+                    if 'policy' in location['app_protect'] and location['app_protect']['policy'] \
+                            and location['app_protect']['policy'] not in allPolicyNames:
                         return 422, f"Unknown NGINX App Protect WAF policy [{location['app_protect']['policy']}] " \
                                     f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}]"
 
-                    if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log']['profile_name'] \
+                    if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
+                            and httpServer['app_protect']['log']['profile_name'] \
+                            and httpServer['app_protect']['log']['profile_name'] \
                             not in available_log_profiles:
                         return 422, f"Invalid NGINX App Protect WAF log profile " \
                                     f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
@@ -155,51 +164,52 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
 
     for p in declaration['output']['nms']['policies']:
         policy_name = p['name']
-        policy_active_tag = p['active_tag']
+        if policy_name:
+            policy_active_tag = p['active_tag']
 
-        # Iterates over all NGINX App Protect policies
-        if p['type'] == 'app_protect':
-            # Iterates over all policy versions
-            for policyVersion in p['versions']:
-                status, policyBody = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
+            # Iterates over all NGINX App Protect policies
+            if p['type'] == 'app_protect':
+                # Iterates over all policy versions
+                for policyVersion in p['versions']:
+                    status, policyBody = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
 
-                if status != 200:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": status,
-                                 "details": policyBody}
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status,
+                                     "details": policyBody}
+                        )
+
+                    # Create the NGINX App Protect policy on NMS
+                    r = __definePolicyOnNMS__(
+                        nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
+                        policyName=policy_name,
+                        policyDisplayName=policyVersion['displayName'],
+                        policyDescription=policyVersion['description'],
+                        policyJson=policyBody
                     )
 
-                # Create the NGINX App Protect policy on NMS
-                r = __definePolicyOnNMS__(
-                    nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
-                    policyName=policy_name,
-                    policyDisplayName=policyVersion['displayName'],
-                    policyDescription=policyVersion['description'],
-                    policyJson=policyBody
-                )
+                    # Check for errors creating NGINX App Protect policy
+                    if r.status_code != 201:
+                        return JSONResponse(
+                            status_code=r.status_code,
+                            content={"code": r.status_code, "details": json.loads(r.text)}
+                        )
+                    else:
+                        # Policy was created, retrieve metadata.uid for each policy version
+                        if policy_name not in all_policy_names_and_versions:
+                            #print(f"=> Stored policy {policy_name}")
+                            all_policy_names_and_versions[policy_name] = []
 
-                # Check for errors creating NGINX App Protect policy
-                if r.status_code != 201:
-                    return JSONResponse(
-                        status_code=r.status_code,
-                        content={"code": r.status_code, "details": json.loads(r.text)}
-                    )
-                else:
-                    # Policy was created, retrieve metadata.uid for each policy version
-                    if policy_name not in all_policy_names_and_versions:
-                        #print(f"=> Stored policy {policy_name}")
-                        all_policy_names_and_versions[policy_name] = []
+                        # Stores the policy version
+                        uid = json.loads(r.text)['metadata']['uid']
+                        tag = policyVersion['tag']
 
-                    # Stores the policy version
-                    uid = json.loads(r.text)['metadata']['uid']
-                    tag = policyVersion['tag']
+                        if policy_active_tag == tag:
+                            all_policy_active_names_and_uids[policy_name] = uid
 
-                    if policy_active_tag == tag:
-                        all_policy_active_names_and_uids[policy_name] = uid
-
-                    all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
-                    #print(f"=> Stored policy [{policy_name}] tag [{tag}] uid [{uid}]")
+                        all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+                        #print(f"=> Stored policy [{policy_name}] tag [{tag}] uid [{uid}]")
 
     #print(f"=> All provisioned policies {all_policy_names_and_versions}")
     #print(f"=> All active uids {all_policy_active_names_and_uids}")
@@ -209,7 +219,10 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
 
 # Publish a NGINX App Protect WAF policy making it active
 # activePolicyUids is a dict { "policy_name": "active_uid", [...] }
+# Return True if at least one policy was enabled, False otherwise
 def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePolicyUids: dict, instanceGroupUid: str):
+    doWeHavePolicies = False
+
     for policyName in activePolicyUids:
         body = {
             "publications": [
@@ -227,10 +240,11 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
 
         #print(f"=> Activating policy [{policyName}] [{activePolicyUids[policyName]}]")
 
+        doWeHavePolicies = True
         requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
                       data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
 
-    return
+    return doWeHavePolicies
 
 
 # For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Management Suite
@@ -251,9 +265,10 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
 
     allCurrentPoliciesUIDs = []
     for policyName in currentPolicies:
-        #print(f"Found policy {policyName} => {currentPolicies[policyName]}")
-        for tag in currentPolicies[policyName]:
-            allCurrentPoliciesUIDs.append(tag['uid'])
+        if policyName:
+            #print(f"Found policy {policyName} => {currentPolicies[policyName]}")
+            for tag in currentPolicies[policyName]:
+                allCurrentPoliciesUIDs.append(tag['uid'])
 
     #print(f"{len(allUidsOnNMS)} NMS UIDS {allUidsOnNMS}")
     #print(f"{len(allCurrentPoliciesUIDs)} NEW UIDS {allCurrentPoliciesUIDs}")

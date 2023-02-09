@@ -555,11 +555,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -599,11 +595,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -643,11 +635,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -687,11 +675,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -736,11 +720,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -780,11 +760,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -824,11 +800,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -868,11 +840,7 @@
 											"listen": "test",
 											"script": {
 												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -999,6 +967,361 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Modify HTTP server",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"patched_server.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify HTTP upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.3:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.4:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.5:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify and add HTTP upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                }, {\n                    \"name\": \"test_upstream_added\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.1:80\"\n                        },\n                        {\n                            \"server\": \"192.168.1.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify and add HTTP server and upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"patched_server_v2.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_v2_log\",\n                        \"error\": \"/var/log/nginx/error_v2_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream_added\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream_added\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.100:80\",\n                            \"weight\": 5,\n                            \"max_fails\": 2,\n                            \"fail_timeout\": \"30s\",\n                            \"max_conns\": 3,\n                            \"slow_start\": \"30s\"\n                        },\n                        {\n                            \"server\": \"192.168.1.101:80\"\n                        },\n                        {\n                            \"server\": \"192.168.1.102:80\"\n                        },\n                        {\n                            \"server\": \"192.168.1.103:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove HTTP server and upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream_added\"\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get declaration status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}/status",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -1027,7 +1350,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 10,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"prod-policy\",\n                    \"active_tag\": \"xss-allowed\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                },\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"staging-policy\",\n                    \"active_tag\": \"xss-block\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-block\",\n                            \"displayName\": \"Staging Policy - blocking\",\n                            \"description\": \"Staging policy Staging - blocking\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0KICAgICAgICBdCiAgICB9Cn0K\"\n                        },\n                        {\n                            \"tag\": \"xss-ok\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        },\n                        {\n                            \"tag\": \"xss-extra\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"vm-test.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://sample-app\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"prod-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"sample-app\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 10,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"{{nim_instancegroup}}.prod-policy\",\n                    \"active_tag\": \"xss-blocked\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                },\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"{{nim_instancegroup}}.staging-policy\",\n                    \"active_tag\": \"xss-block\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-block\",\n                            \"displayName\": \"Staging Policy - blocking\",\n                            \"description\": \"Staging policy Staging - blocking\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0KICAgICAgICBdCiAgICB9Cn0K\"\n                        },\n                        {\n                            \"tag\": \"xss-ok\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        },\n                        {\n                            \"tag\": \"xss-extra\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"vm-test.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://sample-app\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"{{nim_instancegroup}}.prod-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"sample-app\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"

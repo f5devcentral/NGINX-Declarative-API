@@ -10,7 +10,7 @@ from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTi
 
 # Fetches a URL content
 def __fetchfromsourceoftruth__(url):
-    # Policy must be fetched from external repository
+    # Object is fetched from external repository
     try:
         reply = requests.get(url=url, verify=False)
     except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):
@@ -25,7 +25,7 @@ def __fetchfromsourceoftruth__(url):
 def getObjectFromRepo(content: str):
     status_code = 200
     if content.lower().startswith("http://") or content.lower().startswith("https://"):
-        # Policy is fetched from external repository
+        # Object is fetched from external repository
         status_code, content = __fetchfromsourceoftruth__(content)
 
         if status_code == 200:

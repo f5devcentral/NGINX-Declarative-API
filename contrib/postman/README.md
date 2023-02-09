@@ -12,6 +12,7 @@ API v1
 
 ---
 
-API v2 - alpha release
-- `Standard` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
-- `NMS Output` - Work in progress
+API v2 - beta release
+- `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
+- `Publish to NGINX Management Suite` - Sample requests for declarative configuration lifecycle management
+- `NGINX Management Suite GitOps Automation` - GitOps declaration automation examples

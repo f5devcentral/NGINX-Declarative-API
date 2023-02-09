@@ -27,6 +27,7 @@ from NcgRedis import NcgRedis
 import Contrib.NAPUtils
 import Contrib.GitOps
 import Contrib.NIMUtils
+import Contrib.DeclarationPatcher
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -49,6 +50,9 @@ def configautosync(configUid):
     createconfig(declaration=declaration, apiversion=apiversion, runfromautosync=True, configUid=configUid)
 
 
+# Create the given declarative configuration
+# Return a JSON string:
+# { "status_code": nnn, "headers": {}, "message": {} }
 def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
     # Building NGINX configuration for the given declaration
 
@@ -56,7 +60,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Pydantic JSON validation
         ConfigDeclaration(**declaration.dict())
     except ValidationError as e:
-        print(f'JSON declaration invalid {e}')
+        print(f'Invalid declaration {e}')
 
     d = declaration.dict()
     decltype = d['output']['type']
@@ -66,11 +70,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             status, snippet = Contrib.GitOps.getObjectFromRepo(d['declaration']['http']['snippet'])
 
             if status != 200:
-                return JSONResponse(
-                    status_code=422,
-                    content={"code": status,
-                             "details": snippet}
-                )
+                return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
 
             d['declaration']['http']['snippet'] = snippet
 
@@ -83,15 +83,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 upstream = http['upstreams'][i]
 
-                if upstream['snippet'] is not None:
+                if upstream['snippet']:
                     status, snippet = Contrib.GitOps.getObjectFromRepo(upstream['snippet'])
 
                     if status != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": status,
-                                     "details": snippet}
-                        )
+                        return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
 
                     d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
@@ -99,56 +95,47 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         if 'servers' in d['declaration']['http']:
             for server in d['declaration']['http']['servers']:
-                if server['snippet'] is not None:
+                if server['snippet']:
                     status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
 
                     if status != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": status,
-                                     "details": snippet}
-                        )
+                        return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
 
                     server['snippet'] = snippet
 
                 for loc in server['locations']:
-                    if loc['snippet'] is not None:
+                    if loc['snippet']:
                         status, snippet = Contrib.GitOps.getObjectFromRepo(loc['snippet'])
 
                         if status != 200:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": status,
-                                         "details": snippet}
-                            )
+                            return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
 
                         loc['snippet'] = snippet
 
-                    if 'upstream' in loc and loc['upstream'].split('://')[1] not in all_upstreams:
-                        return JSONResponse(
-
-                            status_code=422,
-                            content={"code": 422, "details": "invalid HTTP upstream " + loc['upstream']}
-                        )
+                    if 'upstream' in loc and loc['upstream'] and loc['upstream'].split('://')[1] not in all_upstreams:
+                        print(f"INVALID UPSTREAM {loc['upstream']}")
+                        return {"status_code": 422,
+                                "message": {"status_code": status,
+                                                                "message": "invalid HTTP upstream ["
+                                                                           + loc['upstream'] + "]"}}
 
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
         http = d['declaration']['http']
 
         if 'rate_limit' in http:
-            if http['rate_limit'] is not None:
+            if http['rate_limit']:
                 for i in range(len(http['rate_limit'])):
                     all_ratelimits.append(http['rate_limit'][i]['name'])
 
                 for server in d['declaration']['http']['servers']:
                     for loc in server['locations']:
-                        if loc['rate_limit'] is not None:
-                            if loc['rate_limit']['profile'] not in all_ratelimits:
-                                return JSONResponse(
-                                    status_code=422,
-                                    content={"code": 422,
-                                             "details": "invalid rate_limit profile " + loc['rate_limit']['profile']}
-                                )
+                        if loc['rate_limit'] != "":
+                            if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": status,
+                                            "message": f"invalid rate_limit profile {loc['rate_limit']['profile']}"}}
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
@@ -163,23 +150,19 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         if 'servers' in d['declaration']['layer4']:
             for server in d['declaration']['layer4']['servers']:
 
-                if server['snippet'] is not None:
+                if server['snippet']:
                     status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
 
                     if status != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": status,
-                                     "details": snippet}
-                        )
+                        return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
 
                     server['snippet'] = snippet
 
                 if 'upstream' in server and server['upstream'] not in all_upstreams:
-                    return JSONResponse(
-                        status_code=422,
-                        content={"code": 422, "details": "invalid Layer4 upstream " + server['upstream']}
-                    )
+                    return {"status_code": 422,
+                            "message": {
+                                "status_code": status,
+                                "message": f"invalid Layer4 upstream {server['upstream']}"}}
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
@@ -201,10 +184,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
 
         if decltype.lower() == "json":
-            return JSONResponse(
-                status_code=200,
-                content=payload
-            )
+            return {"status_code": 200, "message": payload}
         else:
             try:
                 r = requests.post(d['output']['http']['url'], data=json.dumps(payload),
@@ -213,11 +193,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 headers = {'Content-Type': 'application/json'}
                 content = {'message': d['output']['http']['url'] + ' unreachable'}
 
-                return JSONResponse(
-                    status_code=502,
-                    content=content,
-                    headers=headers
-                )
+                return {"status_code": 502, "message": {"status_code": 502, "message": content}, "headers": headers}
 
             if "Content-Length" in r.headers:
                 r.headers.pop("Content-Length")
@@ -226,11 +202,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             if "Date" in r.headers:
                 r.headers.pop("Date")
 
-            return JSONResponse(
-                status_code=r.status_code,
-                content=r.text,
-                headers=r.headers
-            )
+            return {"status_code": r.status_code, "message":
+                {"status_code": r.status_code, "message": r.text}, "headers": r.headers}
 
     elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
@@ -253,7 +226,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                                           d['output']['configmap'][
                                                                                               'namespace'])
 
-        return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
+        return {"status_code": 422, "message": f"{cmHttp}\n---\n{cmStream}",
+                "headers": {'Content-Type': 'application/x-yaml'}}
 
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
@@ -273,19 +247,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         status, content = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                         if status != 200:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": status,
-                                         "details": content}
-                            )
+                            return {"status_code": 422, "message": {"status_code": status, "message": content}}
 
                         policyVersion['contents'] = content
 
         # Check TLS items validity
-        certs = d['output']['nms']['certificates']
         all_tls = {'certificate': {}, 'key': {}, 'chain': {}}
-        for i in range(len(certs)):
-            all_tls[certs[i]['type']][certs[i]['name']] = True
+
+        if 'certificates' in d['output']['nms']:
+            certs = d['output']['nms']['certificates']
+            for i in range(len(certs)):
+                if certs[i]['name']:
+                    all_tls[certs[i]['type']][certs[i]['name']] = True
 
         if 'http' in d['declaration']:
             if 'servers' in d['declaration']['http']:
@@ -293,49 +266,47 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     if 'tls' in server['listen']:
                         if 'certificate' in server['listen']['tls']:
                             cert_name = server['listen']['tls']['certificate']
-                            if cert_name not in all_tls['certificate']:
-                                return JSONResponse(
-                                    status_code=422,
-                                    content={"code": 422,
-                                             "details": "invalid TLS certificate " + cert_name + " for server" + str(
-                                                 server['names'])}
-                                )
+                            if cert_name and cert_name not in all_tls['certificate']:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": 422,
+                                            "message": "invalid TLS certificate " + cert_name + " for server" + str(
+                                                server['names'])}
+                                        }
 
                         if 'key' in server['listen']['tls']:
                             cert_key = server['listen']['tls']['key']
-                            if cert_key not in all_tls['key']:
-                                return JSONResponse(
-                                    status_code=422,
-                                    content={"code": 422,
-                                             "details": "invalid TLS key " + cert_key + " for server" + str(
-                                                 server['names'])}
-                                )
+                            if cert_key and cert_key not in all_tls['key']:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": 422,
+                                            "message": "invalid TLS key " + cert_key + " for server" + str(
+                                                server['names'])}
+                                        }
 
                         if 'chain' in server['listen']['tls']:
                             cert_chain = server['listen']['tls']['chain']
-                            if cert_chain not in all_tls['chain']:
-                                return JSONResponse(
-                                    status_code=422,
-                                    content={"code": 422,
-                                             "details": "invalid TLS chain " + cert_chain + " for server" + str(
-                                                 server['names'])}
-                                )
+                            if cert_chain and cert_chain not in all_tls['chain']:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": 422,
+                                            "message": "invalid TLS chain " + cert_chain + " for server" + str(
+                                                server['names'])}
+                                        }
 
         # Adds optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
-        for c in d['output']['nms']['certificates']:
-            status, certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
 
-            if status != 200:
-                return JSONResponse(
-                    status_code=422,
-                    content={"code": status,
-                             "details": certContent}
-                )
+        if 'certificates' in d['output']['nms']:
+            for c in d['output']['nms']['certificates']:
+                status, certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
 
-            newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
-                                                           '/' + c['name'] + extensions_map[c['type']]}
-            auxFiles['files'].append(newAuxFile)
+                if status != 200:
+                    return {"status_code": 422, "message": {"status_code": status, "message": certContent}}
+
+                newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
+                                                               '/' + c['name'] + extensions_map[c['type']]}
+                auxFiles['files'].append(newAuxFile)
 
         ### / Adds optional certificates specified under output.nms.certificates
 
@@ -378,12 +349,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
                         'ignoreConflict': True, 'validateConfig': False}
 
-        redisBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}')
         redisDeclarationRendered = NcgRedis.redis.get(f'ncg.declarationrendered.{configUid}')
 
-        #if redisBaseStagedConfig is not None and json.dumps(baseStagedConfig) == redisBaseStagedConfig.decode('utf-8'):
         if redisDeclarationRendered is not None and json.dumps(d) == redisDeclarationRendered.decode('utf-8'):
-                print(f'Configuration [{configUid}] not changed')
+            print(f'Configuration [{configUid}] not changed')
+            return {"status_code": 200, "message": {"status_code": 200, "message": "no changes"}}
         else:
             # Configuration objects have changed, publish to NIM needed
             print(f'Configuration [{configUid}] changed, publishing to NMS')
@@ -393,10 +363,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                               verify=False)
 
             if ig.status_code != 200:
-                return JSONResponse(
-                    status_code=ig.status_code,
-                    content={"code": ig.status_code, "details": json.loads(ig.text)}
-                )
+                return {"status_code": ig.status_code, "message":
+                    {"status_code": ig.status_code, "message": json.loads(ig.text)}}
 
             # Get the instance group id
             igUid = Contrib.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
@@ -404,11 +372,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             # Invalid instance group
             if igUid is None:
-                return JSONResponse(
-                    status_code=404,
-                    content={"code": 404, "details": f"instance group {nmsInstanceGroup} not found"},
-                    headers={'Content-Type': 'application/json'}
-                )
+                return {"status_code": 404,
+                        "message": {"status_code": 404, "message": f"instance group {nmsInstanceGroup} not found"},
+                        "headers": {'Content-Type': 'application/json'}}
 
             ### NGINX App Protect policies support - commits policies to control plane
 
@@ -416,15 +382,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             status, description = Contrib.NAPUtils.checkDeclarationPolicies(d)
 
             if status != 200:
-                return JSONResponse(
-                    status_code=422,
-                    content={"code": status,
-                             "details": description}
-                )
+                return {"status_code": 422, "message": {"status_code": status, "message": description}}
 
             # Provision NGINX App Protect WAF policies to NGINX Management Suite
             provisionedNapPolicies, activePolicyUids = Contrib.NAPUtils.provisionPolicies(
-                nmsUrl=nmsUrl, nmsUsername=nmsUsername,nmsPassword=nmsPassword, declaration=d)
+                nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 
             ### / NGINX App Protect policies support
 
@@ -437,11 +399,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             if r.status_code != 202:
                 # Configuration push failed
-                return JSONResponse(
-                    status_code=r.status_code,
-                    content={"code": r.status_code, "details": r.text},
-                    headers={'Content-Type': 'application/json'}
-                )
+                return {"status_code": r.status_code,
+                        "message": {"status_code": r.status_code, "message": r.text},
+                        "headers": {'Content-Type': 'application/json'}}
 
             # Fetch the deployment status
             publishResponse = json.loads(r.text)
@@ -460,7 +420,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 # Staged config publish to NIM succeeded
                 jsonResponse = json.loads(deploymentCheck.text)
 
-                if nmsSynctime > 0 and runfromautosync == False:
+                # if nmsSynctime > 0 and runfromautosync == False:
+                if runfromautosync == False:
                     # No configuration is found, generate one
                     configUid = str(getuniqueid())
 
@@ -478,57 +439,114 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
                 # Makes NGINX App Protect policies active
-                Contrib.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
+                doWeHavePolicies = Contrib.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
                                                   activePolicyUids=activePolicyUids, instanceGroupUid=igUid)
 
-                # Clean up NGINX App Protect WAF policies not used anymore
-                # and not defined in the declaration just pushed
-                time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-                Contrib.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                      nmsPassword=nmsPassword,
-                                                      currentPolicies=provisionedNapPolicies)
+                if doWeHavePolicies:
+                    # Clean up NGINX App Protect WAF policies not used anymore
+                    # and not defined in the declaration just pushed
+                    time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+                    Contrib.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                                                          nmsPassword=nmsPassword,
+                                                          currentPolicies=provisionedNapPolicies)
 
                 # If deploying a new configuration in GitOps mode start autosync
-                if nmsSynctime > 0 and runfromautosync == False:
+                if nmsSynctime == 0:
+                    NcgRedis.declarationsList[configUid] = "static"
+                elif not runfromautosync:
                     # GitOps autosync
                     print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
 
                     job = schedule.every(nmsSynctime).seconds.do(lambda: configautosync(configUid))
-
                     # Keep track of GitOps configs, key is the threaded job
                     NcgRedis.declarationsList[configUid] = job
 
                     NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
-                    NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-                    NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-                    NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+                    # NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+                    # NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
+                    # NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
 
-            responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+            responseContent = {'code': deploymentCheck.status_code, 'content': jsonResponse, 'configUid': configUid}
 
             # Configuration push completed, update redis keys
-            if nmsSynctime > 0:
-                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse, "configUid": configUid}
+            NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
 
-                # Updates status, declaration and basestagedconfig in redis
-                NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
-                NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
-                NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
-                NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
-            else:
-                responseContent = {"code": deploymentCheck.status_code, "details": jsonResponse}
+            # if nmsSynctime > 0:
+            # Updates status, declaration and basestagedconfig in redis
+            NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
+            NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
+            NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
-            return JSONResponse(
-                status_code=deploymentCheck.status_code,
-                content=responseContent,
-                headers={'Content-Type': 'application/json'}
-            )
+            return {"status_code": deploymentCheck.status_code,
+                    "message": {"status_code": deploymentCheck.status_code,
+                                "message": responseContent},
+                    "headers": {'Content-Type': 'application/json'}
+                    }
 
     else:
+        return {"status_code": 422, "message": {"status_code": 422, "message": f"output type {decltype} unknown"}}
+
+
+def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str):
+    # Patch a declaration
+    if configUid not in NcgRedis.declarationsList:
         return JSONResponse(
-            status_code=422,
-            content={"message": f"output type {decltype} unknown"}
+            status_code=404,
+            content={'code': 404, 'details': {'message': f'declaration {configUid} not found'}},
+            headers={'Content-Type': 'application/json'}
         )
 
+    # The declaration sections to be patched
+    declarationToPatch = declaration.dict()
 
-def putconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
-    return JSONResponse(status_code=418, content={"message": "WORK IN PROGRESS"})
+    # The currently applied declaration
+    status_code, currentDeclaration = get_declaration(configUid=configUid)
+
+    # Handles declaration updates
+    if 'declaration' in declarationToPatch:
+        if 'http' in declarationToPatch['declaration']:
+            if 'upstreams' in declarationToPatch['declaration']['http']:
+                # Upstream patch
+                for u in declarationToPatch['declaration']['http']['upstreams']:
+                    # print(f"Patching HTTP upstream [{u['name']}]")
+                    currentDeclaration = Contrib.DeclarationPatcher.patchHttpUpstream(
+                        sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
+
+            if 'servers' in declarationToPatch['declaration']['http']:
+                # Servers patch
+                for s in declarationToPatch['declaration']['http']['servers']:
+                    # print(f"Patching HTTP server [{s['name']}]")
+                    currentDeclaration = Contrib.DeclarationPatcher.patchHttpServer(
+                        sourceDeclaration=currentDeclaration, patchedHttpServer=s)
+
+    # Apply the updated declaration
+    configDeclaration = ConfigDeclaration.parse_raw(json.dumps(currentDeclaration))
+
+    r = createconfig(declaration=configDeclaration, apiversion=apiversion,
+                     runfromautosync=True, configUid=configUid)
+
+    # Return the updated declaration
+    message = r['message']
+
+    if r['status_code'] != 200:
+        currentDeclaration = {}
+        #message = f'declaration {configUid} update failed';
+
+    responseContent = {'code': r['status_code'], 'details': {'message': message},
+                       'declaration': currentDeclaration, 'configUid': configUid}
+
+    return JSONResponse(
+        status_code=r['status_code'],
+        content=responseContent,
+        headers={'Content-Type': 'application/json'}
+    )
+
+
+# Gets the given declaration. Returns status_code and body
+def get_declaration(configUid: str):
+    cfg = NcgRedis.redis.get('ncg.declaration.' + configUid)
+
+    if cfg is None:
+        return 404, ""
+
+    return 200, pickle.loads(cfg).dict()

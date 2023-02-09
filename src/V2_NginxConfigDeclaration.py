@@ -8,13 +8,13 @@ from pydantic import BaseModel, Extra, validator, root_validator
 
 
 class OutputConfigMap(BaseModel, extra=Extra.forbid):
-    name: str
-    namespace: Optional[str]
-    filename: str
+    name: str = ""
+    namespace: Optional[str] = ""
+    filename: str = ""
 
 
 class OutputHttp(BaseModel, extra=Extra.forbid):
-    url: str
+    url: str = ""
 
 
 class NmsCertificate(BaseModel, extra=Extra.forbid):
@@ -122,9 +122,9 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
 
 class Output(BaseModel, extra=Extra.forbid):
     type: str
-    configmap: Optional[OutputConfigMap]
-    http: Optional[OutputHttp]
-    nms: Optional[OutputNMS]
+    configmap: Optional[OutputConfigMap] = []
+    http: Optional[OutputHttp] = []
+    nms: Optional[OutputNMS] = []
 
     @root_validator()
     def check_type(cls, values):
@@ -137,13 +137,17 @@ class Output(BaseModel, extra=Extra.forbid):
 
         isError = False
         if _type == 'plaintext' or _type == 'json':
-            if configmap is not None or http is not None or nms is not None:
+            if configmap or http or nms:
+                print("XYZ 1")
                 isError = True
-        elif _type == 'configmap' and not (configmap is not None and http is None and nms is None):
+        elif _type == 'configmap' and not configmap:
+            print("XYZ 2")
             isError = True
-        elif _type == 'http' and not (configmap is None and http is not None and nms is None):
+        elif _type == 'http' and not http:
+            print("XYZ 3")
             isError = True
-        elif _type == 'nms' and not (configmap is None and http is None and nms is not None):
+        elif _type == 'nms' and not nms:
+            print(f"XYZ 4")
             isError = True
 
         if isError:
@@ -155,14 +159,14 @@ class Output(BaseModel, extra=Extra.forbid):
 class Tls(BaseModel, extra=Extra.forbid):
     certificate: str = ""
     key: str = ""
-    chain: Optional[str]
-    ciphers: Optional[str]
-    protocols: Optional[List[str]] = ["TLSv1.3"]
+    chain: Optional[str] = ""
+    ciphers: Optional[str] = ""
+    protocols: Optional[List[str]] = []
 
 
 class Listen(BaseModel, extra=Extra.forbid):
-    address: Optional[str]
-    http2: Optional[bool]
+    address: Optional[str] = ""
+    http2: Optional[bool] = False
     tls: Optional[Tls] = []
 
 
@@ -180,15 +184,15 @@ class ListenL4(BaseModel, extra=Extra.forbid):
         if protocol not in valid:
             raise ValueError("Invalid protocol '" + protocol + "'")
 
-        if protocol != 'tcp' and tls is not None:
+        if protocol != 'tcp' and tls and tls.certificate:
             raise ValueError("TLS termination over UDP is not supported")
 
         return values
 
 
 class Log(BaseModel, extra=Extra.forbid):
-    access: Optional[str] = "/dev/null"
-    error: Optional[str] = "/dev/null"
+    access: Optional[str] = ""
+    error: Optional[str] = ""
 
 
 class RateLimit(BaseModel, extra=Extra.forbid):
@@ -221,12 +225,12 @@ class AppProtect(BaseModel, extra=Extra.forbid):
 class Location(BaseModel, extra=Extra.forbid):
     uri: str
     urimatch: Optional[str] = "prefix"
-    upstream: Optional[str]
-    caching: Optional[str]
-    rate_limit: Optional[RateLimit]
-    health_check: Optional[HealthCheck]
+    upstream: Optional[str] = ""
+    caching: Optional[str] = ""
+    rate_limit: Optional[RateLimit] = ""
+    health_check: Optional[HealthCheck] = ""
     app_protect: Optional[AppProtect] = []
-    snippet: Optional[str]
+    snippet: Optional[str] = ""
 
     @root_validator()
     def check_type(cls, values):
@@ -241,58 +245,58 @@ class Location(BaseModel, extra=Extra.forbid):
 
 class Server(BaseModel, extra=Extra.forbid):
     name: str
-    names: List[str]
+    names: Optional[List[str]] = []
     listen: Optional[Listen] = []
     log: Optional[Log] = []
     locations: Optional[List[Location]] = []
     app_protect: Optional[AppProtect] = []
-    snippet: Optional[str]
+    snippet: Optional[str] = ""
 
 
 class L4Server(BaseModel, extra=Extra.forbid):
     name: str
     listen: Optional[ListenL4] = []
-    upstream: Optional[str]
-    snippet: Optional[str]
+    upstream: Optional[str] = ""
+    snippet: Optional[str] = ""
 
 
 class Sticky(BaseModel, extra=Extra.forbid):
-    cookie: str
-    expires: Optional[str]
-    domain: Optional[str]
-    path: Optional[str]
+    cookie: str = ""
+    expires: Optional[str] = ""
+    domain: Optional[str] = ""
+    path: Optional[str] = ""
 
 
 class Origin(BaseModel, extra=Extra.forbid):
     server: str
-    weight: Optional[int]
-    max_fails: Optional[int]
-    fail_timeout: Optional[str]
-    max_conns: Optional[int]
-    slow_start: Optional[str]
-    backup: Optional[bool]
+    weight: Optional[int] = 1
+    max_fails: Optional[int] = 1
+    fail_timeout: Optional[str] = "10s"
+    max_conns: Optional[int] = 0
+    slow_start: Optional[str] = "0"
+    backup: Optional[bool] = False
 
 
 class L4Origin(BaseModel, extra=Extra.forbid):
     server: str
-    weight: Optional[int]
-    max_fails: Optional[int]
-    fail_timeout: Optional[str]
-    max_conns: Optional[int]
-    slow_start: Optional[str]
-    backup: Optional[bool]
+    weight: Optional[int] = 1
+    max_fails: Optional[int] = 1
+    fail_timeout: Optional[str] = ""
+    max_conns: Optional[int] = 0
+    slow_start: Optional[str] = ""
+    backup: Optional[bool] = False
 
 
 class Upstream(BaseModel, extra=Extra.forbid):
     name: str
-    origin: List[Origin]
-    sticky: Optional[Sticky]
+    origin: Optional[List[Origin]] = []
+    sticky: Optional[Sticky] = {}
     snippet: Optional[str] = ""
 
 
 class L4Upstream(BaseModel, extra=Extra.forbid):
     name: str
-    origin: List[L4Origin]
+    origin: Optional[List[L4Origin]] = []
     snippet: Optional[str] = ""
 
 
@@ -311,14 +315,14 @@ class CachingItem(BaseModel, extra=Extra.forbid):
 class RateLimitItem(BaseModel, extra=Extra.forbid):
     name: str
     key: str
-    size: Optional[str] = "10m"
-    rate: Optional[str] = "1r/s"
+    size: Optional[str] = ""
+    rate: Optional[str] = ""
 
 
 class NginxPlusApi(BaseModel, extra=Extra.forbid):
-    write: Optional[bool] = True
-    listen: Optional[str] = "127.0.0.1:8080"
-    allow_acl: Optional[str] = "127.0.0.1"
+    write: Optional[bool] = False
+    listen: Optional[str] = ""
+    allow_acl: Optional[str] = ""
 
 
 class MapEntry(BaseModel, extra=Extra.forbid):

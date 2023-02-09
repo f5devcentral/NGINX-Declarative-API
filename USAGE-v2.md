@@ -1,13 +1,13 @@
-# Usage for API v2 - currently in early alpha release
-
-This is ongoing work: features can be incomplete/partially broken.
+# Usage for API v2 - beta release
 
 Version 2 API requires:
 - NGINX Instance Manager 2.8.0+
+
+If NGINX App Protect declarations are used:
 - NGINX App Protect Policy Compiler 4.2.0+
 - NGINX Plus instances running App Protect WAF 4.2.0+ using `precompiled_publication: true` in `/etc/nginx-agent/nginx-agent.conf`
 
-The JSON schema is self explainatory. See also the [sample Postman collection](/contrib/postman)
+The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman)
 
 - `.output.type` defines how NGINX configuration will be returned:
   - *plaintext* - plaintext format
@@ -65,6 +65,13 @@ A sample Postman collection can be found [here](/postman)
 Snippets for http, upstream, server and location can be specified as:
 - base64-encoded content
 - HTTP(S) URL of a source of truth to fetch snippet content from. Content on the source of truth must be plaintext, it will be automatically base64-encoded 
+
+### Methods ###
+
+- `POST /v2/config/` - Publish a new declaration
+- `PATCH /v2/config/{config_uid}` - Update an existing declaration
+- `GET /v2/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v2/config/{config_uid}` - Delete an existing declaration
 
 ### Sample declaration ###
 

@@ -24,19 +24,23 @@ map {{ m.match }} {{ m.variable }} {
 {# --- Upstreams section --- #}
 {% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
+{% if u.name %}
+{% if u.origin %}
 upstream {{ u.name }} {
     zone {{ u.name }} 64k;
     {% for o in u.origin -%}
     server {{ o.server }}{% if o.weight %} weight={{ o.weight }}{% endif %}{% if o.max_fails %} max_fails={{ o.max_fails }}{% endif %}{% if o.fail_timeout %} fail_timeout={{ o.fail_timeout }}{% endif %}{% if o.max_conns %} max_conns={{ o.max_conns }}{% endif %}{% if o.slow_start %} slow_start={{ o.slow_start }}{% endif %}{% if o.backup and o.backup == True %} backup{% endif %};
     {% endfor %}
 
-    {% if u.sticky -%}
+    {% if u.sticky and u.sticky.cookie and u.sticky.expires and u.sticky.domain and u.sticky.path -%}
     sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
     {% endif -%}
 
     {% if u.snippet %}{{ u.snippet | b64decode }}{% endif %}
 
 }
+{% endif %}
+{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -76,26 +80,45 @@ server {
 {# --- Server section --- #}
 
 {% for s in declaration.servers %}
+    {%- if s.listen %}
+    {%- if s.listen.address %}
 server {
-    {% if s.listen -%}
-    listen {{ s.listen.address }}{% if s.listen.http2 and s.listen.http2 == True %} http2{% endif %}{% if s.listen.tls %} ssl{% endif %};
+    listen {{ s.listen.address }}{% if s.listen.http2 and s.listen.http2 == True %} http2{% endif %}{% if s.listen.tls and s.listen.tls.certificate %} ssl{% endif %};
     {% endif -%}
+    {% endif -%}
+
+    {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
+    {% endif -%}
+
+    {# --- Server NGINX App Protect WAF --- #}
 
     {% if s.app_protect -%}
-    app_protect_enable {% if s.app_protect.enabled == True %}on{% else %}off{% endif %};
+    {% if s.app_protect.enabled == True -%}
+    app_protect_enable on;
+    {% endif -%}
+    {% if s.app_protect.policy -%}
     app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ s.app_protect.policy }}.tgz;
+    {% endif -%}
     {% if s.app_protect.log -%}
-    app_protect_security_log_enable {% if s.app_protect.log.enabled == True %}on;
+    {% if s.app_protect.log.enabled == True -%}
+    app_protect_security_log_enable on;
+    {% if s.app_protect.log.profile_name -%}
     app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ s.app_protect.log.profile_name }}.tgz" syslog:server={{ s.app_protect.log.destination }};
-    {% else %}off;{% endif %}
+    {% endif -%}
+    {% endif %}
     {% endif %}
     {% endif %}
 
+
     {# --- TLS section --- #}
+
     {%- if s.listen.tls -%}
+    {%- if s.listen.tls.certificate -%}
     ssl_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.certificate }}.crt;
+    {% endif -%}
+    {%- if s.listen.tls.key -%}
     ssl_certificate_key {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.key }}.key;
     {% endif -%}
     {% if s.listen.tls.chain -%}
@@ -107,6 +130,7 @@ server {
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
     {% endif %}
+    {% endif -%}
 
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
 
@@ -131,31 +155,51 @@ server {
     {{ loc.uri }} {
         {% if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif %}
 
+        {# --- Active healthchecks --- #}
+
         {% if loc.health_check -%}
             {% if loc.health_check.enabled == True -%}
             health_check{% if loc.health_check.uri %} uri={{ loc.health_check.uri }}{% endif %}{% if loc.health_check.interval %} interval={{ loc.health_check.interval }}{% endif %}{% if loc.health_check.fails %} fails={{ loc.health_check.fails }}{% endif %}{% if loc.health_check.passes %} passes={{ loc.health_check.passes }}{% endif %};
             {% endif %}
         {% endif %}
 
+        {# --- Rate limiting --- #}
+
         {% if loc.rate_limit -%}
         {% if loc.rate_limit.profile %}limit_req zone={{ loc.rate_limit.profile }}{% if loc.rate_limit.burst %} burst={{ loc.rate_limit.burst }}{% endif %}{% if loc.rate_limit.delay == 0 %} nodelay;{% else %} delay={{ loc.rate_limit.delay }};{% endif %}{% endif %}
         {% endif %}
 
+        {# --- Location NGINX App Protect WAF --- #}
+
         {% if loc.app_protect -%}
-        app_protect_enable {% if loc.app_protect.enabled == True %}on{% else %}off{% endif %};
-        app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir }}/{{ loc.app_protect.policy }}.tgz;
+        {% if loc.app_protect.enabled == True -%}
+        app_protect_enable on;
+        {% endif -%}
+        {% if loc.app_protect.policy -%}
+        app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ loc.app_protect.policy }}.tgz;
+        {% endif -%}
         {% if loc.app_protect.log -%}
-        app_protect_security_log_enable {% if loc.app_protect.log.enabled == True %}on;
-        app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir }}/{{ loc.app_protect.log.profile_name }}.tgz" syslog:server={{ loc.app_protect.log.destination }};
-        {% else %}off;{% endif %}
+        {% if loc.app_protect.log.enabled == True -%}
+        app_protect_security_log_enable on;
+        {% if loc.app_protect.log.profile_name -%}
+        app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ loc.app_protect.log.profile_name }}.tgz" syslog:server={{ loc.app_protect.log.destination }};
+        {% endif -%}
         {% endif %}
         {% endif %}
+        {% endif %}
+
+        {# --- Location snipptes --- #}
 
         {% if loc.snippet %}{{ loc.snippet | b64decode }}{% endif %}
 
     }
     {% endfor %}
 
+    {%- if s.listen %}
+    {%- if s.listen.address %}
+
 }
+    {% endif -%}
+    {% endif -%}
 
 {% endfor %}
