@@ -1080,7 +1080,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                }, {\n                    \"name\": \"test_upstream_added\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.1:80\"\n                        },\n                        {\n                            \"server\": \"192.168.1.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                },\n                {\n                    \"name\": \"test_upstream_added\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.1:80\"\n                        },\n                        {\n                            \"server\": \"192.168.1.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1171,6 +1171,141 @@
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream_added\"\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify Stream server and upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"http://acme.gitlab.local/test.snippet.server.l4.txt\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.3:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.4:53\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add stream server and upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"new_tcp_service\",\n                    \"listen\": {\n                        \"address\": \"5432\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"tcp_5432_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"tcp_5432_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        },\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove stream server and upstream",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"new_tcp_service\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"tcp_5432_upstream\"\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
