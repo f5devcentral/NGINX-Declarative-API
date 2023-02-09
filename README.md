@@ -93,7 +93,7 @@ Two branches are currently available:
 
 Usage details and JSON schema are available here:
 - [API v1](/USAGE-v1.md)
-- [API v2](/USAGE-v2.md) - beta release
+- [API v2](/USAGE-v2.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
