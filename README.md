@@ -76,24 +76,24 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature | API v1 | API v2 (alpha release) | Notes |
-| --------| ------ | ------ | ----- |
-| Upstreams | X | X | Snippets supported: static and from source of truth |
-| HTTP servers | X | X | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers | X | X | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
-| TLS | X | X | Certificates, keys, chains can be dynamically fetched from source of truth |
-| Rate limiting | X | X | |
-| Active healthchecks | X | X | |
-| Cookie-based stickiness | X | X | |
-| Maps | X | X | |
-| NGINX Plus REST API access | X | X | |
+| Feature | API v1 | API v2 (beta release)                                                             | Notes |
+| --------| ------ |-----------------------------------------------------------------------------------| ----- |
+| Upstreams | X | X                                                                                 | Snippets supported: static and from source of truth |
+| HTTP servers | X | X                                                                                 | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers | X | X                                                                                 | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
+| TLS | X | X                                                                                 | Certificates, keys, chains can be dynamically fetched from source of truth |
+| Rate limiting | X | X                                                                                 | |
+| Active healthchecks | X | X                                                                                 | |
+| Cookie-based stickiness | X | X                                                                                 | |
+| Maps | X | X                                                                                 | |
+| NGINX Plus REST API access | X | X                                                                                 | |
 | NGINX App Protect WAF | policies & log formats at `server` and `location` level | policies at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth | 
 
 ## How to run
 
 Usage details and JSON schema are available here:
 - [API v1](/USAGE-v1.md)
-- [API v2](/USAGE-v2.md) - alpha release
+- [API v2](/USAGE-v2.md) - beta release
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
