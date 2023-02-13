@@ -409,12 +409,19 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             # Fetch the deployment status
             publishResponse = json.loads(r.text)
-            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
-                                           auth=(nmsUsername, nmsPassword),
-                                           verify=False)
 
-            checkJson = json.loads(deploymentCheck.text)
+            # Wait for either NIM success or failure after pushing a staged config
+            isPending = True
+            while isPending:
+                time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+                deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
+                                               auth=(nmsUsername, nmsPassword),
+                                               verify=False)
+
+                checkJson = json.loads(deploymentCheck.text)
+
+                if not checkJson['details']['pending']:
+                    isPending = False
 
             if len(checkJson['details']['failure']) > 0:
                 # Staged config publish to NIM failed

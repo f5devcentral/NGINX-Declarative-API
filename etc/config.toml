@@ -32,7 +32,7 @@ config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 
 # Time to wait to get status after committing a staged config
-staged_config_publish_waittime = 5
+staged_config_publish_waittime = 2
 
 # API v0 & V1
 nap_policies_dir = '/etc/nginx/waf/policies'
