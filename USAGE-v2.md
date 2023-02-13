@@ -73,6 +73,7 @@ Snippets for http, upstream, server and location can be specified as:
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
+  - Per-NGINX App Protect WAF policy CRUD
 - `GET /v2/config/{config_uid}` - Retrieve an existing declaration
 - `DELETE /v2/config/{config_uid}` - Delete an existing declaration
 

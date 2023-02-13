@@ -72,27 +72,27 @@ Two branches are currently available:
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [X] NGINX Instance Manager 2.1.0+ staged config / instance group interoperability
+- [X] Output to NGINX Instance Manager 2.1.0+ imperative REST API
   
 ## Supported NGINX Plus features
 
-| Feature | API v1 | API v2                                                                            | Notes |
-| --------| ------ |-----------------------------------------------------------------------------------| ----- |
-| Upstreams | X | Per-upstream CRUD                                                                 | Snippets supported: static and from source of truth |
-| HTTP servers | X | Per-server CRUD                                                                   | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers | X | Per-server CRUD                                                                   | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
-| TLS | X | Per-TLS configuration CRUD                                                        | Certificates, keys, chains can be dynamically fetched from source of truth |
-| Rate limiting | X | X                                                                                 | |
-| Active healthchecks | X | X                                                                                 | |
-| Cookie-based stickiness | X | X                                                                                 | |
-| Maps | X | X                                                                                 | |
-| NGINX Plus REST API access | X | X                                                                                 | |
-| NGINX App Protect WAF | policies & log formats at `server` and `location` level | policies at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth | 
+| Feature | API v1 | API v2                                                                                            | Notes |
+| --------| ------ |---------------------------------------------------------------------------------------------------| ----- |
+| Upstreams | X | Per-upstream CRUD                                                                                 | Snippets supported: static and from source of truth |
+| HTTP servers | X | Per-server CRUD                                                                                   | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers | X | Per-server CRUD                                                                                   | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
+| TLS | X | Per-TLS configuration CRUD                                                                        | Certificates, keys, chains can be dynamically fetched from source of truth |
+| Rate limiting | X | X                                                                                                 | |
+| Active healthchecks | X | X                                                                                                 | |
+| Cookie-based stickiness | X | X                                                                                                 | |
+| Maps | X | X                                                                                                 | |
+| NGINX Plus REST API access | X | X                                                                                                 | |
+| NGINX App Protect WAF | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth | 
 
-## How to run
+## How to use
 
 Usage details and JSON schema are available here:
-- [API v1](/USAGE-v1.md)
+- [API v1](/USAGE-v1.md) - deprecated
 - [API v2](/USAGE-v2.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)

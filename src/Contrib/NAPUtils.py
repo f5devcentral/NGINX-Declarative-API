@@ -5,6 +5,7 @@ NGINX App Protect support functions
 import requests
 import json
 import numpy
+import time
 
 import Contrib.GitOps
 
@@ -198,7 +199,6 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
                     else:
                         # Policy was created, retrieve metadata.uid for each policy version
                         if policy_name not in all_policy_names_and_versions:
-                            #print(f"=> Stored policy {policy_name}")
                             all_policy_names_and_versions[policy_name] = []
 
                         # Stores the policy version
@@ -209,10 +209,6 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
                             all_policy_active_names_and_uids[policy_name] = uid
 
                         all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
-                        #print(f"=> Stored policy [{policy_name}] tag [{tag}] uid [{uid}]")
-
-    #print(f"=> All provisioned policies {all_policy_names_and_versions}")
-    #print(f"=> All active uids {all_policy_active_names_and_uids}")
 
     return all_policy_names_and_versions, all_policy_active_names_and_uids
 
@@ -238,10 +234,8 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
             ]
         }
 
-        #print(f"=> Activating policy [{policyName}] [{activePolicyUids[policyName]}]")
-
         doWeHavePolicies = True
-        requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
+        r = requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
                       data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
 
     return doWeHavePolicies
@@ -259,27 +253,18 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
     # currentPolicies (policies that have just been pushed to data plane)
     allUidsOnNMS = []
     for p in allNMSPoliciesJson['items']:
-        #print(f"==> {p['metadata']['uid']}")
         if p['metadata']['name'] in currentPolicies:
             allUidsOnNMS.append(p['metadata']['uid'])
 
     allCurrentPoliciesUIDs = []
     for policyName in currentPolicies:
         if policyName:
-            #print(f"Found policy {policyName} => {currentPolicies[policyName]}")
             for tag in currentPolicies[policyName]:
                 allCurrentPoliciesUIDs.append(tag['uid'])
 
-    #print(f"{len(allUidsOnNMS)} NMS UIDS {allUidsOnNMS}")
-    #print(f"{len(allCurrentPoliciesUIDs)} NEW UIDS {allCurrentPoliciesUIDs}")
-
     uidsToRemove = numpy.setdiff1d(allUidsOnNMS, allCurrentPoliciesUIDs)
 
-    #print(f"{len(uidsToRemove)} Policy UIDs to remove {uidsToRemove}")
-
     for uid in uidsToRemove:
-        #print(f"=> Deleting policy {uid}")
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
-
 
     return

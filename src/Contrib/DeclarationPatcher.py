@@ -2,6 +2,7 @@
 Declaration parsing functions
 """
 
+
 # Returns the patched declaration based on the patchedHttpServer
 def patchHttpServer(sourceDeclaration: dict, patchedHttpServer: dict):
     allTargetServers = []
@@ -77,6 +78,7 @@ def patchHttpUpstream(sourceDeclaration: dict, patchedHttpUpstream: dict):
 
     return sourceDeclaration
 
+
 # Returns the patched declaration based on the patchedStreamServer
 def patchStreamServer(sourceDeclaration: dict, patchedStreamServer: dict):
     allTargetServers = []
@@ -149,5 +151,88 @@ def patchStreamUpstream(sourceDeclaration: dict, patchedStreamUpstream: dict):
         allTargetUpstreams.append(patchedStreamUpstream)
 
     sourceDeclaration['declaration']['layer4']['upstreams'] = allTargetUpstreams
+
+    return sourceDeclaration
+
+
+# Returns the patched declaration based on the patchedNAPPolicies
+def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict):
+    allTargetPolicies = []
+
+    haveWePatched = False
+
+    if 'output' not in sourceDeclaration:
+        return sourceDeclaration
+
+    if 'nms' not in sourceDeclaration['output']:
+        return sourceDeclaration
+
+    if 'policies' not in sourceDeclaration['output']['nms']:
+        return sourceDeclaration
+
+    # NGINX App Protect WAF policies patch
+    for p in sourceDeclaration['output']['nms']['policies']:
+        if 'type' in p and p['type'] == 'app_protect' \
+                and 'name' in p and p['name'] \
+                and p['type'] == patchedNAPPolicies['type'] \
+                and p['name'] == patchedNAPPolicies['name']:
+
+            # Patching an existing NGINX App Protect WAF policy, 'name' is the key
+            if patchedNAPPolicies['versions'] and patchedNAPPolicies['active_tag']:
+                # Patching NAP policy specifying 'versions' and 'active_tag' means updating
+                # If 'versions' and 'active_tag' are missing then it's a deletion
+                allTargetPolicies.append(patchedNAPPolicies)
+
+            haveWePatched = True
+        else:
+            # Unmodified HTTP upstream
+            allTargetPolicies.append(p)
+
+    if not haveWePatched:
+        # The NAP policy being patched is a new one, let's add it
+        allTargetPolicies.append(patchedNAPPolicies)
+
+    sourceDeclaration['output']['nms']['policies'] = allTargetPolicies
+    
+    return sourceDeclaration
+
+
+# Returns the patched declaration based on patchedCertificates
+def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict):
+    allTargetCertificates = []
+
+    haveWePatched = False
+
+    if 'output' not in sourceDeclaration:
+        return sourceDeclaration
+
+    if 'nms' not in sourceDeclaration['output']:
+        return sourceDeclaration
+
+    if 'certificates' not in sourceDeclaration['output']['nms']:
+        return sourceDeclaration
+
+    # TLS certificates patch
+    for c in sourceDeclaration['output']['nms']['certificates']:
+        if 'type' in c and c['type'] in ['certificate', 'key', 'chain'] \
+                and 'name' in c and c['name'] \
+                and c['type'] == patchedCertificates['type'] \
+                and c['name'] == patchedCertificates['name']:
+
+            if 'contents' in c and c['contents']:
+                # Patching an existing TLS certificate/key/chain, 'name' is the key.
+                # If content is empty the certificate is deleted
+                allTargetCertificates.append(patchedCertificates)
+
+            haveWePatched = True
+        else:
+            # Unmodified HTTP upstream
+            allTargetCertificates.append(c)
+
+    if not haveWePatched:
+        # The TLS certificate/key/chain being patched is a new one, let's add it
+        allTargetCertificates.append(patchedCertificates)
+
+    sourceDeclaration['output']['nms']['certificates'] = allTargetCertificates
 
     return sourceDeclaration

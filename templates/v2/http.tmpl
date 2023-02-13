@@ -55,6 +55,7 @@ limit_req_zone {{ rl.key }} zone={{ rl.name }}:{{ rl.size }} rate={{ rl.rate }};
 {# --- Server section for NGINX Plus API --- #}
 
 {% if declaration.nginx_plus_api %}
+{% if declaration.nginx_plus_api.listen %}
 server {
     listen {{ declaration.nginx_plus_api.listen }};
 
@@ -75,6 +76,7 @@ server {
         index dashboard.html;
     }
 }
+{% endif %}
 {% endif %}
 
 {# --- Server section --- #}
@@ -195,11 +197,8 @@ server {
     }
     {% endfor %}
 
-    {%- if s.listen %}
-    {%- if s.listen.address %}
-
+{%- if s.listen.address %}
 }
-    {% endif -%}
-    {% endif -%}
+{% endif %}
 
 {% endfor %}

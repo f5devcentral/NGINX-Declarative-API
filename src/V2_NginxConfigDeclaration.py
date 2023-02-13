@@ -34,16 +34,16 @@ class NmsCertificate(BaseModel, extra=Extra.forbid):
 
 
 class NmsPolicyVersion(BaseModel, extra=Extra.forbid):
-    tag: str
+    tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
-    contents: str
+    contents: str = ""
 
 
 class NmsPolicy(BaseModel, extra=Extra.forbid):
-    type: str
-    name: str
-    active_tag: str
+    type: str = ""
+    name: str = ""
+    active_tag: str = ""
     versions: Optional[List[NmsPolicyVersion]] = []
 
     @root_validator()
@@ -109,10 +109,10 @@ class LogProfile(BaseModel, extra=Extra.forbid):
 
 
 class OutputNMS(BaseModel, extra=Extra.forbid):
-    url: str
-    username: str
-    password: str
-    instancegroup: str
+    url: str = ""
+    username: str = ""
+    password: str = ""
+    instancegroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
@@ -136,18 +136,12 @@ class Output(BaseModel, extra=Extra.forbid):
             raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
 
         isError = False
-        if _type == 'plaintext' or _type == 'json':
-            if configmap or http or nms:
-                print("XYZ 1")
-                isError = True
-        elif _type == 'configmap' and not configmap:
-            print("XYZ 2")
+
+        if _type == 'configmap' and not configmap:
             isError = True
         elif _type == 'http' and not http:
-            print("XYZ 3")
             isError = True
         elif _type == 'nms' and not nms:
-            print(f"XYZ 4")
             isError = True
 
         if isError:
@@ -203,7 +197,7 @@ class RateLimit(BaseModel, extra=Extra.forbid):
 
 
 class HealthCheck(BaseModel, extra=Extra.forbid):
-    enabled: Optional[bool] = True
+    enabled: Optional[bool] = False
     uri: Optional[str]
     interval: Optional[int]
     fails: Optional[int]
@@ -369,4 +363,4 @@ class Declaration(BaseModel, extra=Extra.forbid):
 
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output
-    declaration: Declaration
+    declaration: Optional[Declaration]

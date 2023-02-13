@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "v1",
+			"name": "v1 - deprecated",
 			"item": [
 				{
 					"name": "Standard",
@@ -686,7 +686,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.18:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample L4 service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"udp\"\n                    },\n                    \"upstream\": \"l4_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"A sample HTTP service\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.19:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample L4 service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"udp\"\n                    },\n                    \"upstream\": \"l4_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"A sample HTTP service\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -851,7 +851,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.18:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\",\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"IyBUaGlzIGlzIGEgbDQgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/test\",\n                            \"urimatch\": \"exact\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true,\n                                \"uri\": \"/healthcheck\",\n                                \"interval\": 5,\n                                \"fails\": 3,\n                                \"passes\": 2\n                            },\n                            \"rate_limit\": {\n                                \"profile\": \"test_ratelimit\",\n                                \"httpcode\": 429,\n                                \"burst\": 10,\n                                \"delay\": 3\n                            },\n                            \"app_protect\": {\n                                \"enabled\": true,\n                                \"policy\": \"test_policy\",\n                                \"log\": {\n                                    \"profile_name\": \"log_illegal\",\n                                    \"enabled\": true,\n                                    \"destination\": \"192.168.1.5:514\"\n                                }\n                            },\n                            \"snippet\": \"IyBUaGlzIGlzIGEgbG9jYXRpb24gc25pcHBldCBjb21tZW50Cg==\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"test_policy\",\n                        \"log\": {\n                            \"profile_name\": \"log_blocked\",\n                            \"enabled\": true,\n                            \"destination\": \"192.168.1.5:514\"\n                        }\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgc2VydmVyIHNuaXBwZXQgY29tbWVudAo=\"\n                },\n                {\n                    \"name\": \"another HTTP test application\",\n                    \"names\": [\n                        \"server_443\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\",\n                            \"weight\": 5,\n                            \"max_fails\": 2,\n                            \"fail_timeout\": \"30s\",\n                            \"max_conns\": 3,\n                            \"slow_start\": \"30s\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\",\n                            \"backup\": true\n                        }\n                    ],\n                    \"sticky\": {\n                        \"cookie\": \"cookie_name\",\n                        \"expires\": \"1h\",\n                        \"domain\": \".testserver\",\n                        \"path\": \"/\"\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"test_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                }\n            ],\n            \"maps\": [\n                {\n                    \"match\": \"$host$request_uri\",\n                    \"variable\": \"$backend\",\n                    \"entries\": [\n                        {\n                            \"key\": \"www.test.lab/app1/\",\n                            \"keymatch\": \"iregex\",\n                            \"value\": \"upstream_1\"\n                        },\n                        {\n                            \"key\": \"(.*).test.lab/app2/\",\n                            \"keymatch\": \"regex\",\n                            \"value\": \"upstream_2\"\n                        }\n                    ]\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": true,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            },\n            \"snippet\": \"IyBUaGlzIGlzIGEgSFRUUCBzbmlwcGV0IGNvbW1lbnQK\"\n        }\n    }\n}",
+											"raw": "{\n    \"output\": {\n        \"type\": \"http\",\n        \"http\": {\n            \"url\": \"http://192.168.1.19:8080/path/service\"\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\",\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"IyBUaGlzIGlzIGEgbDQgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/test\",\n                            \"urimatch\": \"exact\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true,\n                                \"uri\": \"/healthcheck\",\n                                \"interval\": 5,\n                                \"fails\": 3,\n                                \"passes\": 2\n                            },\n                            \"rate_limit\": {\n                                \"profile\": \"test_ratelimit\",\n                                \"httpcode\": 429,\n                                \"burst\": 10,\n                                \"delay\": 3\n                            },\n                            \"app_protect\": {\n                                \"enabled\": true,\n                                \"policy\": \"test_policy\",\n                                \"log\": {\n                                    \"profile_name\": \"log_illegal\",\n                                    \"enabled\": true,\n                                    \"destination\": \"192.168.1.5:514\"\n                                }\n                            },\n                            \"snippet\": \"IyBUaGlzIGlzIGEgbG9jYXRpb24gc25pcHBldCBjb21tZW50Cg==\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"test_policy\",\n                        \"log\": {\n                            \"profile_name\": \"log_blocked\",\n                            \"enabled\": true,\n                            \"destination\": \"192.168.1.5:514\"\n                        }\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgc2VydmVyIHNuaXBwZXQgY29tbWVudAo=\"\n                },\n                {\n                    \"name\": \"another HTTP test application\",\n                    \"names\": [\n                        \"server_443\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\",\n                            \"weight\": 5,\n                            \"max_fails\": 2,\n                            \"fail_timeout\": \"30s\",\n                            \"max_conns\": 3,\n                            \"slow_start\": \"30s\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\",\n                            \"backup\": true\n                        }\n                    ],\n                    \"sticky\": {\n                        \"cookie\": \"cookie_name\",\n                        \"expires\": \"1h\",\n                        \"domain\": \".testserver\",\n                        \"path\": \"/\"\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"test_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                }\n            ],\n            \"maps\": [\n                {\n                    \"match\": \"$host$request_uri\",\n                    \"variable\": \"$backend\",\n                    \"entries\": [\n                        {\n                            \"key\": \"www.test.lab/app1/\",\n                            \"keymatch\": \"iregex\",\n                            \"value\": \"upstream_1\"\n                        },\n                        {\n                            \"key\": \"(.*).test.lab/app2/\",\n                            \"keymatch\": \"regex\",\n                            \"value\": \"upstream_2\"\n                        }\n                    ]\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": true,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            },\n            \"snippet\": \"IyBUaGlzIGlzIGEgSFRUUCBzbmlwcGV0IGNvbW1lbnQK\"\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -878,10 +878,10 @@
 					]
 				},
 				{
-					"name": "Publish to NGINX Management Suite",
+					"name": "Declarative automation - NGINX App Protect WAF",
 					"item": [
 						{
-							"name": "Create full declaration with NGINX App Protect",
+							"name": "Create initial NGINX configuration with NGINX App Protect WAF",
 							"event": [
 								{
 									"listen": "test",
@@ -902,7 +902,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": \"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRREhZVE9uUDlMWTdEaUgKelBRTnQ3QXRpUGhwb084T1FWSm5SZ2ZUTENVcEFZS1Q0K3MvZEJwVnU4QmtMSndRZ2pMNUtUdDl4RmVOWWpwQQp0Mjd1MjU3ZWJuVGYzWlIrSDhJTit2a0lJdHNrczUxSnpVQWpRUXlESEVLMnFLL1NiWjBWOU4ycm9uTDBjU1JRCm9xUDEvK3R4OVFCblF5WVVsWWkwRmZZMWVtdW1UTlMrUFhFRktjeDBTV1RnM3J0ckI3SXRSZ1ovK1lFUGxpRTcKdzJjQjNlRGRoVFIzL2NpQ2xWQVl0MUUxZ1kwQlAxWnNyeFZLM2dHOG5yU0xKUnYzbEZCUk5zVUdpdFZpb0MxQQpaUGJZTE02NnFuZVpybkp3eVg3czEzYXovckZPbW5mMlAzbDllN1NZWjZwSnk0SjMwNkx1ZVNvemxyVHNJTjhmClpNbzNmWndEQWdNQkFBRUNnZ0VBQUljZWhSMERVRlZaa1pudVhTdzJhRnVtM2pGYmcyMEhCNnZkdFgyQzA4ZUYKMUthYjhmQzJFN0kyUTc4ZUhNZ3JQZVZuUmlyclVsWHZieGI4S0dpWkg1b1pwOFgwR1oxU2FqREVOMEg5emUvcwpBSmY4c1daSzJEYkJ0ajRHTmlVazR6djNQeXMwYXVvWWx1TmtJbkpRbDZYNGVLWkIwVjBYbW54NEJpejNGVVVVCjliUlRlM09FTFYwNDVMUkt3eWRnOWFmQnZQcEZIQkdIcVBxRFptTHl6TWVNQjVHVmJBOEd2NVE4QS96WFdtcnoKSVE0QVlZeVU1dlZXKzBya0NRRVluR1c5QlNiYjB6d3prdVBKa1NRODhzOHV0T2RmMU5SOGZBVkdnazhXVHZXagpRVnlKVzV6Snc2SzlsS0w2Sy94VDlKOUZiWWpQWFZDd21jaDMweUpPWVFLQmdRRFI3NmpkRnhzMTZKMXR3U3Z0CkJBRWMzOVFCeTBPNmNQSWJLV1hYOE1FRDB1R0psYUJRSWE5WUdoS3lGYU5SRjJVTUJYWHVZVll1U2Rrb1lxMGwKNVBndmJoNVYxQjFVYVR5WG0rUTlBcWFsc3pSQW5TdXFKcytsVzJDaE5ISDRZQjlnKzQrZFlmcURuMWdTUlkzMgpvZVlrV05aQ0VHT0c0QUNtSTJXZU8wWklyd0tCZ1FEeklKTFRzQnJ3MldlMW8zOVd2RkpIaFF6RDRNU2ppSHovClRSZS9VV2ZEWlB1TzZmcXBHNXozbk9oWkVsUEJuRktKNTZQekZhemxJQ01xdmpoRHZtTkpmb1J3Y084cnVhOG8KenVzb2N0bk15UzFPOExSMDltZFlPdVhyY0RXamZ5QTdlZHBiWUVSTGYzQXJkL2VJZko0RTJ3SGI3bVhMRHgxbApRdnBjR3VsTzdRS0JnREgzK0ZwL2VIT1JaWDlOUGxaUTRLN3R1N21kbHdaV2dkbmpOYUY3WllXeWVRcFZlZTM0CnhwS1N5aVpuTGhOTUhUb0tSckt4cW1Da0pUTU9vYVhtWlFodERuMWhXb1hQOHFNbmNPRHdzNWUzR3RYU1V5VlIKelpUUE5pWElwT1A0aFIrQllRS1Y0cG5Yb0kvZ3pGU0szb3VDTmFWTjMxS29HSjl5eDJvdE02SnpBb0dBTDZicAp3RDNhK2V2U2pPSlB1Z05OS1NGbHdCcVV6K3lYZXo1ejhoYVZmTkdWRUl6QmlWV1ZMVjcrbHo2bFZlUTZ0VGJHCmhvVndEclIrMEFqYVpFU3pseHNLQURQU1hNS1hGeXQvSWIxby9OOU5WeFNNZWdRMWV6Q0lFZDQ3VlNFOGd3dSsKQlh6WHhlaGpadEdyblgrM1JRSmIyZXhlM1M3SU55bXFnbFR2OTMwQ2dZQkpsK2EvRHN0OE5iVlEvRHpuei93VgpPSDhKUENOS05EQm1WS3ZUVTNiQy9YQW8rQm42a2crbDZqczY5RkZlWHIvOGlHL25sTW9QQTlnT2Zxb3BmZ3AzClpTZFE1RlMrQk9kdFQrT2JacTBlcmxJSlk0dW9na3VEV2NpLzNaeExkYnNQUnhJS2c4MmdYRU9DN1dnb3VsUVQKV1doVUpSeGpJdGx6eUdseHhvb2lqQT09Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"\n                },\n                {\n                    \"type\": \"chain\",\n                    \"name\": \"test_chain\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                }\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"prod-policy\",\n                    \"active_tag\": \"xss-allowed\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                },\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"staging-policy\",\n                    \"active_tag\": \"block\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"block\",\n                            \"displayName\": \"Staging Policy - blocking\",\n                            \"description\": \"Staging policy Staging - blocking\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0KICAgICAgICBdCiAgICB9Cn0K\"\n                        },\n                        {\n                            \"tag\": \"xss-ok\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        },\n                        {\n                            \"tag\": \"xss-extra\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\",\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"IyBUaGlzIGlzIGEgbDQgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/test\",\n                            \"urimatch\": \"exact\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true,\n                                \"uri\": \"/healthcheck\",\n                                \"interval\": 5,\n                                \"fails\": 3,\n                                \"passes\": 2\n                            },\n                            \"rate_limit\": {\n                                \"profile\": \"test_ratelimit\",\n                                \"httpcode\": 429,\n                                \"burst\": 10,\n                                \"delay\": 3\n                            },\n                            \"snippet\": \"http://acme.gitlab.local/test.snippet.location.txt\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"prod-policy\",\n                        \"log\": {\n                            \"profile_name\": \"log_blocked\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgc2VydmVyIHNuaXBwZXQgY29tbWVudAo=\"\n                },\n                {\n                    \"name\": \"another HTTP test application\",\n                    \"names\": [\n                        \"server_443\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\",\n                            \"weight\": 5,\n                            \"max_fails\": 2,\n                            \"fail_timeout\": \"30s\",\n                            \"max_conns\": 3,\n                            \"slow_start\": \"30s\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\",\n                            \"backup\": true\n                        }\n                    ],\n                    \"sticky\": {\n                        \"cookie\": \"cookie_name\",\n                        \"expires\": \"1h\",\n                        \"domain\": \".testserver\",\n                        \"path\": \"/\"\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"test_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                }\n            ],\n            \"maps\": [\n                {\n                    \"match\": \"$host$request_uri\",\n                    \"variable\": \"$backend\",\n                    \"entries\": [\n                        {\n                            \"key\": \"www.test.lab/app1/\",\n                            \"keymatch\": \"iregex\",\n                            \"value\": \"upstream_1\"\n                        },\n                        {\n                            \"key\": \"(.*).test.lab/app2/\",\n                            \"keymatch\": \"regex\",\n                            \"value\": \"upstream_2\"\n                        }\n                    ]\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": true,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            },\n            \"snippet\": \"IyBUaGlzIGlzIGEgSFRUUCBzbmlwcGV0IGNvbW1lbnQK\"\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.crt\"\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.key\"\n                },\n                {\n                    \"type\": \"chain\",\n                    \"name\": \"test_chain\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.chain\"\n                }\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"xss-blocked\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"This is a production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/v2/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"This is a production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/v2/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"production-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -925,51 +925,7 @@
 							"response": []
 						},
 						{
-							"name": "Create full declaration without NGINX App Protect",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"var respData = JSON.parse(responseBody);",
-											"",
-											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-											"",
-											"pm.collectionVariables.set('configUid',respData.configUid);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": \"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRREhZVE9uUDlMWTdEaUgKelBRTnQ3QXRpUGhwb084T1FWSm5SZ2ZUTENVcEFZS1Q0K3MvZEJwVnU4QmtMSndRZ2pMNUtUdDl4RmVOWWpwQQp0Mjd1MjU3ZWJuVGYzWlIrSDhJTit2a0lJdHNrczUxSnpVQWpRUXlESEVLMnFLL1NiWjBWOU4ycm9uTDBjU1JRCm9xUDEvK3R4OVFCblF5WVVsWWkwRmZZMWVtdW1UTlMrUFhFRktjeDBTV1RnM3J0ckI3SXRSZ1ovK1lFUGxpRTcKdzJjQjNlRGRoVFIzL2NpQ2xWQVl0MUUxZ1kwQlAxWnNyeFZLM2dHOG5yU0xKUnYzbEZCUk5zVUdpdFZpb0MxQQpaUGJZTE02NnFuZVpybkp3eVg3czEzYXovckZPbW5mMlAzbDllN1NZWjZwSnk0SjMwNkx1ZVNvemxyVHNJTjhmClpNbzNmWndEQWdNQkFBRUNnZ0VBQUljZWhSMERVRlZaa1pudVhTdzJhRnVtM2pGYmcyMEhCNnZkdFgyQzA4ZUYKMUthYjhmQzJFN0kyUTc4ZUhNZ3JQZVZuUmlyclVsWHZieGI4S0dpWkg1b1pwOFgwR1oxU2FqREVOMEg5emUvcwpBSmY4c1daSzJEYkJ0ajRHTmlVazR6djNQeXMwYXVvWWx1TmtJbkpRbDZYNGVLWkIwVjBYbW54NEJpejNGVVVVCjliUlRlM09FTFYwNDVMUkt3eWRnOWFmQnZQcEZIQkdIcVBxRFptTHl6TWVNQjVHVmJBOEd2NVE4QS96WFdtcnoKSVE0QVlZeVU1dlZXKzBya0NRRVluR1c5QlNiYjB6d3prdVBKa1NRODhzOHV0T2RmMU5SOGZBVkdnazhXVHZXagpRVnlKVzV6Snc2SzlsS0w2Sy94VDlKOUZiWWpQWFZDd21jaDMweUpPWVFLQmdRRFI3NmpkRnhzMTZKMXR3U3Z0CkJBRWMzOVFCeTBPNmNQSWJLV1hYOE1FRDB1R0psYUJRSWE5WUdoS3lGYU5SRjJVTUJYWHVZVll1U2Rrb1lxMGwKNVBndmJoNVYxQjFVYVR5WG0rUTlBcWFsc3pSQW5TdXFKcytsVzJDaE5ISDRZQjlnKzQrZFlmcURuMWdTUlkzMgpvZVlrV05aQ0VHT0c0QUNtSTJXZU8wWklyd0tCZ1FEeklKTFRzQnJ3MldlMW8zOVd2RkpIaFF6RDRNU2ppSHovClRSZS9VV2ZEWlB1TzZmcXBHNXozbk9oWkVsUEJuRktKNTZQekZhemxJQ01xdmpoRHZtTkpmb1J3Y084cnVhOG8KenVzb2N0bk15UzFPOExSMDltZFlPdVhyY0RXamZ5QTdlZHBiWUVSTGYzQXJkL2VJZko0RTJ3SGI3bVhMRHgxbApRdnBjR3VsTzdRS0JnREgzK0ZwL2VIT1JaWDlOUGxaUTRLN3R1N21kbHdaV2dkbmpOYUY3WllXeWVRcFZlZTM0CnhwS1N5aVpuTGhOTUhUb0tSckt4cW1Da0pUTU9vYVhtWlFodERuMWhXb1hQOHFNbmNPRHdzNWUzR3RYU1V5VlIKelpUUE5pWElwT1A0aFIrQllRS1Y0cG5Yb0kvZ3pGU0szb3VDTmFWTjMxS29HSjl5eDJvdE02SnpBb0dBTDZicAp3RDNhK2V2U2pPSlB1Z05OS1NGbHdCcVV6K3lYZXo1ejhoYVZmTkdWRUl6QmlWV1ZMVjcrbHo2bFZlUTZ0VGJHCmhvVndEclIrMEFqYVpFU3pseHNLQURQU1hNS1hGeXQvSWIxby9OOU5WeFNNZWdRMWV6Q0lFZDQ3VlNFOGd3dSsKQlh6WHhlaGpadEdyblgrM1JRSmIyZXhlM1M3SU55bXFnbFR2OTMwQ2dZQkpsK2EvRHN0OE5iVlEvRHpuei93VgpPSDhKUENOS05EQm1WS3ZUVTNiQy9YQW8rQm42a2crbDZqczY5RkZlWHIvOGlHL25sTW9QQTlnT2Zxb3BmZ3AzClpTZFE1RlMrQk9kdFQrT2JacTBlcmxJSlk0dW9na3VEV2NpLzNaeExkYnNQUnhJS2c4MmdYRU9DN1dnb3VsUVQKV1doVUpSeGpJdGx6eUdseHhvb2lqQT09Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"\n                },\n                {\n                    \"type\": \"chain\",\n                    \"name\": \"test_chain\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\",\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"http://acme.gitlab.local/test.snippet.server.l4.txt\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"server_8080.nginx.lab\",\n                        \"server_8081.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/test\",\n                            \"urimatch\": \"exact\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"health_check\": {\n                                \"enabled\": true,\n                                \"uri\": \"/healthcheck\",\n                                \"interval\": 5,\n                                \"fails\": 3,\n                                \"passes\": 2\n                            },\n                            \"rate_limit\": {\n                                \"profile\": \"test_ratelimit\",\n                                \"httpcode\": 429,\n                                \"burst\": 10,\n                                \"delay\": 3\n                            },\n                            \"snippet\": \"http://acme.gitlab.local/test.snippet.location.txt\"\n                        }\n                    ],\n                    \"snippet\": \"http://acme.gitlab.local/test.snippet.server.txt\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\",\n                            \"weight\": 5,\n                            \"max_fails\": 2,\n                            \"fail_timeout\": \"30s\",\n                            \"max_conns\": 3,\n                            \"slow_start\": \"30s\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\",\n                            \"backup\": true\n                        }\n                    ],\n                    \"sticky\": {\n                        \"cookie\": \"cookie_name\",\n                        \"expires\": \"1h\",\n                        \"domain\": \".testserver\",\n                        \"path\": \"/\"\n                    },\n                    \"snippet\": \"IyBUaGlzIGlzIGEgdXBzdHJlYW0gc25pcHBldCBjb21tZW50Cg==\"\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"test_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                }\n            ],\n            \"maps\": [\n                {\n                    \"match\": \"$host$request_uri\",\n                    \"variable\": \"$backend\",\n                    \"entries\": [\n                        {\n                            \"key\": \"www.test.lab/app1/\",\n                            \"keymatch\": \"iregex\",\n                            \"value\": \"upstream_1\"\n                        },\n                        {\n                            \"key\": \"(.*).test.lab/app2/\",\n                            \"keymatch\": \"regex\",\n                            \"value\": \"upstream_2\"\n                        }\n                    ]\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": true,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            },\n            \"snippet\": \"IyBUaGlzIGlzIGEgSFRUUCBzbmlwcGV0IGNvbW1lbnQK\"\n        }\n    }\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Modify HTTP server",
+							"name": "Change active NGINX App Protect policy",
 							"event": [
 								{
 									"listen": "test",
@@ -990,7 +946,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"patched_server.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"xss-allowed\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1014,7 +970,410 @@
 							"response": []
 						},
 						{
-							"name": "Modify HTTP upstream",
+							"name": "Disable NGINX App Protect WAF",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get declaration status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}/status",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Declarative automation - GitOps",
+					"item": [
+						{
+							"name": "NGINX App Protect WAF and GitOps",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 5,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.crt\"\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.key\"\n                },\n                {\n                    \"type\": \"chain\",\n                    \"name\": \"test_chain\",\n                    \"contents\": \"http://acme.gitlab.local/v2/testcert.chain\"\n                }\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"gitops\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"gitops\",\n                            \"displayName\": \"Production Policy - GitOps\",\n                            \"description\": \"This is a production-ready policy - Managed by GitOps\",\n                            \"contents\": \"http://acme.gitlab.local/v2/nap-policy-gitops.json\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"chain\": \"test_chain\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"production-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get declaration status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}/status",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Erase configuration",
+					"item": [
+						{
+							"name": "Create initial NGINX configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"patched_server.nginx.lab\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"127.0.0.1:8080\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:80\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update HTTP upstream",
 							"event": [
 								{
 									"listen": "test",
@@ -1461,227 +1820,89 @@
 					]
 				},
 				{
-					"name": "NGINX Management Suite GitOps Automation",
-					"item": [
+					"name": "Clean NGINX configuration",
+					"event": [
 						{
-							"name": "Create declaration with NAP",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"var respData = JSON.parse(responseBody);",
-											"",
-											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-											"",
-											"pm.collectionVariables.set('configUid',respData.configUid);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 10,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"{{nim_instancegroup}}.prod-policy\",\n                    \"active_tag\": \"xss-blocked\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-blocked.json\"\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": \"http://acme.gitlab.local/nap-policy-xss-allowed.json\"\n                        }\n                    ]\n                },\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"{{nim_instancegroup}}.staging-policy\",\n                    \"active_tag\": \"xss-block\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-block\",\n                            \"displayName\": \"Staging Policy - blocking\",\n                            \"description\": \"Staging policy Staging - blocking\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0KICAgICAgICBdCiAgICB9Cn0K\"\n                        },\n                        {\n                            \"tag\": \"xss-ok\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        },\n                        {\n                            \"tag\": \"xss-extra\",\n                            \"displayName\": \"Staging Policy - XSS allowed\",\n                            \"description\": \"Staging policy Staging - XSS allowed\",\n                            \"contents\": \"ewogICAgInBvbGljeSI6IHsKICAgICAgICAibmFtZSI6ICJwcm9kLXBvbGljeSIsCiAgICAgICAgInRlbXBsYXRlIjogewogICAgICAgICAgICAibmFtZSI6ICJQT0xJQ1lfVEVNUExBVEVfTkdJTlhfQkFTRSIKICAgICAgICB9LAogICAgICAgICJhcHBsaWNhdGlvbkxhbmd1YWdlIjogInV0Zi04IiwKICAgICAgICAiZW5mb3JjZW1lbnRNb2RlIjogImJsb2NraW5nIiwKICAgICAgICAic2lnbmF0dXJlLXNldHMiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJuYW1lIjogIkFsbCBTaWduYXR1cmVzIiwKICAgICAgICAgICAgICAgICJibG9jayI6IHRydWUsCiAgICAgICAgICAgICAgICAiYWxhcm0iOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJzaWduYXR1cmVzIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDE4MzQsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDAwMTQ3NSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgInNpZ25hdHVyZUlkIjogMjAwMDAwMDk4LAogICAgICAgICAgICAgICAgImVuYWJsZWQiOiBmYWxzZQogICAgICAgICAgICB9LAogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAic2lnbmF0dXJlSWQiOiAyMDAwMDEwODgsCiAgICAgICAgICAgICAgICAiZW5hYmxlZCI6IGZhbHNlCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICJzaWduYXR1cmVJZCI6IDIwMDEwMTYwOSwKICAgICAgICAgICAgICAgICJlbmFibGVkIjogZmFsc2UKICAgICAgICAgICAgfQogICAgICAgIF0KICAgIH0KfQo=\"\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"vm-test.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://sample-app\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"{{nim_instancegroup}}.prod-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"sample-app\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Create declaration no NAP",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"var respData = JSON.parse(responseBody);",
-											"",
-											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-											"",
-											"pm.collectionVariables.set('configUid',respData.configUid);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 10,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": \"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktZd2dnU2lBZ0VBQW9JQkFRREhZVE9uUDlMWTdEaUgKelBRTnQ3QXRpUGhwb084T1FWSm5SZ2ZUTENVcEFZS1Q0K3MvZEJwVnU4QmtMSndRZ2pMNUtUdDl4RmVOWWpwQQp0Mjd1MjU3ZWJuVGYzWlIrSDhJTit2a0lJdHNrczUxSnpVQWpRUXlESEVLMnFLL1NiWjBWOU4ycm9uTDBjU1JRCm9xUDEvK3R4OVFCblF5WVVsWWkwRmZZMWVtdW1UTlMrUFhFRktjeDBTV1RnM3J0ckI3SXRSZ1ovK1lFUGxpRTcKdzJjQjNlRGRoVFIzL2NpQ2xWQVl0MUUxZ1kwQlAxWnNyeFZLM2dHOG5yU0xKUnYzbEZCUk5zVUdpdFZpb0MxQQpaUGJZTE02NnFuZVpybkp3eVg3czEzYXovckZPbW5mMlAzbDllN1NZWjZwSnk0SjMwNkx1ZVNvemxyVHNJTjhmClpNbzNmWndEQWdNQkFBRUNnZ0VBQUljZWhSMERVRlZaa1pudVhTdzJhRnVtM2pGYmcyMEhCNnZkdFgyQzA4ZUYKMUthYjhmQzJFN0kyUTc4ZUhNZ3JQZVZuUmlyclVsWHZieGI4S0dpWkg1b1pwOFgwR1oxU2FqREVOMEg5emUvcwpBSmY4c1daSzJEYkJ0ajRHTmlVazR6djNQeXMwYXVvWWx1TmtJbkpRbDZYNGVLWkIwVjBYbW54NEJpejNGVVVVCjliUlRlM09FTFYwNDVMUkt3eWRnOWFmQnZQcEZIQkdIcVBxRFptTHl6TWVNQjVHVmJBOEd2NVE4QS96WFdtcnoKSVE0QVlZeVU1dlZXKzBya0NRRVluR1c5QlNiYjB6d3prdVBKa1NRODhzOHV0T2RmMU5SOGZBVkdnazhXVHZXagpRVnlKVzV6Snc2SzlsS0w2Sy94VDlKOUZiWWpQWFZDd21jaDMweUpPWVFLQmdRRFI3NmpkRnhzMTZKMXR3U3Z0CkJBRWMzOVFCeTBPNmNQSWJLV1hYOE1FRDB1R0psYUJRSWE5WUdoS3lGYU5SRjJVTUJYWHVZVll1U2Rrb1lxMGwKNVBndmJoNVYxQjFVYVR5WG0rUTlBcWFsc3pSQW5TdXFKcytsVzJDaE5ISDRZQjlnKzQrZFlmcURuMWdTUlkzMgpvZVlrV05aQ0VHT0c0QUNtSTJXZU8wWklyd0tCZ1FEeklKTFRzQnJ3MldlMW8zOVd2RkpIaFF6RDRNU2ppSHovClRSZS9VV2ZEWlB1TzZmcXBHNXozbk9oWkVsUEJuRktKNTZQekZhemxJQ01xdmpoRHZtTkpmb1J3Y084cnVhOG8KenVzb2N0bk15UzFPOExSMDltZFlPdVhyY0RXamZ5QTdlZHBiWUVSTGYzQXJkL2VJZko0RTJ3SGI3bVhMRHgxbApRdnBjR3VsTzdRS0JnREgzK0ZwL2VIT1JaWDlOUGxaUTRLN3R1N21kbHdaV2dkbmpOYUY3WllXeWVRcFZlZTM0CnhwS1N5aVpuTGhOTUhUb0tSckt4cW1Da0pUTU9vYVhtWlFodERuMWhXb1hQOHFNbmNPRHdzNWUzR3RYU1V5VlIKelpUUE5pWElwT1A0aFIrQllRS1Y0cG5Yb0kvZ3pGU0szb3VDTmFWTjMxS29HSjl5eDJvdE02SnpBb0dBTDZicAp3RDNhK2V2U2pPSlB1Z05OS1NGbHdCcVV6K3lYZXo1ejhoYVZmTkdWRUl6QmlWV1ZMVjcrbHo2bFZlUTZ0VGJHCmhvVndEclIrMEFqYVpFU3pseHNLQURQU1hNS1hGeXQvSWIxby9OOU5WeFNNZWdRMWV6Q0lFZDQ3VlNFOGd3dSsKQlh6WHhlaGpadEdyblgrM1JRSmIyZXhlM1M3SU55bXFnbFR2OTMwQ2dZQkpsK2EvRHN0OE5iVlEvRHpuei93VgpPSDhKUENOS05EQm1WS3ZUVTNiQy9YQW8rQm42a2crbDZqczY5RkZlWHIvOGlHL25sTW9QQTlnT2Zxb3BmZ3AzClpTZFE1RlMrQk9kdFQrT2JacTBlcmxJSlk0dW9na3VEV2NpLzNaeExkYnNQUnhJS2c4MmdYRU9DN1dnb3VsUVQKV1doVUpSeGpJdGx6eUdseHhvb2lqQT09Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"\n                },\n                {\n                    \"type\": \"chain\",\n                    \"name\": \"test_chain\",\n                    \"contents\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURSVENDQWkwQ0ZDQUVQMGU3U3A4MlFudE5xZFZOQXB3b1VOeDJNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1GOHgKQ3pBSkJnTlZCQVlUQWtsVU1RNHdEQVlEVlFRSURBVk5hV3hoYmpFT01Bd0dBMVVFQnd3RlRXbHNZVzR4RlRBVApCZ05WQkFvTURGUmxjM1FnUTI5dGNHRnVlVEVaTUJjR0ExVUVBd3dRZEdWemRDNWpiMjF3WVc1NUxteGhZakFlCkZ3MHlNakExTVRZd056VTROVGRhRncwek1qQTFNVE13TnpVNE5UZGFNRjh4Q3pBSkJnTlZCQVlUQWtsVU1RNHcKREFZRFZRUUlEQVZOYVd4aGJqRU9NQXdHQTFVRUJ3d0ZUV2xzWVc0eEZUQVRCZ05WQkFvTURGUmxjM1FnUTI5dApjR0Z1ZVRFWk1CY0dBMVVFQXd3UWRHVnpkQzVqYjIxd1lXNTVMbXhoWWpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCCkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1kaE02Yy8wdGpzT0lmTTlBMjNzQzJJK0dtZzd3NUJVbWRHQjlNc0pTa0IKZ3BQajZ6OTBHbFc3d0dRc25CQ0NNdmtwTzMzRVY0MWlPa0MzYnU3Ym50NXVkTi9kbEg0ZndnMzYrUWdpMnlTegpuVW5OUUNOQkRJTWNRcmFvcjlKdG5SWDAzYXVpY3ZSeEpGQ2lvL1gvNjNIMUFHZERKaFNWaUxRVjlqVjZhNlpNCjFMNDljUVVwekhSSlpPRGV1MnNIc2kxR0JuLzVnUStXSVR2RFp3SGQ0TjJGTkhmOXlJS1ZVQmkzVVRXQmpRRS8KVm15dkZVcmVBYnlldElzbEcvZVVVRkUyeFFhSzFXS2dMVUJrOXRnc3pycXFkNW11Y25ESmZ1elhkclArc1U2YQpkL1kvZVgxN3RKaG5xa25MZ25mVG91NTVLak9XdE93ZzN4OWt5amQ5bkFNQ0F3RUFBVEFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVFFQXhyY1ppemR0L0wxWjVYQnE2R0djWTNSbzB0ZEdjdGZHZ0NsdjRvRzVTaE5BQmRhQTIvQ1YKVkE0TGtkb3JYV09hQWNGaWxpcFBlN0tGYVdIZ3EwZ3Q0eEt4LzlkOVZIcU5OY2srTlk0U3dHNDNrWjMyQWQ0QwpnUlowNEVhc1g3aG5wOG13alpLQ0FIWkpGK2krdC9sSFJOaEFDUzFGMHpyQmMrK3NUek5RK1dnTnVEbzN2OWkyCkNoZ1BRbEtBc3M0enM1NGE1RmJOTDJkWWJqNGRraXhJNDMwbU15dXg4SGJPUWFzVm9DVnpXcWtLa29RN25kdUgKRVBrWU0zRy9yVXRQZzhOVU1VVnlkdDFVbnlkb3c4cnhYYjZiQzYreTFQc2FrWHhSdW10ZFlnbDN3UWtJaitGUAoxVFgwSU9qKzdNZnR0cWdxemFhUm85V0s1Y3dpZTBlRGZBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"HTTP test application\",\n                    \"names\": [\n                        \"vm-test.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/access_log\",\n                        \"error\": \"/var/log/nginx/error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://sample-app\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"sample-app\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get declaration status",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}/status",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config",
-										"{{configUid}}",
-										"status"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get  declaration",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config",
-										"{{configUid}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete  declaration",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
-									"protocol": "http",
-									"host": [
-										"{{ncg_host}}"
-									],
-									"port": "{{ncg_port}}",
-									"path": [
-										"v2",
-										"config",
-										"{{configUid}}"
-									]
-								}
-							},
-							"response": []
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var respData = JSON.parse(responseBody);",
+									"",
+									"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+									"",
+									"pm.collectionVariables.set('configUid',respData.configUid);"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n   \n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"v2",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete  declaration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+							"protocol": "http",
+							"host": [
+								"{{ncg_host}}"
+							],
+							"port": "{{ncg_port}}",
+							"path": [
+								"v2",
+								"config",
+								"{{configUid}}"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
@@ -1743,7 +1964,7 @@
 		},
 		{
 			"key": "nim_instancegroup",
-			"value": "appTeam",
+			"value": "declarativeAPITest",
 			"type": "string"
 		},
 		{

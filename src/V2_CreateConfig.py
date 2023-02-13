@@ -113,11 +113,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         loc['snippet'] = snippet
 
                     if 'upstream' in loc and loc['upstream'] and loc['upstream'].split('://')[1] not in all_upstreams:
-                        print(f"INVALID UPSTREAM {loc['upstream']}")
                         return {"status_code": 422,
                                 "message": {"status_code": status,
-                                                                "message": "invalid HTTP upstream ["
-                                                                           + loc['upstream'] + "]"}}
+                                            "message": "invalid HTTP upstream ["
+                                                       + loc['upstream'] + "]"}}
 
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
@@ -184,8 +183,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
 
         if decltype.lower() == "json":
-            return {"status_code": 200, "message": payload}
+            # JSON output
+            return {"status_code": 200, "message": {"status_code": 200, "message": payload}}
         else:
+            # HTTP POST output
             try:
                 r = requests.post(d['output']['http']['url'], data=json.dumps(payload),
                                   headers={'Content-Type': 'application/json'})
@@ -201,9 +202,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 r.headers.pop("Server")
             if "Date" in r.headers:
                 r.headers.pop("Date")
+            if "Content-Type" in r.headers:
+                r.headers.pop("Content-Type")
 
-            return {"status_code": r.status_code, "message":
-                {"status_code": r.status_code, "message": r.text}, "headers": r.headers}
+            r.headers['Content-Type'] = 'application/json'
+
+            return {"status_code": r.status_code, "message": {"code": r.status_code, "content": r.text},
+                 "headers": r.headers}
 
     elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
@@ -226,8 +231,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                                           d['output']['configmap'][
                                                                                               'namespace'])
 
-        return {"status_code": 422, "message": f"{cmHttp}\n---\n{cmStream}",
-                "headers": {'Content-Type': 'application/x-yaml'}}
+        return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
 
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
@@ -439,8 +443,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
                 # Makes NGINX App Protect policies active
-                doWeHavePolicies = Contrib.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
-                                                  activePolicyUids=activePolicyUids, instanceGroupUid=igUid)
+                doWeHavePolicies = Contrib.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                                                                     nmsPassword=nmsPassword,
+                                                                     activePolicyUids=activePolicyUids,
+                                                                     instanceGroupUid=igUid)
 
                 if doWeHavePolicies:
                     # Clean up NGINX App Protect WAF policies not used anymore
@@ -462,9 +468,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     NcgRedis.declarationsList[configUid] = job
 
                     NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
-                    # NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-                    # NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-                    # NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
 
             responseContent = {'code': deploymentCheck.status_code, 'content': jsonResponse, 'configUid': configUid}
 
@@ -502,12 +505,26 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     # The currently applied declaration
     status_code, currentDeclaration = get_declaration(configUid=configUid)
 
-    # Handles declaration updates
-    if 'declaration' in declarationToPatch:
+    # Handle policy/certificate updates
+    if 'output' in declarationToPatch and 'nms' in declarationToPatch['output']:
+        if 'policies' in declarationToPatch['output']['nms']:
+            # NGINX App Protect WAF policy updates
+            for p in declarationToPatch['output']['nms']['policies']:
+                currentDeclaration = Contrib.DeclarationPatcher.patchNAPPolicies(
+                    sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
+
+        if 'certificates' in declarationToPatch['output']['nms']:
+            # TLS certificate/key/chain updates
+            for p in declarationToPatch['output']['nms']['certificates']:
+                currentDeclaration = Contrib.DeclarationPatcher.patchCertificates(
+                    sourceDeclaration=currentDeclaration, patchedCertificates=p)
+
+    # Handle declaration updates
+    if 'declaration' in declarationToPatch and declarationToPatch['declaration']:
         # HTTP
         if 'http' in declarationToPatch['declaration']:
             if 'upstreams' in declarationToPatch['declaration']['http']:
-                # HTTPu pstream patch
+                # HTTP upstream patch
                 for u in declarationToPatch['declaration']['http']['upstreams']:
                     # print(f"Patching HTTP upstream [{u['name']}]")
                     currentDeclaration = Contrib.DeclarationPatcher.patchHttpUpstream(
@@ -547,7 +564,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
 
     if r['status_code'] != 200:
         currentDeclaration = {}
-        #message = f'declaration {configUid} update failed';
+        # message = f'declaration {configUid} update failed';
 
     responseContent = {'code': r['status_code'], 'details': {'message': message},
                        'declaration': currentDeclaration, 'configUid': configUid}

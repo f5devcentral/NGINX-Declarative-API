@@ -61,12 +61,21 @@ def get_config_declaration(configuid: str):
 def post_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
     output = V2_CreateConfig.createconfig(declaration=d, apiversion='v2')
 
-    headers = output['headers'] if 'headers' in output else {'Content-Type': 'application/json'}
-
-    if type(output) is str:
+    if type(output) in [Response, str]:
+        # ConfigMap or plaintext response
         return output
 
-    return JSONResponse(content=output['message']['message'], status_code=output['status_code'], headers=headers)
+    headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
+
+    if 'message' in output:
+        if 'message' in output['message']:
+            response = output['message']['message']
+        else:
+            response = output['message']
+    else:
+        response = output
+
+    return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
 
 
 # Modify eclaration using v2 API
@@ -113,11 +122,11 @@ def get_config_status(configuid: str):
             headers={'Content-Type': 'application/json'}
         )
 
+
 # Delete declaration - v1 & v2 API
 @app.delete("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):
-
     if configuid not in redis.declarationsList:
         return JSONResponse(
             status_code=404,
