@@ -19,7 +19,7 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import NcgConfig
 import NcgRedis
 
-from src import V0_CreateConfig, V0_NginxConfigDeclaration, V1_CreateConfig, V1_NginxConfigDeclaration, \
+import V0_CreateConfig, V0_NginxConfigDeclaration, V1_CreateConfig, V1_NginxConfigDeclaration, \
     V2_NginxConfigDeclaration, V2_CreateConfig
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
