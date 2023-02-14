@@ -132,9 +132,10 @@ $ docker run --name nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
 
 Available images are:
 
-| Image name                        | Architecture | API version |
-|-----------------------------------| ------------ | ----------- |
-| fiorucci/nginx-declarative-api:v1 | linux/amd64  | v1          |
+| Image name                        | Architecture | API version | Notes      |
+|-----------------------------------| ------------ |-------------|------------|
+| fiorucci/nginx-declarative-api:v1 | linux/amd64  | v1          | Deprecated |
+| fiorucci/nginx-declarative-api:v2 | linux/amd64  | v1, v2      | Latest     |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
 
