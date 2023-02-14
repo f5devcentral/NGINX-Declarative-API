@@ -12,4 +12,3 @@ redis
 uuid
 schedule
 future
-numpy

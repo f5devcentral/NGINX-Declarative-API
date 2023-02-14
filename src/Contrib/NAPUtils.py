@@ -4,8 +4,6 @@ NGINX App Protect support functions
 
 import requests
 import json
-import numpy
-import time
 
 import Contrib.GitOps
 
@@ -262,7 +260,7 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
             for tag in currentPolicies[policyName]:
                 allCurrentPoliciesUIDs.append(tag['uid'])
 
-    uidsToRemove = numpy.setdiff1d(allUidsOnNMS, allCurrentPoliciesUIDs)
+    uidsToRemove = list(set(allUidsOnNMS) - set(allCurrentPoliciesUIDs))
 
     for uid in uidsToRemove:
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
