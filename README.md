@@ -13,10 +13,8 @@ Use cases include:
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
   - TLS certificates, keys and chains/bundles
-  - `http` snippets
-  - HTTP `location` snippets
-  - `stream` snippets
-  - `upstream` snippets
+  - `http` snippets, upstreams, servers, locations
+  - `stream` snippets, upstreams, servers
 
 ## Architecture
 
