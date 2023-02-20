@@ -1371,7 +1371,7 @@
 					]
 				},
 				{
-					"name": "Erase configuration",
+					"name": "CRUD automation",
 					"item": [
 						{
 							"name": "Create initial NGINX configuration",
@@ -1865,89 +1865,94 @@
 					]
 				},
 				{
-					"name": "Clean NGINX configuration",
-					"event": [
+					"name": "Erase configuration",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var respData = JSON.parse(responseBody);",
-									"",
-									"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-									"",
-									"pm.collectionVariables.set('configUid',respData.configUid);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n   \n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"name": "Clean NGINX configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
 								}
-							}
-						},
-						"url": {
-							"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
-							"protocol": "http",
-							"host": [
-								"{{ncg_host}}"
 							],
-							"port": "{{ncg_port}}",
-							"path": [
-								"v2",
-								"config"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete  declaration",
-					"event": [
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n   \n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
+							"name": "Delete  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
-							}
-						},
-						"url": {
-							"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
-							"protocol": "http",
-							"host": [
-								"{{ncg_host}}"
 							],
-							"port": "{{ncg_port}}",
-							"path": [
-								"v2",
-								"config",
-								"{{configUid}}"
-							]
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/v2/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"v2",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				}
 			]
 		}

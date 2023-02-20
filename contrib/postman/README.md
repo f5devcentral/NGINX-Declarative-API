@@ -6,6 +6,7 @@ API v2
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
 - `Declarative automation - NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
 - `Declarative automation - GitOps` - GitOps automation demo
+- `CRUD automation` - Sample requests for CRUD-based automation
 - `Erase configuration` - Erase NGINX Plus configuration
 
 ---
