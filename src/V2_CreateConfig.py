@@ -479,13 +479,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             responseContent = {'code': deploymentCheck.status_code, 'content': jsonResponse, 'configUid': configUid}
 
             # Configuration push completed, update redis keys
-            NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
+            if configUid != "":
+                NcgRedis.redis.set('ncg.status.' + configUid, json.dumps(responseContent))
 
-            # if nmsSynctime > 0:
-            # Updates status, declaration and basestagedconfig in redis
-            NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
-            NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
-            NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
+                # if nmsSynctime > 0:
+                # Updates status, declaration and basestagedconfig in redis
+                NcgRedis.redis.set('ncg.declaration.' + configUid, pickle.dumps(declaration))
+                NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
+                NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
             return {"status_code": deploymentCheck.status_code,
                     "message": {"status_code": deploymentCheck.status_code,
