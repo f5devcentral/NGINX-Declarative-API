@@ -17,22 +17,6 @@
             {
                 "signatureId": 200001834,
                 "enabled": false
-            },
-            {
-                "signatureId": 200001475,
-                "enabled": false
-            },
-            {
-                "signatureId": 200000098,
-                "enabled": false
-            },
-            {
-                "signatureId": 200001088,
-                "enabled": false
-            },
-            {
-                "signatureId": 200101609,
-                "enabled": false
             }
         ]
     }
