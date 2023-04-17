@@ -15,6 +15,7 @@ from fastapi.responses import Response, JSONResponse
 from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
+from urllib.parse import urlparse
 
 # pydantic models
 from V2_NginxConfigDeclaration import *
@@ -114,9 +115,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     if 'upstream' in loc and loc['upstream'] and loc['upstream'].split('://')[1] not in all_upstreams:
                         return {"status_code": 422,
-                                "message": {"status_code": status,
-                                            "message": "invalid HTTP upstream ["
-                                                       + loc['upstream'] + "]"}}
+                                "message": {"status_code": status, "message":
+                                    {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
 
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
@@ -127,14 +127,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 for i in range(len(http['rate_limit'])):
                     all_ratelimits.append(http['rate_limit'][i]['name'])
 
-                for server in d['declaration']['http']['servers']:
-                    for loc in server['locations']:
-                        if loc['rate_limit'] != "":
-                            if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
-                                return {"status_code": 422,
-                                        "message": {
-                                            "status_code": status,
-                                            "message": f"invalid rate_limit profile {loc['rate_limit']['profile']}"}}
+        for server in d['declaration']['http']['servers']:
+            for loc in server['locations']:
+                if loc['rate_limit'] != "":
+                    if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
+                        return {"status_code": 422,
+                                "message": {
+                                    "status_code": status,
+                                    "message":
+                                    {"code": status,
+                                     "content":
+                                         f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
@@ -161,7 +164,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     return {"status_code": 422,
                             "message": {
                                 "status_code": status,
-                                "message": f"invalid Layer4 upstream {server['upstream']}"}}
+                                "message":
+                                {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
@@ -235,11 +239,25 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
-        nmsUrl = d['output']['nms']['url']
         nmsUsername = d['output']['nms']['username']
         nmsPassword = d['output']['nms']['password']
         nmsInstanceGroup = d['output']['nms']['instancegroup']
         nmsSynctime = d['output']['nms']['synctime']
+
+        nmsUrlFromJson = d['output']['nms']['url']
+        urlCheck = urlparse(nmsUrlFromJson)
+
+        if urlCheck.scheme not in ['http','https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
+            return {"status_code": 400,
+                    "message": {"status_code": 400, "message": {"code": 400, "content": f"invalid NGINX Management Suite URL {nmsUrlFromJson}"}},
+                    "headers": {'Content-Type': 'application/json'}}
+
+        nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
+
+        if nmsSynctime < 0:
+            return {"status_code": 400,
+                    "message": {"status_code": 400, "message": {"code": 400, "content": "synctime must be >= 0"}},
+                    "headers": {'Content-Type': 'application/json'}}
 
         auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
@@ -274,9 +292,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 return {"status_code": 422,
                                         "message": {
                                             "status_code": 422,
-                                            "message": "invalid TLS certificate " + cert_name + " for server" + str(
+                                            "message": {"code": 422,
+                                                        "content": "invalid TLS certificate " +
+                                                                   cert_name + " for server" + str(
                                                 server['names'])}
-                                        }
+                                        }}
 
                         if 'key' in server['listen']['tls']:
                             cert_key = server['listen']['tls']['key']
@@ -284,9 +304,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 return {"status_code": 422,
                                         "message": {
                                             "status_code": 422,
-                                            "message": "invalid TLS key " + cert_key + " for server" + str(
+                                            "message": {"code": 422, "content": "invalid TLS key " + cert_key + " for server" + str(
                                                 server['names'])}
-                                        }
+                                        }}
 
                         if 'chain' in server['listen']['tls']:
                             cert_chain = server['listen']['tls']['chain']
@@ -294,9 +314,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 return {"status_code": 422,
                                         "message": {
                                             "status_code": 422,
-                                            "message": "invalid TLS chain " + cert_chain + " for server" + str(
+                                            "message": {"code": 422, "content": "invalid TLS chain " + cert_chain + " for server" + str(
                                                 server['names'])}
-                                        }
+                                        }}
 
         # Adds optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
@@ -306,7 +326,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 status, certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
 
                 if status != 200:
-                    return {"status_code": 422, "message": {"status_code": status, "message": certContent}}
+                    return {"status_code": 422, "message": {"status_code": status, "message": {"code": status, "content": certContent}}}
 
                 newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
                                                                '/' + c['name'] + extensions_map[c['type']]}
@@ -357,7 +377,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         if redisDeclarationRendered is not None and json.dumps(d) == redisDeclarationRendered.decode('utf-8'):
             print(f'Configuration [{configUid}] not changed')
-            return {"status_code": 200, "message": {"status_code": 200, "message": "no changes"}}
+            return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
         else:
             # Configuration objects have changed, publish to NIM needed
             print(f'Configuration [{configUid}] changed, publishing to NMS')
@@ -367,8 +387,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                               verify=False)
 
             if ig.status_code != 200:
-                return {"status_code": ig.status_code, "message":
-                    {"status_code": ig.status_code, "message": json.loads(ig.text)}}
+                try:
+                    return {"status_code": ig.status_code,
+                            "message": {"status_code": ig.status_code, "message": {"code": ig.status_code, "content": json.loads(ig.text)}}}
+                except:
+                    return {"status_code": ig.status_code,
+                            "message": {"status_code": ig.status_code,
+                                        "message": {"code": ig.status_code, "content": ig.text}}}
 
             # Get the instance group id
             igUid = Contrib.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
@@ -377,7 +402,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             # Invalid instance group
             if igUid is None:
                 return {"status_code": 404,
-                        "message": {"status_code": 404, "message": f"instance group {nmsInstanceGroup} not found"},
+                        "message": {"status_code": 404, "message": {"code": 404,
+                                                                    "content": f"instance group {nmsInstanceGroup} not found"}},
                         "headers": {'Content-Type': 'application/json'}}
 
             ### NGINX App Protect policies support - commits policies to control plane
