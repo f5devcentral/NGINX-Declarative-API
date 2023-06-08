@@ -26,7 +26,7 @@ class NmsCertificate(BaseModel, extra=Extra.forbid):
     def check_type(cls, values):
         _type = values.get('type')
 
-        valid = ['certificate', 'key', 'chain']
+        valid = ['certificate', 'key']
         if _type not in valid:
             raise ValueError("Invalid certificate type '" + _type + "' must be one of " + str(valid))
 
@@ -150,12 +150,40 @@ class Output(BaseModel, extra=Extra.forbid):
         return values
 
 
+class OcspStapling(BaseModel, extra=Extra.forbid):
+    enabled: Optional[bool] = False
+    verify: Optional[bool] = False
+    responder: Optional[str] = ""
+
+
+class Ocsp(BaseModel, extra=Extra.forbid):
+    enabled: Optional[str] = "off"
+    responder: Optional[str] = ""
+
+
+class Mtls(BaseModel, extra=Extra.forbid):
+    enabled: Optional[str] = "off"
+    trusted_ca_certificates: str = ""
+
+    @root_validator()
+    def check_type(cls, values):
+        _enabled = values.get('enabled')
+
+        valid = ['on', 'off', 'optional', 'optional_no_ca']
+        if _enabled not in valid:
+            raise ValueError("Invalid mTLS type '" + _enabled + "' must be one of " + str(valid))
+
+        return values
+
+
 class Tls(BaseModel, extra=Extra.forbid):
     certificate: str = ""
     key: str = ""
-    chain: Optional[str] = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
+    mtls: Optional[Mtls] = []
+    ocsp: Optional[Ocsp] = []
+    stapling: Optional[OcspStapling] = []
 
 
 class Listen(BaseModel, extra=Extra.forbid):
@@ -240,6 +268,7 @@ class Location(BaseModel, extra=Extra.forbid):
 class Server(BaseModel, extra=Extra.forbid):
     name: str
     names: Optional[List[str]] = []
+    resolver: Optional[str] = ""
     listen: Optional[Listen] = []
     log: Optional[Log] = []
     locations: Optional[List[Location]] = []

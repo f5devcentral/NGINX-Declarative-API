@@ -127,17 +127,19 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 for i in range(len(http['rate_limit'])):
                     all_ratelimits.append(http['rate_limit'][i]['name'])
 
-        for server in d['declaration']['http']['servers']:
-            for loc in server['locations']:
-                if loc['rate_limit'] != "":
-                    if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": status,
-                                    "message":
-                                    {"code": status,
-                                     "content":
-                                         f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
+        if 'http' in d['declaration']:
+            if 'servers' in d['declaration']['http']:
+                for server in d['declaration']['http']['servers']:
+                    for loc in server['locations']:
+                        if loc['rate_limit'] != "":
+                            if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": status,
+                                            "message":
+                                            {"code": status,
+                                             "content":
+                                                 f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
@@ -286,6 +288,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             if 'servers' in d['declaration']['http']:
                 for server in d['declaration']['http']['servers']:
                     if 'tls' in server['listen']:
+                        if 'mtls' in server['listen']['tls']:
+                            cert_name = server['listen']['tls']['mtls']['trusted_ca_certificates']
+                            if cert_name and cert_name not in all_tls['certificate']:
+                                return {"status_code": 422,
+                                        "message": {
+                                            "status_code": 422,
+                                            "message": {"code": 422,
+                                                        "content": "invalid mTLS trusted CA certificate " +
+                                                                   cert_name + " for server" + str(server['names'])}
+                                        }}
+
                         if 'certificate' in server['listen']['tls']:
                             cert_name = server['listen']['tls']['certificate']
                             if cert_name and cert_name not in all_tls['certificate']:

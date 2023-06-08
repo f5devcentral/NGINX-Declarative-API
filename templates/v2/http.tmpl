@@ -94,6 +94,10 @@ server {
     status_zone {{ s.names[0] }};
     {% endif -%}
 
+    {% if s.resolver -%}
+    resolver {{ s.resolver }};
+    {% endif -%}
+
     {# --- Server NGINX App Protect WAF --- #}
 
     {% if s.app_protect -%}
@@ -111,11 +115,10 @@ server {
     {% endif -%}
     {% endif %}
     {% endif %}
-    {% endif %}
+    {% endif -%}
 
 
     {# --- TLS section --- #}
-
     {%- if s.listen.tls -%}
     {%- if s.listen.tls.certificate -%}
     ssl_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.certificate }}.crt;
@@ -123,16 +126,37 @@ server {
     {%- if s.listen.tls.key -%}
     ssl_certificate_key {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.key }}.key;
     {% endif -%}
-    {% if s.listen.tls.chain -%}
-    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.chain }}.chain;
-    {% endif -%}
     {% if s.listen.tls.ciphers -%}
     ssl_ciphers {{ s.listen.tls.ciphers }};
     {% endif -%}
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
     {% endif %}
+    {% endif %}
+
+    {# --- mTLS section --- #}
+    {%- if s.listen.tls.mtls -%}
+    ssl_verify_client {{ s.listen.tls.mtls.enabled }};
+    ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
+    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
+    {% endif %}
+
+    {# --- OCSP section --- #}
+    {%- if s.listen.tls.ocsp and s.listen.tls.ocsp.enabled|lower != "off" -%}
+    ssl_ocsp {{ s.listen.tls.ocsp.enabled }};
+    {% if s.listen.tls.ocsp.responder -%}
+    ssl_ocsp_responder {{ s.listen.tls.ocsp.responder }};
+    {% endif %}
+    {% endif %}
+
+    {% if s.listen.tls.stapling and s.listen.tls.stapling.enabled == True -%}
+    ssl_stapling on;
+    ssl_stapling_verify {% if s.listen.tls.stapling.verify == True %}on{% else %}off{% endif %};
+    {% if s.listen.tls.stapling.responder -%}
+    ssl_stapling_responder {{ s.listen.tls.stapling.responder }};
+
     {% endif -%}
+    {% endif %}
 
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
 

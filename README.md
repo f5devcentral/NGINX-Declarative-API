@@ -74,18 +74,19 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature | API v1 | API v2                                                                                            | Notes |
-| --------| ------ |---------------------------------------------------------------------------------------------------| ----- |
-| Upstreams | X | Per-upstream CRUD                                                                                 | Snippets supported: static and from source of truth |
-| HTTP servers | X | Per-server CRUD                                                                                   | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers | X | Per-server CRUD                                                                                   | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth |
-| TLS | X | Per-TLS configuration CRUD                                                                        | Certificates, keys, chains can be dynamically fetched from source of truth |
-| Rate limiting | X | X                                                                                                 | |
-| Active healthchecks | X | X                                                                                                 | |
-| Cookie-based stickiness | X | X                                                                                                 | |
-| Maps | X | X                                                                                                 | |
-| NGINX Plus REST API access | X | X                                                                                                 | |
-| NGINX App Protect WAF | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth | 
+| Feature                    | API v1 | API v2                                                                                   | Notes                                                                                         |
+|----------------------------| ------ |------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| Upstreams                  | X | Per-upstream CRUD                                                                        | Snippets supported: static and from source of truth                                           |
+| HTTP servers               | X | Per-server CRUD                                                                          | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers            | X | Per-server CRUD                                                                          | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
+| TLS                        | X | Per-TLS configuration CRUD                                                               | Certificates and keys can be dynamically fetched from source of truth                         |
+| mTLS                       | X | Per-mTLS configuration CRUD                                                              | Certificates and keys can be dynamically fetched from source of truth                         |
+| Rate limiting              | X | X                                                                                        |                                                                                               |
+| Active healthchecks        | X | X                                                                                        |                                                                                               |
+| Cookie-based stickiness    | X | X                                                                                        |                                                                                               |
+| Maps                       | X | X                                                                                        |                                                                                               |
+| NGINX Plus REST API access | X | X                                                                                        |                                                                                               |
+| NGINX App Protect WAF      | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
 
 ## How to use
 
