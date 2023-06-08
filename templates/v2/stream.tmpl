@@ -41,9 +41,6 @@ server {
     {%- if s.listen.tls.key -%}
     ssl_certificate_key {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.key }}.key;
     {% endif -%}
-    {% if s.listen.tls.chain -%}
-    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.chain }}.chain;
-    {% endif -%}
     {% if s.listen.tls.ciphers -%}
     ssl_ciphers {{ s.listen.tls.ciphers }};
     {% endif -%}
