@@ -92,6 +92,7 @@ server {
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
+    proxy_set_header Host $host;
     {% endif -%}
 
     {% if s.resolver -%}
