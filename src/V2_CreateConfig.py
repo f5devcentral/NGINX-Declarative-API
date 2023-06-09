@@ -276,7 +276,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         policyVersion['contents'] = content
 
         # Check TLS items validity
-        all_tls = {'certificate': {}, 'key': {}, 'chain': {}}
+        all_tls = {'certificate': {}, 'key': {}}
 
         if 'certificates' in d['output']['nms']:
             certs = d['output']['nms']['certificates']
@@ -289,15 +289,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 for server in d['declaration']['http']['servers']:
                     if 'tls' in server['listen']:
                         if 'mtls' in server['listen']['tls']:
-                            cert_name = server['listen']['tls']['mtls']['trusted_ca_certificates']
-                            if cert_name and cert_name not in all_tls['certificate']:
-                                return {"status_code": 422,
-                                        "message": {
-                                            "status_code": 422,
-                                            "message": {"code": 422,
-                                                        "content": "invalid mTLS trusted CA certificate " +
-                                                                   cert_name + " for server" + str(server['names'])}
-                                        }}
+                            if 'mtls' in server['listen']['tls']:
+                                if 'trusted_ca_certificates' in server['listen']['tls']['mtls']:
+                                    cert_name = server['listen']['tls']['mtls']['trusted_ca_certificates']
+                                    if cert_name and cert_name not in all_tls['certificate']:
+                                        return {"status_code": 422,
+                                                "message": {
+                                                    "status_code": 422,
+                                                    "message": {"code": 422,
+                                                                "content": "invalid mTLS trusted CA certificate " +
+                                                                           cert_name + " for server" + str(server['names'])}
+                                                }}
 
                         if 'certificate' in server['listen']['tls']:
                             cert_name = server['listen']['tls']['certificate']
@@ -321,18 +323,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                 server['names'])}
                                         }}
 
-                        if 'chain' in server['listen']['tls']:
-                            cert_chain = server['listen']['tls']['chain']
-                            if cert_chain and cert_chain not in all_tls['chain']:
-                                return {"status_code": 422,
-                                        "message": {
-                                            "status_code": 422,
-                                            "message": {"code": 422, "content": "invalid TLS chain " + cert_chain + " for server" + str(
-                                                server['names'])}
-                                        }}
-
         # Adds optional certificates specified under output.nms.certificates
-        extensions_map = {'certificate': '.crt', 'key': '.key', 'chain': '.chain'}
+        extensions_map = {'certificate': '.crt', 'key': '.key'}
 
         if 'certificates' in d['output']['nms']:
             for c in d['output']['nms']['certificates']:
@@ -561,7 +553,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                     sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
 
         if 'certificates' in declarationToPatch['output']['nms']:
-            # TLS certificate/key/chain updates
+            # TLS certificate/key updates
             for p in declarationToPatch['output']['nms']['certificates']:
                 currentDeclaration = Contrib.DeclarationPatcher.patchCertificates(
                     sourceDeclaration=currentDeclaration, patchedCertificates=p)

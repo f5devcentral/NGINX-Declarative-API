@@ -139,8 +139,10 @@ server {
     {# --- mTLS section --- #}
     {%- if s.listen.tls.mtls -%}
     ssl_verify_client {{ s.listen.tls.mtls.enabled }};
+    {%- if s.listen.tls.mtls.trusted_ca_certificates -%}
     ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
     ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
+    {% endif %}
     {% endif %}
 
     {# --- OCSP section --- #}
