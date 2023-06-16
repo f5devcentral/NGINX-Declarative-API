@@ -52,8 +52,8 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 # Main
 #
 
-DOCKER_COMPOSE_YAML=docker-compose.yaml
-PROJECT_NAME=nginx-dapi
+DOCKER_COMPOSE_YAML="docker-compose.yaml"
+PROJECT_NAME="nginx-dapi"
 
 while getopts 'hc:' OPTION
 do
@@ -72,4 +72,11 @@ then
 	usage
 fi
 
-nginx_dapi_$ACTION
+case "$ACTION" in
+    start)
+        nginx_dapi_start
+        ;;
+    stop)
+        nginx_dapi_stop
+        ;;
+esac
