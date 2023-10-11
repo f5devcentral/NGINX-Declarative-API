@@ -1,10 +1,10 @@
 # NGINX-Declarative-API
 
-This tool provides a set of declarative REST API for NGINX Management Suite.
+This tool provides a set of declarative REST API for NGINX Instance Manager.
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
-GitOps integration is supported when used with NGINX Management Suite / NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync.
+GitOps integration is supported when used with NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles) and NGINX configurations are automatically kept in sync.
 
 Use cases include:
 
@@ -16,6 +16,11 @@ Use cases include:
   - mTLS certificates
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
+
+## Requirements
+
+- NGINX Instance Manager 2.10+
+- NGINX Plus R30 or newer
 
 ## Architecture
 
@@ -75,25 +80,26 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature                    | API v1 | API v2                                                                                   | Notes                                                                                         |
-|----------------------------| ------ |------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| Upstreams                  | X | Per-upstream CRUD                                                                        | Snippets supported: static and from source of truth                                           |
-| HTTP servers               | X | Per-server CRUD                                                                          | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers            | X | Per-server CRUD                                                                          | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
-| TLS                        | X | Per-TLS configuration CRUD                                                               | Certificates and keys can be dynamically fetched from source of truth                         |
-| mTLS                       | X | Per-mTLS configuration CRUD                                                              | Certificates and keys can be dynamically fetched from source of truth                         |
-| Rate limiting              | X | X                                                                                        |                                                                                               |
-| Active healthchecks        | X | X                                                                                        |                                                                                               |
-| Cookie-based stickiness    | X | X                                                                                        |                                                                                               |
-| Maps                       | X | X                                                                                        |                                                                                               |
-| NGINX Plus REST API access | X | X                                                                                        |                                                                                               |
-| NGINX App Protect WAF      | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
+| Feature                    | API v1 | API v2 | API v3                      | Notes                                                                                         |
+|----------------------------| - |------|--------------------------|-----------------------------------------------------------------------------------------------|
+| Upstreams                  | X | CRUD | CRUD                     | Snippets supported: static and from source of truth                                           |
+| HTTP servers               | X | CRUD | CRUD                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers            | X | CRUD | CRUD                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
+| TLS                        | X | CRUD | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
+| mTLS                       | X | CRUD | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
+| Rate limiting              | X | X | X                           |                                                                                               |
+| Active healthchecks        | X | X | X                           |                                                                                               |
+| Cookie-based stickiness    | X | X | X                           |                                                                                               |
+| Maps                       | X | X | X                           |                                                                                               |
+| NGINX Plus REST API access | X | X | X                           |                                                                                               |
+| NGINX App Protect WAF      | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation    | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
 
 ## How to use
 
 Usage details and JSON schema are available here:
 - [API v1](/USAGE-v1.md) - deprecated
-- [API v2](/USAGE-v2.md)
+- [API v2](/USAGE-v2.md) - stable
+- [API v3](/USAGE-v3.md) - development
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

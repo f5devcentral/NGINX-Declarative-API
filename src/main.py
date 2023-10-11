@@ -19,8 +19,10 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import NcgConfig
 import NcgRedis
 
-import V0_CreateConfig, V0_NginxConfigDeclaration, V1_CreateConfig, V1_NginxConfigDeclaration, \
-    V2_NginxConfigDeclaration, V2_CreateConfig
+import V0_CreateConfig, V0_NginxConfigDeclaration
+import V1_CreateConfig, V1_NginxConfigDeclaration
+import V2_NginxConfigDeclaration, V2_CreateConfig
+import V3_NginxConfigDeclaration, V3_CreateConfig
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
@@ -52,7 +54,7 @@ def post_config_v1(d: V1_NginxConfigDeclaration.ConfigDeclaration, response: Res
 
 # Get declaration - v1 API
 @app.get("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def get_config_declaration(configuid: str):
+def get_config_declaration_v1(configuid: str):
     return V1_CreateConfig.get_config(configUid=configuid)
 
 
@@ -86,8 +88,55 @@ def patch_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Re
 
 # Get declaration - v2 API
 @app.get("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def get_config_declaration(configuid: str):
+def get_config_declaration_v2(configuid: str):
     status_code, content = V2_CreateConfig.get_declaration(configUid=configuid)
+
+    if status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
+            headers={'Content-Type': 'application/json'}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content=content,
+        headers={'Content-Type': 'application/json'}
+    )
+
+
+# Submit declaration using v3 API
+@app.post("/v3/config", status_code=200, response_class=PlainTextResponse)
+def post_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+    output = V3_CreateConfig.createconfig(declaration=d, apiversion='v3')
+
+    if type(output) in [Response, str]:
+        # ConfigMap or plaintext response
+        return output
+
+    headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
+
+    if 'message' in output:
+        if 'message' in output['message']:
+            response = output['message']['message']
+        else:
+            response = output['message']
+    else:
+        response = output
+
+    return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
+
+
+# Modify eclaration using v3 API
+@app.patch("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def patch_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
+    return V3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v3')
+
+
+# Get declaration - v3 API
+@app.get("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def get_config_declaration(configuid: str):
+    status_code, content = V3_CreateConfig.get_declaration(configUid=configuid)
 
     if status_code == 404:
         return JSONResponse(
@@ -106,6 +155,7 @@ def get_config_declaration(configuid: str):
 # Get declaration status - v1 & v2 API
 @app.get("/v1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 @app.get("/v2/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
+@app.get("/v3/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
     status = redis.redis.get('ncg.status.' + configuid)
 
@@ -126,6 +176,7 @@ def get_config_status(configuid: str):
 # Delete declaration - v1 & v2 API
 @app.delete("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+@app.delete("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):
     if configuid not in redis.declarationsList:
         return JSONResponse(

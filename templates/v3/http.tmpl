@@ -82,7 +82,15 @@ server {
 {# --- Server section --- #}
 
 {% for s in declaration.servers %}
+    {# --- Listen section start --- #}
+    {%- if s.listen -%}
+    {% if s.listen.address %}
+
 server {
+    listen {{ s.listen.address }}{% if s.listen.tls and s.listen.tls.certificate %} ssl{% endif %};
+    {% if s.listen.http2 and s.listen.http2 == True -%}http2 on;{% endif -%}
+    {%- endif %}
+
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
@@ -111,15 +119,8 @@ server {
     {% endif -%}
     {% endif %}
     {% endif %}
-    {% endif -%}
+    {% endif %}
     {# --- Server NGINX App Protect WAF section end --- #}
-
-    {# --- Listen section start --- #}
-    {%- if s.listen -%}
-    {%- if s.listen.address -%}
-    listen {{ s.listen.address }}{% if s.listen.tls and s.listen.tls.certificate %} ssl{% endif %};
-    {% if s.listen.http2 and s.listen.http2 == True -%}http2 on;{% endif -%}
-    {%- endif %}
 
     {# --- TLS section start --- #}
     {%- if s.listen.tls -%}
@@ -135,14 +136,16 @@ server {
     {% endif -%}
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
+    {% endif -%}
+    {% if s.listen.tls.trusted_ca_certificates -%}
+    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.trusted_ca_certificates }}.crt;
     {% endif %}
 
     {# --- mTLS section --- #}
     {%- if s.listen.tls.mtls -%}
     ssl_verify_client {{ s.listen.tls.mtls.enabled }};
-    {% if s.listen.tls.mtls.trusted_ca_certificates -%}
-    ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
-    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.trusted_ca_certificates }}.crt;
+    {% if s.listen.tls.mtls.client_certificates -%}
+    ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.client_certificates }}.crt;
     {% endif %}
     {% endif %}
 
@@ -156,20 +159,20 @@ server {
     {# --- OCSP section end --- #}
 
     {# --- TLS stapling section start --- #}
-    {% if s.listen.tls.stapling and s.listen.tls.stapling.enabled == True -%}
+    {%- if s.listen.tls.stapling and s.listen.tls.stapling.enabled == True -%}
     ssl_stapling on;
     ssl_stapling_verify {% if s.listen.tls.stapling.verify == True %}on{% else %}off{% endif %};
     {% if s.listen.tls.stapling.responder -%}
     ssl_stapling_responder {{ s.listen.tls.stapling.responder }};
 
     {% endif -%}
-    {% endif %}
+    {%- endif %}
     {# --- TLS stapling section end --- #}
 
-    {% endif %}
+    {%- endif %}
     {# --- TLS section end --- #}
 
-    {% endif %}
+    {%- endif %}
     {# --- Listen section end --- #}
 
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
@@ -185,11 +188,11 @@ server {
     location
     {%- if loc.urimatch -%}
     {# location URI match types: prefix (default), exact (=), casesens_regex (~), caseinsens_regex (~*), best_nonregex (^~) #}
-    {%- if loc.urimatch|lower == "prefix" %} {% endif -%}
-    {%- if loc.urimatch|lower == "exact" %} = {% endif -%}
-    {%- if loc.urimatch|lower == "regex" %} ~ {% endif -%}
-    {%- if loc.urimatch|lower == "iregex" %} ~* {% endif -%}
-    {%- if loc.urimatch|lower == "best" %} ^~ {% endif -%}
+    {%- if loc.urimatch|lower == "prefix" %} {% endif %}
+    {%- if loc.urimatch|lower == "exact" %} = {% endif %}
+    {%- if loc.urimatch|lower == "regex" %} ~ {% endif %}
+    {%- if loc.urimatch|lower == "iregex" %} ~* {% endif %}
+    {%- if loc.urimatch|lower == "best" %} ^~ {% endif %}
     {%- endif -%}
     {{ loc.uri }} {
         {% if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif %}
@@ -216,13 +219,13 @@ server {
         {% endif -%}
         {% if loc.app_protect.policy -%}
         app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ loc.app_protect.policy }}.tgz;
-        {% endif -%}
+        {% endif %}
         {% if loc.app_protect.log -%}
         {% if loc.app_protect.log.enabled == True -%}
         app_protect_security_log_enable on;
         {% if loc.app_protect.log.profile_name -%}
         app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ loc.app_protect.log.profile_name }}.tgz" syslog:server={{ loc.app_protect.log.destination }};
-        {% endif -%}
+        {% endif %}
         {% endif %}
         {% endif %}
         {% endif %}

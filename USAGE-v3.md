@@ -1,8 +1,8 @@
 # Usage for API v2
 
-Version 2 API requires:
+Version 3 API requires:
 - NGINX Instance Manager 2.10.0+
-- NGINX R30+
+- NGINX Plus R30+
 
 If NGINX App Protect declarations are used:
 - NGINX App Protect Policy Compiler 4.2.0+
@@ -236,6 +236,7 @@ A sample declaration (to be POSTed to /v2/config) is:
                         "tls": {
                             "certificate": "test_cert",
                             "key": "test_key",
+                            "trusted_ca_certificates": "cacert",
                             "ciphers": "DEFAULT",
                             "protocols": [
                                 "TLSv1.2",
@@ -243,7 +244,7 @@ A sample declaration (to be POSTed to /v2/config) is:
                             ],
                             "mtls": {
                                 "enabled": "on",
-                                "trusted_ca_certificates": "cacert"
+                                "client_certificates": "cacert"
                             },
                             "ocsp": {
                                 "enabled": "on",
