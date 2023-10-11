@@ -1,4 +1,4 @@
-# Usage for API v2
+# Usage for API v3
 
 Version 3 API requires:
 - NGINX Instance Manager 2.10.0+
