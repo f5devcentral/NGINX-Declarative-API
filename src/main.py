@@ -3,26 +3,23 @@
 """
 NGINX Declarative API
 """
-import uvicorn
+import json
 import threading
 import time
+
 import schedule
-import json
-import pickle
-
+import uvicorn
 from fastapi import FastAPI
+from fastapi.requests import Request
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
-
-# pydantic models
 
 # NGINX Declarative API modules
 import NcgConfig
 import NcgRedis
+import V3_CreateConfig
+import V3_NginxConfigDeclaration
 
-import V0_CreateConfig, V0_NginxConfigDeclaration
-import V1_CreateConfig, V1_NginxConfigDeclaration
-import V2_NginxConfigDeclaration, V2_CreateConfig
-import V3_NginxConfigDeclaration, V3_CreateConfig
+# pydantic models
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
@@ -38,71 +35,6 @@ def runScheduler():
     while True:
         schedule.run_pending()
         time.sleep(1)
-
-
-# Submit a declaration using v0 API
-@app.post("/v0/config", status_code=200, response_class=PlainTextResponse)
-def post_config_v0_deprecated(d: V0_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    return V0_CreateConfig.createconfig(declaration=d, apiversion='v0')
-
-
-# Submit a declaration using v1 API
-@app.post("/v1/config", status_code=200, response_class=PlainTextResponse)
-def post_config_v1(d: V1_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    return V1_CreateConfig.createconfig(declaration=d, apiversion='v1')
-
-
-# Get declaration - v1 API
-@app.get("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def get_config_declaration_v1(configuid: str):
-    return V1_CreateConfig.get_config(configUid=configuid)
-
-
-# Submit declaration using v2 API
-@app.post("/v2/config", status_code=200, response_class=PlainTextResponse)
-def post_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    output = V2_CreateConfig.createconfig(declaration=d, apiversion='v2')
-
-    if type(output) in [Response, str]:
-        # ConfigMap or plaintext response
-        return output
-
-    headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
-
-    if 'message' in output:
-        if 'message' in output['message']:
-            response = output['message']['message']
-        else:
-            response = output['message']
-    else:
-        response = output
-
-    return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
-
-
-# Modify eclaration using v2 API
-@app.patch("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def patch_config_v2(d: V2_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    return V2_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v2')
-
-
-# Get declaration - v2 API
-@app.get("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def get_config_declaration_v2(configuid: str):
-    status_code, content = V2_CreateConfig.get_declaration(configUid=configuid)
-
-    if status_code == 404:
-        return JSONResponse(
-            status_code=404,
-            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
-            headers={'Content-Type': 'application/json'}
-        )
-
-    return JSONResponse(
-        status_code=200,
-        content=content,
-        headers={'Content-Type': 'application/json'}
-    )
 
 
 # Submit declaration using v3 API
@@ -152,9 +84,7 @@ def get_config_declaration(configuid: str):
     )
 
 
-# Get declaration status - v1 & v2 API
-@app.get("/v1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
-@app.get("/v2/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
+# Get declaration status - v3 API
 @app.get("/v3/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
     status = redis.redis.get('ncg.status.' + configuid)
@@ -173,9 +103,7 @@ def get_config_status(configuid: str):
         )
 
 
-# Delete declaration - v1 & v2 API
-@app.delete("/v1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-@app.delete("/v2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+# Delete declaration - v3 API
 @app.delete("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):
     if configuid not in redis.declarationsList:
@@ -206,6 +134,13 @@ def delete_config(configuid: str = ""):
         content={'code': 200, 'details': {'message': f'declaration {configuid} deleted'}},
         headers={'Content-Type': 'application/json'}
     )
+
+
+# Import OpenAPI schema
+@app.post("/v3/openapi", status_code=200, response_class=JSONResponse)
+def post_openapi_v3(request: Request):
+    openAPISchema = request.json()
+    print(openAPISchema)
 
 
 if __name__ == '__main__':

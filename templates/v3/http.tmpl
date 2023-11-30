@@ -143,7 +143,9 @@ server {
 
     {# --- mTLS section --- #}
     {%- if s.listen.tls.mtls -%}
+    {%- if s.listen.tls.mtls.enabled|lower != "off" -%}
     ssl_verify_client {{ s.listen.tls.mtls.enabled }};
+    {% endif %}
     {% if s.listen.tls.mtls.client_certificates -%}
     ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.client_certificates }}.crt;
     {% endif %}

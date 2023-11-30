@@ -80,26 +80,25 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature                    | API v1 | API v2 | API v3                      | Notes                                                                                         |
-|----------------------------| - |------|--------------------------|-----------------------------------------------------------------------------------------------|
-| Upstreams                  | X | CRUD | CRUD                     | Snippets supported: static and from source of truth                                           |
-| HTTP servers               | X | CRUD | CRUD                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers            | X | CRUD | CRUD                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
-| TLS                        | X | CRUD | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
-| mTLS                       | X | CRUD | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
-| Rate limiting              | X | X | X                           |                                                                                               |
-| Active healthchecks        | X | X | X                           |                                                                                               |
-| Cookie-based stickiness    | X | X | X                           |                                                                                               |
-| Maps                       | X | X | X                           |                                                                                               |
-| NGINX Plus REST API access | X | X | X                           |                                                                                               |
-| NGINX App Protect WAF      | policies & log formats at `server` and `location` level | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation    | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
+| Feature                    |  API v3                     | Notes                                                                                         |
+|----------------------------| ---------------------------|-----------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD                     | Snippets supported: static and from source of truth                                           |
+| HTTP servers               | CRUD                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers            | CRUD                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
+| TLS                        | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
+| mTLS                       | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
+| Rate limiting              | X                           |                                                                                               |
+| Active healthchecks        | X                           |                                                                                               |
+| Cookie-based stickiness    | X                           |                                                                                               |
+| Maps                       | X                           |                                                                                               |
+| NGINX Plus REST API access | X                           |                                                                                               |
+| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
 
 ## How to use
 
 Usage details and JSON schema are available here:
-- [API v1](/USAGE-v1.md) - deprecated
-- [API v2](/USAGE-v2.md) - stable
-- [API v3](/USAGE-v3.md) - development
+
+- [API v3](/USAGE-v3.md) - current
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
@@ -142,8 +141,8 @@ Available images are:
 
 | Image name                            | Architecture | API version | Notes      |
 |---------------------------------------| ------------ |-------------|------------|
-| fiorucci/nginx-declarative-api:v1     | linux/amd64  | v1          | Deprecated |
-| fiorucci/nginx-declarative-api:latest | linux/amd64  | v1, v2      | Latest     |
+| fiorucci/nginx-declarative-api:v3     | linux/amd64  | v3          | Current    |
+| fiorucci/nginx-declarative-api:latest | linux/amd64  | v3          | Current    |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
 

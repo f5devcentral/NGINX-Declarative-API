@@ -87,7 +87,7 @@ def checkDeclarationPolicies(declaration: dict):
         return 200, ""
 
     for policy in declaration['output']['nms']['policies']:
-        #print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
+        # print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
 
         if policy['name'] and policy['name'] in allPolicyNames:
             return 422, f"Duplicated NGINX App Protect WAF policy [{policy['name']}]"
@@ -97,7 +97,7 @@ def checkDeclarationPolicies(declaration: dict):
         # Check policy releases for non-univoque tags
         allPolicyVersionTags = {}
         for policyVersion in policy['versions']:
-            #print(f"--> Policy [{policy['name']}] tag [{policyVersion['tag']}]")
+            # print(f"--> Policy [{policy['name']}] tag [{policyVersion['tag']}]")
             if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
                 return 422, f"Duplicated NGINX App Protect WAF policy tag [{policyVersion['tag']}] " \
                             f"for policy [{policy['name']}]"
@@ -108,7 +108,7 @@ def checkDeclarationPolicies(declaration: dict):
             return 422, f"Invalid active tag [{policy['active_tag']}] for policy [{policy['name']}]"
 
     # Check policy names referenced by the declaration inside HTTP servers[]: they must be valid
-    if 'servers' in declaration['declaration']['http']:
+    if 'http' in declaration['declaration'] and 'servers' in declaration['declaration']['http']:
         for httpServer in declaration['declaration']['http']['servers']:
             if 'app_protect' in httpServer:
                 if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] \
@@ -116,7 +116,8 @@ def checkDeclarationPolicies(declaration: dict):
                     return 422, f"Unknown NGINX App Protect WAF policy [{httpServer['app_protect']['policy']}] " \
                                 f"referenced by HTTP server [{httpServer['name']}]"
 
-                if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
+                if 'log' in httpServer['app_protect'] \
+                        and 'profile_name' in httpServer['app_protect']['log'] \
                         and httpServer['app_protect']['log']['profile_name'] \
                         and httpServer['app_protect']['log']['profile_name'] \
                         not in available_log_profiles:
@@ -234,7 +235,7 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
 
         doWeHavePolicies = True
         r = requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
-                      data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
+                          data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
 
     return doWeHavePolicies
 

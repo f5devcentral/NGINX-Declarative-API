@@ -3,8 +3,10 @@ JSON declaration format
 """
 
 from __future__ import annotations
+
 from typing import List, Optional
-from pydantic import BaseModel, Extra, validator, root_validator
+
+from pydantic import BaseModel, Extra, model_validator
 
 
 class OutputConfigMap(BaseModel, extra=Extra.forbid):
@@ -22,15 +24,15 @@ class NmsCertificate(BaseModel, extra=Extra.forbid):
     name: str
     contents: str
 
-    @root_validator()
-    def check_type(cls, values):
-        _type = values.get('type')
+    @model_validator(mode='after')
+    def check_type(self) -> 'NmsCertificate':
+        _type = self.type
 
         valid = ['certificate', 'key']
         if _type not in valid:
             raise ValueError("Invalid certificate type '" + _type + "' must be one of " + str(valid))
 
-        return values
+        return self
 
 
 class NmsPolicyVersion(BaseModel, extra=Extra.forbid):
@@ -46,30 +48,28 @@ class NmsPolicy(BaseModel, extra=Extra.forbid):
     active_tag: str = ""
     versions: Optional[List[NmsPolicyVersion]] = []
 
-    @root_validator()
-    def check_type(cls, values):
-        _type = values.get('type')
+    @model_validator(mode='after')
+    def check_type(self) -> 'NmsPolicy':
+        _type = self.type
 
         valid = ['app_protect']
         if _type not in valid:
             raise ValueError("Invalid policy type '" + _type + "' must be one of " + str(valid))
 
-        return values
+        return self
 
 
 class AppProtectLogProfile(BaseModel, extra=Extra.forbid):
     name: str
     format: Optional[str] = "default"
     format_string: Optional[str] = ""
-    type: Optional[str]= "blocked"
+    type: Optional[str] = "blocked"
     max_request_size: Optional[str] = "any"
     max_message_size: Optional[str] = "5k"
 
-    @root_validator()
-    def check_type(cls, values):
-        _type = values.get('type')
-        _format = values.get('format')
-        _format_string = values.get('format_string')
+    @model_validator(mode='after')
+    def check_type(self) -> 'AppProtectLogProfile':
+        _type, _format, _format_string = self.type, self.format, self.format_string
 
         valid = ['all', 'illegal', 'blocked']
         if _type not in valid:
@@ -82,16 +82,16 @@ class AppProtectLogProfile(BaseModel, extra=Extra.forbid):
         if _format == 'user-defined' and _format_string == "":
             raise ValueError(f"NGINX App Protect log format {_format} requires format_string")
 
-        return values
+        return self
 
 
 class LogProfile(BaseModel, extra=Extra.forbid):
     type: str
-    app_protect: Optional[AppProtectLogProfile] = []
+    app_protect: Optional[AppProtectLogProfile] = {}
 
-    @root_validator()
-    def check_type(cls, values):
-        _type, app_protect = values.get('type'), values.get('app_protect')
+    @model_validator(mode='after')
+    def check_type(self) -> 'LogProfile':
+        _type, app_protect = self.type, self.app_protect
 
         valid = ['app_protect']
         if _type not in valid:
@@ -105,7 +105,7 @@ class LogProfile(BaseModel, extra=Extra.forbid):
         if isError:
             raise ValueError("Invalid log profile data for type '" + _type + "'")
 
-        return values
+        return self
 
 
 class OutputNMS(BaseModel, extra=Extra.forbid):
@@ -122,14 +122,13 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
 
 class Output(BaseModel, extra=Extra.forbid):
     type: str
-    configmap: Optional[OutputConfigMap] = []
-    http: Optional[OutputHttp] = []
-    nms: Optional[OutputNMS] = []
+    configmap: Optional[OutputConfigMap] = {}
+    http: Optional[OutputHttp] = {}
+    nms: Optional[OutputNMS] = {}
 
-    @root_validator()
-    def check_type(cls, values):
-        _type, configmap, http, nms = values.get('type'), values.get('configmap'), values.get(
-            'http'), values.get('nms')
+    @model_validator(mode='after')
+    def check_type(self) -> 'Output':
+        _type, configmap, http, nms = self.type, self.configmap, self.http, self.nms
 
         valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
         if _type not in valid:
@@ -147,7 +146,7 @@ class Output(BaseModel, extra=Extra.forbid):
         if isError:
             raise ValueError("Invalid output data for type '" + _type + "'")
 
-        return values
+        return self
 
 
 class OcspStapling(BaseModel, extra=Extra.forbid):
@@ -165,15 +164,15 @@ class Mtls(BaseModel, extra=Extra.forbid):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
 
-    @root_validator()
-    def check_type(cls, values):
-        _enabled = values.get('enabled')
+    @model_validator(mode='after')
+    def check_type(self) -> 'Mtls':
+        _enabled = self.enabled
 
         valid = ['on', 'off', 'optional', 'optional_no_ca']
         if _enabled not in valid:
             raise ValueError("Invalid mTLS type '" + _enabled + "' must be one of " + str(valid))
 
-        return values
+        return self
 
 
 class Tls(BaseModel, extra=Extra.forbid):
@@ -182,26 +181,25 @@ class Tls(BaseModel, extra=Extra.forbid):
     trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    mtls: Optional[Mtls] = []
-    ocsp: Optional[Ocsp] = []
-    stapling: Optional[OcspStapling] = []
+    mtls: Optional[Mtls] = {}
+    ocsp: Optional[Ocsp] = {}
+    stapling: Optional[OcspStapling] = {}
 
 
 class Listen(BaseModel, extra=Extra.forbid):
     address: Optional[str] = ""
     http2: Optional[bool] = False
-    tls: Optional[Tls] = []
+    tls: Optional[Tls] = {}
 
 
 class ListenL4(BaseModel, extra=Extra.forbid):
-    address: Optional[str]
+    address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
-    tls: Optional[Tls] = []
+    tls: Optional[Tls] = {}
 
-    @root_validator()
-    def check_type(cls, values):
-        protocol = values.get('protocol')
-        tls = values.get('tls')
+    @model_validator(mode='after')
+    def check_type(self) -> 'ListenL4':
+        protocol, tls = self.protocol, self.tls
 
         valid = ['tcp', 'udp']
         if protocol not in valid:
@@ -210,7 +208,7 @@ class ListenL4(BaseModel, extra=Extra.forbid):
         if protocol != 'tcp' and tls and tls.certificate:
             raise ValueError("TLS termination over UDP is not supported")
 
-        return values
+        return self
 
 
 class Log(BaseModel, extra=Extra.forbid):
@@ -227,10 +225,10 @@ class RateLimit(BaseModel, extra=Extra.forbid):
 
 class HealthCheck(BaseModel, extra=Extra.forbid):
     enabled: Optional[bool] = False
-    uri: Optional[str]
-    interval: Optional[int]
-    fails: Optional[int]
-    passes: Optional[int]
+    uri: Optional[str] = "/"
+    interval: Optional[int] = 5
+    fails: Optional[int] = 1
+    passes: Optional[int] = 1
 
 
 class AppProtectLog(BaseModel, extra=Extra.forbid):
@@ -242,7 +240,7 @@ class AppProtectLog(BaseModel, extra=Extra.forbid):
 class AppProtect(BaseModel, extra=Extra.forbid):
     enabled: Optional[bool] = False
     policy: str = ""
-    log: AppProtectLog = ""
+    log: AppProtectLog = {}
 
 
 class Location(BaseModel, extra=Extra.forbid):
@@ -250,36 +248,36 @@ class Location(BaseModel, extra=Extra.forbid):
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
     caching: Optional[str] = ""
-    rate_limit: Optional[RateLimit] = ""
-    health_check: Optional[HealthCheck] = ""
-    app_protect: Optional[AppProtect] = []
+    rate_limit: Optional[RateLimit] = {}
+    health_check: Optional[HealthCheck] = {}
+    app_protect: Optional[AppProtect] = {}
     snippet: Optional[str] = ""
 
-    @root_validator()
-    def check_type(cls, values):
-        urimatch = values.get('urimatch')
+    @model_validator(mode='after')
+    def check_type(self) -> 'Location':
+        urimatch = self.urimatch
 
         valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
         if urimatch not in valid:
             raise ValueError("Invalid URI match type '" + urimatch + "' must be one of " + str(valid))
 
-        return values
+        return self
 
 
 class Server(BaseModel, extra=Extra.forbid):
     name: str
     names: Optional[List[str]] = []
     resolver: Optional[str] = ""
-    listen: Optional[Listen] = []
-    log: Optional[Log] = []
+    listen: Optional[Listen] = {}
+    log: Optional[Log] = {}
     locations: Optional[List[Location]] = []
-    app_protect: Optional[AppProtect] = []
+    app_protect: Optional[AppProtect] = {}
     snippet: Optional[str] = ""
 
 
 class L4Server(BaseModel, extra=Extra.forbid):
     name: str
-    listen: Optional[ListenL4] = []
+    listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[str] = ""
 
@@ -354,15 +352,15 @@ class MapEntry(BaseModel, extra=Extra.forbid):
     keymatch: str
     value: str
 
-    @root_validator()
-    def check_type(cls, values):
-        keymatch = values.get('keymatch')
+    @model_validator(mode='after')
+    def check_type(self) -> 'MapEntry':
+        keymatch = self.keymatch
 
         valid = ['exact', 'regex', 'iregex']
         if keymatch not in valid:
             raise ValueError("Invalid key match type '" + keymatch + "' must be one of " + str(valid))
 
-        return values
+        return self
 
 
 class Map(BaseModel, extra=Extra.forbid):
@@ -381,16 +379,16 @@ class Http(BaseModel, extra=Extra.forbid):
     upstreams: Optional[List[Upstream]] = []
     caching: Optional[List[CachingItem]] = []
     rate_limit: Optional[List[RateLimitItem]] = []
-    nginx_plus_api: Optional[NginxPlusApi] = []
+    nginx_plus_api: Optional[NginxPlusApi] = {}
     maps: Optional[List[Map]] = []
     snippet: Optional[str] = ""
 
 
 class Declaration(BaseModel, extra=Extra.forbid):
-    layer4: Optional[Layer4] = []
-    http: Optional[Http] = []
+    layer4: Optional[Layer4] = {}
+    http: Optional[Http] = {}
 
 
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output
-    declaration: Optional[Declaration]
+    declaration: Optional[Declaration] = {}

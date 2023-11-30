@@ -3,33 +3,31 @@ Configuration creation based on jinja2 templates
 """
 
 import base64
-import requests
 import json
+import pickle
 import time
 import uuid
-import schedule
-import pickle
-
-from jinja2 import Environment, FileSystemLoader
-from fastapi.responses import Response, JSONResponse
-from pydantic import ValidationError
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from datetime import datetime
 from urllib.parse import urlparse
 
-# pydantic models
-from V3_NginxConfigDeclaration import *
+import requests
+import schedule
+from fastapi.responses import Response, JSONResponse
+from jinja2 import Environment, FileSystemLoader
+from pydantic import ValidationError
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+import Contrib.DeclarationPatcher
+import Contrib.GitOps
+import Contrib.MiscUtils
+# NGINX App Protect helper functions
+import Contrib.NAPUtils
+import Contrib.NIMUtils
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
-
-# NGINX App Protect helper functions
-import Contrib.NAPUtils
-import Contrib.GitOps
-import Contrib.NIMUtils
-import Contrib.DeclarationPatcher
-import Contrib.MiscUtils
+# pydantic models
+from V3_NginxConfigDeclaration import *
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -99,12 +97,12 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         all_ratelimits = []
         http = d['declaration']['http']
 
-        d_rate_limit = Contrib.MiscUtils.getDictKey(d,'declaration.http.rate_limit')
+        d_rate_limit = Contrib.MiscUtils.getDictKey(d, 'declaration.http.rate_limit')
         if d_rate_limit is not None:
             for i in range(len(d_rate_limit)):
                 all_ratelimits.append(d_rate_limit[i]['name'])
 
-        d_servers = Contrib.MiscUtils.getDictKey(d,'declaration.http.servers')
+        d_servers = Contrib.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
             for server in d_servers:
                 if server['snippet']:
@@ -129,26 +127,27 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
 
-                    if loc['rate_limit'] != "":
-                        if loc['rate_limit']['profile'] and loc['rate_limit']['profile'] not in all_ratelimits:
+                    if loc['rate_limit'] is not None:
+                        if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
+                            'profile'] not in all_ratelimits:
                             return {"status_code": 422,
                                     "message": {
                                         "status_code": status,
                                         "message":
-                                        {"code": status,
-                                         "content":
-                                             f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
+                                            {"code": status,
+                                             "content":
+                                                 f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
 
-    if 'layer4' in d['declaration']:
+    if d['declaration']['layer4'] is not None:
         # Check Layer4/stream upstreams validity
         all_upstreams = []
 
-        d_upstreams = Contrib.MiscUtils.getDictKey(d,'declaration.layer4.upstreams')
+        d_upstreams = Contrib.MiscUtils.getDictKey(d, 'declaration.layer4.upstreams')
         if d_upstreams is not None:
             for i in range(len(d_upstreams)):
                 all_upstreams.append(d_upstreams[i]['name'])
 
-        d_servers = Contrib.MiscUtils.getDictKey(d,'declaration.layer4.servers')
+        d_servers = Contrib.MiscUtils.getDictKey(d, 'declaration.layer4.servers')
         if d_servers is not None:
             for server in d_servers:
 
@@ -165,7 +164,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             "message": {
                                 "status_code": status,
                                 "message":
-                                {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
+                                    {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
@@ -208,7 +207,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             r.headers['Content-Type'] = 'application/json'
 
             return {"status_code": r.status_code, "message": {"code": r.status_code, "content": r.text},
-                 "headers": r.headers}
+                    "headers": r.headers}
 
     elif decltype.lower() == 'configmap':
         # Kubernetes ConfigMap output
@@ -235,17 +234,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     elif decltype.lower() == 'nms':
         # NGINX Management Suite Staged Configuration publish
-        nmsUsername = Contrib.MiscUtils.getDictKey(d,'output.nms.username')
-        nmsPassword = Contrib.MiscUtils.getDictKey(d,'output.nms.password')
-        nmsInstanceGroup = Contrib.MiscUtils.getDictKey(d,'output.nms.instancegroup')
-        nmsSynctime = Contrib.MiscUtils.getDictKey(d,'output.nms.synctime')
+        nmsUsername = Contrib.MiscUtils.getDictKey(d, 'output.nms.username')
+        nmsPassword = Contrib.MiscUtils.getDictKey(d, 'output.nms.password')
+        nmsInstanceGroup = Contrib.MiscUtils.getDictKey(d, 'output.nms.instancegroup')
+        nmsSynctime = Contrib.MiscUtils.getDictKey(d, 'output.nms.synctime')
 
-        nmsUrlFromJson = Contrib.MiscUtils.getDictKey(d,'output.nms.url')
+        nmsUrlFromJson = Contrib.MiscUtils.getDictKey(d, 'output.nms.url')
         urlCheck = urlparse(nmsUrlFromJson)
 
-        if urlCheck.scheme not in ['http','https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
+        if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
             return {"status_code": 400,
-                    "message": {"status_code": 400, "message": {"code": 400, "content": f"invalid NGINX Management Suite URL {nmsUrlFromJson}"}},
+                    "message": {"status_code": 400, "message": {"code": 400,
+                                                                "content": f"invalid NGINX Management Suite URL {nmsUrlFromJson}"}},
                     "headers": {'Content-Type': 'application/json'}}
 
         nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
@@ -258,7 +258,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
         # Fetch NGINX App Protect WAF policies from source of truth if needed
-        d_policies = Contrib.MiscUtils.getDictKey(d,'output.nms.policies')
+        d_policies = Contrib.MiscUtils.getDictKey(d, 'output.nms.policies')
         if d_policies is not None:
             for policy in d_policies:
                 if 'versions' in policy:
@@ -279,72 +279,75 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 if d_certs[i]['name']:
                     all_tls[d_certs[i]['type']][d_certs[i]['name']] = True
 
-        d_servers = Contrib.MiscUtils.getDictKey(d,'declaration.http.servers')
+        d_servers = Contrib.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
             for server in d_servers:
-                if 'tls' in server['listen']:
-                    cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.certificate')
-                    if cert_name and cert_name not in all_tls['certificate']:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": 422,
-                                    "message": {"code": 422,
-                                                "content": "invalid TLS certificate " +
-                                                           cert_name + " for server" + str(
-                                        server['names'])}
-                                }}
+                if server['listen'] is not None:
+                    if 'tls' in server['listen']:
+                        cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.certificate')
+                        if cert_name and cert_name not in all_tls['certificate']:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": 422,
+                                        "message": {"code": 422,
+                                                    "content": "invalid TLS certificate " +
+                                                               cert_name + " for server" + str(
+                                                        server['names'])}
+                                    }}
 
-                    cert_key = Contrib.MiscUtils.getDictKey(server, 'listen.tls.key')
-                    if cert_key and cert_key not in all_tls['key']:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": 422,
-                                    "message": {"code": 422, "content": "invalid TLS key " + cert_key + " for server" + str(
-                                        server['names'])}
-                                }}
+                        cert_key = Contrib.MiscUtils.getDictKey(server, 'listen.tls.key')
+                        if cert_key and cert_key not in all_tls['key']:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": 422,
+                                        "message": {"code": 422,
+                                                    "content": "invalid TLS key " + cert_key + " for server" + str(
+                                                        server['names'])}
+                                    }}
 
-                    trusted_cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
-                    if trusted_cert_name and trusted_cert_name not in all_tls['certificate']:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": 422,
-                                    "message": {"code": 422,
-                                                "content": "invalid trusted CA certificate " +
-                                                           trusted_cert_name + " for server" + str(server['names'])}
-                                }}
+                        trusted_cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
+                        if trusted_cert_name and trusted_cert_name not in all_tls['certificate']:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": 422,
+                                        "message": {"code": 422,
+                                                    "content": "invalid trusted CA certificate " +
+                                                               trusted_cert_name + " for server" + str(server['names'])}
+                                    }}
 
-                    if Contrib.MiscUtils.getDictKey(server, 'listen.tls.mtls.enabled') in ['optional_no_ca'] \
-                            and 'ocsp' in server['listen']['tls']:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": 422,
-                                    "message": {"code": 422,
-                                                "content": "OCSP is incompatible with 'optional_no_ca' client "
-                                                           "mTLS verification for server" + str(
-                                                    server['names'])}
-                                }}
+                        if Contrib.MiscUtils.getDictKey(server, 'listen.tls.mtls.enabled') in ['optional_no_ca'] \
+                                and 'ocsp' in server['listen']['tls']:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": 422,
+                                        "message": {"code": 422,
+                                                    "content": "OCSP is incompatible with 'optional_no_ca' client "
+                                                               "mTLS verification for server" + str(
+                                                        server['names'])}
+                                    }}
 
-                    client_cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.mtls.client_certificates')
-                    if client_cert_name and client_cert_name not in all_tls['certificate']:
-                        return {"status_code": 422,
-                                "message": {
-                                    "status_code": 422,
-                                    "message": {"code": 422,
-                                                "content": "invalid mTLS client certificates " +
-                                                           client_cert_name + " for server" + str(
-                                                    server['names'])}
-                                }}
+                        client_cert_name = Contrib.MiscUtils.getDictKey(server, 'listen.tls.mtls.client_certificates')
+                        if client_cert_name and client_cert_name not in all_tls['certificate']:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": 422,
+                                        "message": {"code": 422,
+                                                    "content": "invalid mTLS client certificates " +
+                                                               client_cert_name + " for server" + str(
+                                                        server['names'])}
+                                    }}
 
         # Adds optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key'}
 
-        d_certificates = Contrib.MiscUtils.getDictKey(d,'output.nms.certificates')
+        d_certificates = Contrib.MiscUtils.getDictKey(d, 'output.nms.certificates')
         if d_certificates is not None:
             for c in d_certificates:
                 status, certContent = Contrib.GitOps.getObjectFromRepo(c['contents'])
 
                 if status != 200:
-                    return {"status_code": 422, "message": {"status_code": status, "message": {"code": status, "content": certContent}}}
+                    return {"status_code": 422,
+                            "message": {"status_code": status, "message": {"code": status, "content": certContent}}}
 
                 newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
                                                                '/' + c['name'] + extensions_map[c['type']]}
@@ -357,7 +360,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                              trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
         nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
-            nginxconf={'modules': Contrib.MiscUtils.getDictKey(d,'output.nms.modules')})
+            nginxconf={'modules': Contrib.MiscUtils.getDictKey(d, 'output.nms.modules')})
 
         # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
         b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
@@ -395,7 +398,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         if redisDeclarationRendered is not None and json.dumps(d) == redisDeclarationRendered.decode('utf-8'):
             print(f'Configuration [{configUid}] not changed')
-            return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
+            return {"status_code": 200,
+                    "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
         else:
             # Configuration objects have changed, publish to NIM needed
             print(f'Configuration [{configUid}] changed, publishing to NMS')
@@ -407,7 +411,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             if ig.status_code != 200:
                 try:
                     return {"status_code": ig.status_code,
-                            "message": {"status_code": ig.status_code, "message": {"code": ig.status_code, "content": json.loads(ig.text)}}}
+                            "message": {"status_code": ig.status_code,
+                                        "message": {"code": ig.status_code, "content": json.loads(ig.text)}}}
                 except:
                     return {"status_code": ig.status_code,
                             "message": {"status_code": ig.status_code,
@@ -558,7 +563,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     status_code, currentDeclaration = get_declaration(configUid=configUid)
 
     # Handle policy updates
-    d_policies = Contrib.MiscUtils.getDictKey(declarationToPatch,'output.nms.policies')
+    d_policies = Contrib.MiscUtils.getDictKey(declarationToPatch, 'output.nms.policies')
     if d_policies is not None:
         # NGINX App Protect WAF policy updates
         for p in d_policies:
@@ -566,7 +571,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                 sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
 
     # Handle certificate updates
-    d_certificates = Contrib.MiscUtils.getDictKey(declarationToPatch,'output.nms.certificates')
+    d_certificates = Contrib.MiscUtils.getDictKey(declarationToPatch, 'output.nms.certificates')
     if d_certificates is not None:
         # TLS certificate/key updates
         for p in d_certificates:
@@ -576,7 +581,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     # Handle declaration updates
     if 'declaration' in declarationToPatch:
         # HTTP
-        d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch,'declaration.http.upstreams')
+        d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.upstreams')
         if d_upstreams is not None:
             # HTTP upstream patch
             for u in d_upstreams:
@@ -584,8 +589,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                 currentDeclaration = Contrib.DeclarationPatcher.patchHttpUpstream(
                     sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
 
-        d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch,'declaration.http.servers')
-        print(f'DEBUG d_servers {d_servers}')
+        d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.servers')
         if d_servers is not None:
             # HTTP servers patch
             for s in d_servers:
@@ -594,7 +598,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                     sourceDeclaration=currentDeclaration, patchedHttpServer=s)
 
         # Stream / Layer4
-        d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch,'declaration.layer4.upstreams')
+        d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.upstreams')
         if d_upstreams is not None:
             # Stream upstream patch
             for u in d_upstreams:
@@ -602,7 +606,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                 currentDeclaration = Contrib.DeclarationPatcher.patchStreamUpstream(
                     sourceDeclaration=currentDeclaration, patchedStreamUpstream=u)
 
-        d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch,'declaration.layer4.servers')
+        d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.servers')
         if d_servers is not None:
             # Stream servers patch
             for s in d_servers:
