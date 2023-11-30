@@ -141,7 +141,7 @@ Available images are:
 
 | Image name                            | Architecture | API version | Notes      |
 |---------------------------------------| ------------ |-------------|------------|
-| fiorucci/nginx-declarative-api:v3     | linux/amd64  | v3          | Current    |
+| fiorucci/nginx-declarative-api:3.0.0  | linux/amd64  | v3          | Current    |
 | fiorucci/nginx-declarative-api:latest | linux/amd64  | v3          | Current    |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
