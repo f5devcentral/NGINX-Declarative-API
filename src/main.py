@@ -136,7 +136,7 @@ def delete_config(configuid: str = ""):
     )
 
 
-# Import OpenAPI schema
+# Import OpenAPI schema - beta
 @app.post("/v3/openapi", status_code=200, response_class=JSONResponse)
 def post_openapi_v3(request: Request):
     openAPISchema = request.json()

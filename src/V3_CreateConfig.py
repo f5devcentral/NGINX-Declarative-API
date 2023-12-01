@@ -138,7 +138,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              "content":
                                                  f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
 
-    if d['declaration']['layer4'] is not None:
+    if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
         all_upstreams = []
 
@@ -170,9 +170,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
-        declaration=d['declaration']['http'], ncgconfig=NcgConfig.config)
+        declaration=d['declaration']['http'], ncgconfig=NcgConfig.config) if 'http' in d['declaration'] else ''
     streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
-        declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config)
+        declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config) if 'layer' in d['declaration'] else ''
 
     b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
     b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
