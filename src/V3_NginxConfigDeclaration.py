@@ -247,6 +247,7 @@ class Location(BaseModel, extra=Extra.forbid):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
+    apigateway: Optional[APIGateway] = {}
     caching: Optional[str] = ""
     rate_limit: Optional[RateLimit] = {}
     health_check: Optional[HealthCheck] = {}
@@ -392,8 +393,6 @@ class Declaration(BaseModel, extra=Extra.forbid):
 class APIGateway(BaseModel, extra=Extra.forbid):
     openapi_schema: Optional[str] = ""
 
-
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output
     declaration: Optional[Declaration] = {}
-    apigateway: Optional[APIGateway] = {}

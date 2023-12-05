@@ -17,15 +17,19 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+import Contrib.APIGateway
 import Contrib.DeclarationPatcher
 import Contrib.GitOps
 import Contrib.MiscUtils
+
 # NGINX App Protect helper functions
 import Contrib.NAPUtils
 import Contrib.NIMUtils
+
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
+
 # pydantic models
 from V3_NginxConfigDeclaration import *
 
@@ -126,6 +130,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         return {"status_code": 422,
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
+
+                    if 'apigateway' in loc:
+                        Contrib.APIGateway.createAPIGateway(loc['apigateway'])
 
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][

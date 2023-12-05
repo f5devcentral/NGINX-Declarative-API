@@ -22,7 +22,6 @@ import V3_NginxConfigDeclaration
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
-BaseConfig.arbitrary_types_allowed = True
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
