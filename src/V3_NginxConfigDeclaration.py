@@ -389,6 +389,11 @@ class Declaration(BaseModel, extra=Extra.forbid):
     http: Optional[Http] = {}
 
 
+class APIGateway(BaseModel, extra=Extra.forbid):
+    openapi_schema: Optional[str] = ""
+
+
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output
     declaration: Optional[Declaration] = {}
+    apigateway: Optional[APIGateway] = {}

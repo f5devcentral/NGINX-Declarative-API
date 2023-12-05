@@ -58,11 +58,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     try:
         # Pydantic JSON validation
-        ConfigDeclaration(**declaration.dict())
+        ConfigDeclaration(**declaration.model_dump())
     except ValidationError as e:
         print(f'Invalid declaration {e}')
 
-    d = declaration.dict()
+    d = declaration.model_dump()
     decltype = d['output']['type']
 
     if 'http' in d['declaration']:
@@ -172,7 +172,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
         declaration=d['declaration']['http'], ncgconfig=NcgConfig.config) if 'http' in d['declaration'] else ''
     streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
-        declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config) if 'layer' in d['declaration'] else ''
+        declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config) if 'layer4' in d['declaration'] else ''
 
     b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
     b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
@@ -557,7 +557,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
         )
 
     # The declaration sections to be patched
-    declarationToPatch = declaration.dict()
+    declarationToPatch = declaration.model_dump()
 
     # The currently applied declaration
     status_code, currentDeclaration = get_declaration(configUid=configUid)
@@ -582,40 +582,40 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     if 'declaration' in declarationToPatch:
         # HTTP
         d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.upstreams')
-        if d_upstreams is not None:
+        if d_upstreams:
             # HTTP upstream patch
             for u in d_upstreams:
-                # print(f"Patching HTTP upstream [{u['name']}]")
+                #print(f"Patching HTTP upstream [{u['name']}]")
                 currentDeclaration = Contrib.DeclarationPatcher.patchHttpUpstream(
                     sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
 
         d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.servers')
-        if d_servers is not None:
+        if d_servers:
             # HTTP servers patch
             for s in d_servers:
-                # print(f"Patching HTTP server [{s['name']}]")
+                #print(f"Patching HTTP server [{s['name']}]")
                 currentDeclaration = Contrib.DeclarationPatcher.patchHttpServer(
                     sourceDeclaration=currentDeclaration, patchedHttpServer=s)
 
         # Stream / Layer4
         d_upstreams = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.upstreams')
-        if d_upstreams is not None:
+        if d_upstreams:
             # Stream upstream patch
             for u in d_upstreams:
-                # print(f"Patching Stream upstream [{u['name']}]")
+                #print(f"Patching Stream upstream [{u['name']}]")
                 currentDeclaration = Contrib.DeclarationPatcher.patchStreamUpstream(
                     sourceDeclaration=currentDeclaration, patchedStreamUpstream=u)
 
         d_servers = Contrib.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.servers')
-        if d_servers is not None:
+        if d_servers:
             # Stream servers patch
             for s in d_servers:
-                # print(f"Patching Stream server [{s['name']}]")
+                #print(f"Patching Stream server [{s['name']}]")
                 currentDeclaration = Contrib.DeclarationPatcher.patchStreamServer(
                     sourceDeclaration=currentDeclaration, patchedStreamServer=s)
 
     # Apply the updated declaration
-    configDeclaration = ConfigDeclaration.parse_raw(json.dumps(currentDeclaration))
+    configDeclaration = ConfigDeclaration.model_validate_json(json.dumps(currentDeclaration))
 
     r = createconfig(declaration=configDeclaration, apiversion=apiversion,
                      runfromautosync=True, configUid=configUid)

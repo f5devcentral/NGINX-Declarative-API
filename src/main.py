@@ -10,8 +10,9 @@ import time
 import schedule
 import uvicorn
 from fastapi import FastAPI
-from fastapi.requests import Request
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
+from openapi_parser import parse as openAPIparse
+from pydantic import BaseModel, BaseConfig, create_model
 
 # NGINX Declarative API modules
 import NcgConfig
@@ -19,10 +20,9 @@ import NcgRedis
 import V3_CreateConfig
 import V3_NginxConfigDeclaration
 
-# pydantic models
-
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
+BaseConfig.arbitrary_types_allowed = True
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
@@ -30,7 +30,7 @@ app = FastAPI(
     contact={"name": "GitHub", "url": cfg.config['main']['url']}
 )
 
-
+# GitOps autosync scheduler
 def runScheduler():
     while True:
         schedule.run_pending()
@@ -59,7 +59,7 @@ def post_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Res
     return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
 
 
-# Modify eclaration using v3 API
+# Modify declaration using v3 API
 @app.patch("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
     return V3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v3')
@@ -134,13 +134,6 @@ def delete_config(configuid: str = ""):
         content={'code': 200, 'details': {'message': f'declaration {configuid} deleted'}},
         headers={'Content-Type': 'application/json'}
     )
-
-
-# Import OpenAPI schema - beta
-@app.post("/v3/openapi", status_code=200, response_class=JSONResponse)
-def post_openapi_v3(request: Request):
-    openAPISchema = request.json()
-    print(openAPISchema)
 
 
 if __name__ == '__main__':
