@@ -10,38 +10,55 @@ class OpenAPIParser:
     def __init__(self, openAPISchema):
         self.openAPISchema = openAPISchema
 
+    def version(self):
+        return self.openAPISchema['openapi']
+
+    def info(self):
+        return self.openAPISchema['info']
+
     def servers(self):
-        self.allServers = {}
+        self.allServers = []
 
         # Loop over OpenAPI schema servers
         for server in self.openAPISchema['servers']:
             urlName = server['url']
-            self.allServers[urlName] = {}
+            self.s = {}
+            self.s['url'] = urlName
 
             if 'description' in server:
-                self.allServers[urlName]['description'] = server['description']
+                self.s['description'] = server['description']
+
+            self.allServers.append(self.s)
 
         return self.allServers
 
     def paths(self):
-        self.allPaths = {}
+        self.allPaths = []
 
         # Loop over OpenAPI schema paths
         for path in self.openAPISchema['paths'].keys():
-            print(f"- {path}")
-            self.allPaths[path] = {}
+            #print(f"- {path}")
+            self.p = {}
+            self.p['path'] = path
+            self.p['methods'] = []
 
             # Loop over path HTTP methods found in schema
             for method in self.openAPISchema['paths'][path].keys():
                 methodInfo = self.openAPISchema['paths'][path][method]
 
                 if method.upper() in self.httpMethods:
-                    print(f"  - {method} - {methodInfo['description'] if 'description' in methodInfo else ''}")
-                    self.allPaths[path][method] = {}
+                    #print(f"  - {method} - {methodInfo['description'] if 'description' in methodInfo else ''}")
+                    self.m = {}
+                    self.m['method'] = method
+                    self.m['details'] = {}
 
                     if 'description' in methodInfo and methodInfo['description']:
-                        self.allPaths[path][method]['description'] = methodInfo['description']
+                        self.m['details']['description'] = methodInfo['description']
                     if 'operationId' in methodInfo and methodInfo['operationId']:
-                        self.allPaths[path][method]['operationId'] = methodInfo['operationId']
+                        self.m['details']['operationId'] = methodInfo['operationId']
+
+                    self.p['methods'].append(self.m)
+
+            self.allPaths.append(self.p)
 
         return self.allPaths

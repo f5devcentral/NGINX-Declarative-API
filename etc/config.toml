@@ -13,6 +13,7 @@ nginxmain = "nginx-conf/nginx.conf"
 mimetypes = "nginx-conf/mime.types"
 
 httpconf = "http.tmpl"
+apigwconf = "apigateway.tmpl"
 streamconf = "stream.tmpl"
 configmap = "configmap.tmpl"
 

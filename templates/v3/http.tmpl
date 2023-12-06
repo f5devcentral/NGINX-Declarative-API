@@ -182,7 +182,9 @@ server {
     {% if s.log.error %}error_log {{ s.log.error }};{% endif %}
 
 
-    {% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
+    {% filter indent(width=4) %}
+{% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
+    {% endfilter %}
 
     {# --- Server location section start --- #}
     {% for loc in s.locations %}

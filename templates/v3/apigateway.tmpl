@@ -1,0 +1,29 @@
+{% if declaration.servers[0].url.lower().startswith('http://') or declaration.servers[0].url.lower().startswith('https://') %}
+    {% set destination_server = declaration.servers[0].url %}
+{% else %}
+    {% set destination_server = declaration.location.upstream + declaration.servers[0].url %}
+{% endif %}
+
+# API Gateway: {{ declaration.info.title }}
+# Base URI: {{ declaration.location.uri }}
+# Strip base URI: {{ declaration.location.apigateway.strip_uri }}
+# Destination server: {{ destination_server }}
+
+{% if declaration.paths -%}
+{% for path in declaration.paths %}
+location {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+    {% for method in path.methods -%}
+    # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
+    {% endfor -%}
+    {% set method_names = path.methods|map(attribute='method')|list %}
+
+    limit_except {{ method_names|join(' ')|upper }} { deny all; }
+
+    {% if declaration.location.apigateway.strip_uri -%}
+    rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
+    {% endif -%}
+    proxy_pass {{ destination_server }}$uri;
+}
+
+{% endfor %}
+{% endif %}

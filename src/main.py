@@ -11,8 +11,6 @@ import schedule
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
-from openapi_parser import parse as openAPIparse
-from pydantic import BaseModel, BaseConfig, create_model
 
 # NGINX Declarative API modules
 import NcgConfig

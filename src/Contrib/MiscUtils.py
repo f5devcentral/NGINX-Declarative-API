@@ -2,6 +2,8 @@
 Support functions
 """
 
+import re
+
 def getDictKey(_dict: dict, key_lookup: str, separator='.'):
     """
         Searches for a nested key in a dictionary and returns its value, or None if nothing was found.
@@ -16,3 +18,9 @@ def getDictKey(_dict: dict, key_lookup: str, separator='.'):
           return None
 
     return subdict
+
+"""
+Jinja2 regexp filter
+"""
+def regex_replace(s, find, replace):
+    return re.sub(find, replace, s)
