@@ -62,6 +62,86 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `server_url` - the base URL of the upstream server
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
+
+- REST API endpoint URIs
+- HTTP Methods
+- Rate limiting
+
+is:
+
+```commandline
+{
+    "output": {
+        "type": "nms",
+        "nms": {
+            "url": "{{nim_host}}",
+            "username": "{{nim_username}}",
+            "password": "{{nim_password}}",
+            "instancegroup": "{{nim_instancegroup}}",
+            "synctime": 0,
+            "modules": [
+                "ngx_http_js_module",
+                "ngx_stream_js_module"
+            ]
+        }
+    },
+    "declaration": {
+        "http": {
+            "servers": [
+                {
+                    "name": "Petstore API",
+                    "names": [
+                        "apigw.nginx.lab"
+                    ],
+                    "resolver": "8.8.8.8",
+                    "listen": {
+                        "address": "80"
+                    },
+                    "log": {
+                        "access": "/var/log/nginx/apigw.nginx.lab-access_log",
+                        "error": "/var/log/nginx/apigw.nginx.lab-error_log"
+                    },
+                    "locations": [
+                        {
+                            "uri": "/petstore",
+                            "urimatch": "prefix",
+                            "apigateway": {
+                                "openapi_schema": "https://petstore.swagger.io/v2/swagger.json",
+                                "strip_uri": true,
+                                "server_url": "https://petstore.swagger.io/v2",
+                                "rate_limit": {
+                                    "profile": "petstore_ratelimit",
+                                    "httpcode": 429,
+                                    "burst": 0,
+                                    "delay": 0
+                                },
+                                "log": {
+                                    "access": "/var/log/nginx/petstore-access_log",
+                                    "error": "/var/log/nginx/petstore-error_log"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "rate_limit": [
+                {
+                    "name": "petstore_ratelimit",
+                    "key": "$binary_remote_addr",
+                    "size": "10m",
+                    "rate": "2r/s"
+                }
+            ]
+        }
+    }
+}
+```
+
+It can be tested using:
+
+    curl -iH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/store/inventory
+
 ### Maps ###
 
 Map entries `.declaration.maps[].entries.keymatch` can be:
