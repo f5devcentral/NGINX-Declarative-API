@@ -7,8 +7,9 @@ API v3
 - `Declarative automation - NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
 - `Declarative automation - GitOps` - GitOps automation demo
 - `CRUD automation` - Sample requests for CRUD-based automation
-- `Erase configuration` - Erase NGINX Plus configuration
+- `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
 - `Examples` - Additional declaration examples
+- `Erase configuration` - Erase NGINX Plus configuration
 
 ---
 

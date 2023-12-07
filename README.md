@@ -59,13 +59,6 @@ NGINX Declarative API->> NGINX Instance Manager: POST staged config to instance 
 NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 ```
 
-## Branches
-
-Two branches are currently available:
-
-- [Python](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/main) - Main branch, actively developed
-- [Node.js](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/nodejs) - Not actively developed, kept here for archival purposes
-
 ## Input formats
 
 - [X] Declarative REST API
@@ -80,19 +73,20 @@ Two branches are currently available:
   
 ## Supported NGINX Plus features
 
-| Feature                    |  API v3                     | Notes                                                                                         |
-|----------------------------| ---------------------------|-----------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD                     | Snippets supported: static and from source of truth                                           |
-| HTTP servers               | CRUD                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers            | CRUD                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth        |
-| TLS                        | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
-| mTLS                       | CRUD                     | Certificates and keys can be dynamically fetched from source of truth                         |
-| Rate limiting              | X                           |                                                                                               |
-| Active healthchecks        | X                           |                                                                                               |
-| Cookie-based stickiness    | X                           |                                                                                               |
-| Maps                       | X                           |                                                                                               |
-| NGINX Plus REST API access | X                           |                                                                                               |
-| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                             | 
+| Feature                    | API v3                                                                                  | Notes                                                                                            |
+|----------------------------|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD                                                                                    | Snippets supported: static and from source of truth                                              |
+| HTTP servers               | CRUD                                                                                    | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
+| TCP/UDP servers            | CRUD                                                                                    | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth           |
+| TLS                        | CRUD                                                                                    | Certificates and keys can be dynamically fetched from source of truth                            |
+| mTLS                       | CRUD                                                                                    | Certificates and keys can be dynamically fetched from source of truth                            |
+| Rate limiting              | X                                                                                       |                                                                                                  |
+| Active healthchecks        | X                                                                                       |                                                                                                  |
+| Cookie-based stickiness    | X                                                                                       |                                                                                                  |
+| Maps                       | X                                                                                       |                                                                                                  |
+| NGINX Plus REST API access | X                                                                                       |                                                                                                  |
+| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                               | 
+| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                        | Automated configuration, HTTP methods and rate limiting enforcement                              | 
 
 ## How to use
 
@@ -131,18 +125,11 @@ $ docker build -t nginx-declarative-api:latest -f contrib/docker/Dockerfile .
 $ docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api:latest
 ```
 
-Pre-built docker images are available on Docker Hub and can be run using:
+Pre-built docker images are available on Docker Hub at https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general and can be run using:
 
 ```
-$ docker run --name nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
+$ docker run --name fiorucci/nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
 ```
-
-Available images are:
-
-| Image name                            | Architecture | API version | Notes      |
-|---------------------------------------| ------------ |-------------|------------|
-| fiorucci/nginx-declarative-api:3.0.0  | linux/amd64  | v3          | Current    |
-| fiorucci/nginx-declarative-api:latest | linux/amd64  | v3          | Current    |
 
 Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
 

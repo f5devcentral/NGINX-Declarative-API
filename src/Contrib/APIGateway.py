@@ -6,6 +6,7 @@ import json
 import base64
 
 import Contrib.GitOps
+import Contrib.MiscUtils
 from Contrib.OpenAPIParser import OpenAPIParser
 
 
@@ -16,22 +17,18 @@ def createAPIGateway(locationDeclaration: dict):
 
     if locationDeclaration['apigateway']['openapi_schema']:
         status, apiSchemaString = Contrib.GitOps.getObjectFromRepo(content=locationDeclaration['apigateway']['openapi_schema'], base64Encode=False)
+
+        if Contrib.MiscUtils.yaml_or_json(apiSchemaString) == 'yaml':
+            # YAML to JSON conversion
+            apiSchemaString = Contrib.MiscUtils.yaml_to_json(apiSchemaString)
+
         apiSchema = OpenAPIParser(json.loads(apiSchemaString))
-
-        version = apiSchema.version()
-        info = apiSchema.info()
-        servers = apiSchema.servers()
-        paths = apiSchema.paths()
-
-        print(f"OpenAPI version: {version}")
-        print(f"Info {info}")
-        print(f"Servers: {servers}")
-        print(f"Paths: {paths}")
 
         apiGwDeclaration = {}
         apiGwDeclaration['location'] = locationDeclaration
-        apiGwDeclaration['info'] = info
-        apiGwDeclaration['servers'] = servers
-        apiGwDeclaration['paths'] = paths
+        apiGwDeclaration['info'] = apiSchema.info()
+        apiGwDeclaration['servers'] = apiSchema.servers()
+        apiGwDeclaration['paths'] = apiSchema.paths()
+        apiGwDeclaration['version'] = apiSchema.version()
 
     return 200, apiGwDeclaration

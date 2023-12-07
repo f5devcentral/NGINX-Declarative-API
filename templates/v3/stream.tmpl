@@ -29,7 +29,7 @@ upstream {{ u.name }} {
 
 server {
     listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %};
-    status_zone {{ s.listen.address }}{% if s.listen.protocol == "udp" %}-{{ s.listen.protocol }}{% endif %};
+    status_zone {{ s.name }};
     {% endif -%}
     {% endif -%}
 
@@ -48,11 +48,11 @@ server {
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
     {% endif %}
-    {% endif -%}
+    {% endif %}
 
-    {%- if s.upstream -%}
+    {% if s.upstream -%}
     proxy_pass {{ s.upstream }};
-    {% endif -%}
+    {% endif %}
 
     {% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
 

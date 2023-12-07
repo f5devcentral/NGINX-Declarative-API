@@ -3,6 +3,8 @@ Support functions
 """
 
 import re
+import json
+import yaml
 
 def getDictKey(_dict: dict, key_lookup: str, separator='.'):
     """
@@ -24,3 +26,19 @@ Jinja2 regexp filter
 """
 def regex_replace(s, find, replace):
     return re.sub(find, replace, s)
+
+"""
+JSON/YAML detection
+"""
+def yaml_or_json(document: str):
+    try:
+        json.load(document)
+        return 'json'
+    except Exception:
+        return 'yaml'
+
+"""
+YAML to JSON conversion
+"""
+def yaml_to_json(document: str):
+    return json.dumps(yaml.safe_load(document))

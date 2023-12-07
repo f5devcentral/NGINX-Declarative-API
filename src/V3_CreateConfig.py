@@ -132,7 +132,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         loc['snippet'] = snippet
 
-                    if 'upstream' in loc and loc['upstream'] and loc['upstream'].split('://')[1] not in all_upstreams:
+                    if 'upstream' in loc and loc['upstream'] and urlparse(loc['upstream']).netloc not in all_upstreams:
                         return {"status_code": 422,
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
@@ -140,6 +140,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     if loc['apigateway']:
                         status, apiGatewayConfigDeclaration = (
                             Contrib.APIGateway.createAPIGateway(locationDeclaration=loc))
+                    else:
+                        apiGatewayConfigDeclaration = ''
 
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
@@ -154,7 +156,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # API Gateway configuration template rendering
                     apiGatewaySnippet += j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
-                        declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+                        declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)\
+                            if apiGatewayConfigDeclaration else ''
 
             server['snippet'] = base64.b64encode(bytes(serverSnippet + apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
@@ -194,8 +197,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
         declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config) if 'layer4' in d['declaration'] else ''
 
-    b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
-    b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
+    b64HttpConf = str(base64.b64encode(httpConf.encode("utf-8")), "utf-8")
+    b64StreamConf = str(base64.b64encode(streamConf.encode("utf-8")), "utf-8")
 
     if decltype.lower() == "plaintext":
         # Plaintext output

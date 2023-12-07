@@ -130,7 +130,7 @@ class Output(BaseModel, extra=Extra.forbid):
     def check_type(self) -> 'Output':
         _type, configmap, http, nms = self.type, self.configmap, self.http, self.nms
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
+        valid = ['plaintext', 'json', 'configmap', 'http', 'nim']
         if _type not in valid:
             raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
 
@@ -247,6 +247,7 @@ class Location(BaseModel, extra=Extra.forbid):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
+    log: Optional[Log] = {}
     apigateway: Optional[APIGateway] = {}
     caching: Optional[str] = ""
     rate_limit: Optional[RateLimit] = {}
@@ -398,6 +399,10 @@ class Declaration(BaseModel, extra=Extra.forbid):
 class APIGateway(BaseModel, extra=Extra.forbid):
     openapi_schema: Optional[str] = ""
     strip_uri: Optional[bool] = False
+    server_url: Optional[str] = ""
+    rate_limit: Optional[RateLimit] = {}
+    log: Optional[Log] = {}
+
 
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output

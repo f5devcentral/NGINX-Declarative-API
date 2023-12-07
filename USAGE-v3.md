@@ -51,6 +51,17 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
 
+### API Gateway ###
+
+Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway.
+
+Declaration path `.declaration.http.servers[].locations[].apigateway` defines the API Gateway configuration:
+
+- `openapi_schema` - the base64-encoded schema, or the schema URL. YAML and JSON are supported
+- `strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
+- `server_url` - the base URL of the upstream server
+- `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
+
 ### Maps ###
 
 Map entries `.declaration.maps[].entries.keymatch` can be:
@@ -58,7 +69,6 @@ Map entries `.declaration.maps[].entries.keymatch` can be:
 - *exact* - exact variable matching
 - *regex* - case sensitive regex matching
 - *iregex* - case insensitive regex matching
-
 
 ### Snippets ###
 
@@ -68,21 +78,21 @@ Snippets for http, upstream, server and location can be specified as:
 
 ### Methods ###
 
-- `POST /v2/config/` - Publish a new declaration
-- `PATCH /v2/config/{config_uid}` - Update an existing declaration
+- `POST /v3/config/` - Publish a new declaration
+- `PATCH /v3/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
-- `GET /v2/config/{config_uid}` - Retrieve an existing declaration
-- `DELETE /v2/config/{config_uid}` - Delete an existing declaration
-
-A sample Postman collection is available [here](/postman)
+- `GET /v3/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v3/config/{config_uid}` - Delete an existing declaration
 
 ### Sample declaration ###
 
-A sample declaration (to be POSTed to /v2/config) is:
+A sample Postman collection is available [here](/postman)
+
+A declaration example (to be POSTed to /v3/config) is:
 
 ```
 {
