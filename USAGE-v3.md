@@ -90,7 +90,7 @@ Snippets for http, upstream, server and location can be specified as:
 
 ### Sample declaration ###
 
-A sample Postman collection is available [here](/postman)
+A sample Postman collection is available [here](/contrib/postman)
 
 A declaration example (to be POSTed to /v3/config) is:
 
