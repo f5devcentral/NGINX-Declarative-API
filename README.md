@@ -128,10 +128,10 @@ $ docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api:
 Pre-built docker images are available on Docker Hub at https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general and can be run using:
 
 ```
-$ docker run --name fiorucci/nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
+$ docker run --name nginx-declarative-api -d -p 5000:5000 <IMAGE_NAME>
 ```
 
-Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the nginx-dapi container.
+Pre-built images are configured to access the redis instance on host:port `redis:6379`. This can be changed by mounting a custom `config.toml` file on the `nginx-declarative-api` container.
 
 ## REST API documentation
 
