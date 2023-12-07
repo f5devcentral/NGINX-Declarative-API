@@ -51,6 +51,97 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
 
+### API Gateway ###
+
+Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway.
+
+Declaration path `.declaration.http.servers[].locations[].apigateway` defines the API Gateway configuration:
+
+- `openapi_schema` - the base64-encoded schema, or the schema URL. YAML and JSON are supported
+- `strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
+- `server_url` - the base URL of the upstream server
+- `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
+
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
+
+- REST API endpoint URIs
+- HTTP Methods
+- Rate limiting
+
+is:
+
+```commandline
+{
+    "output": {
+        "type": "nms",
+        "nms": {
+            "url": "{{nim_host}}",
+            "username": "{{nim_username}}",
+            "password": "{{nim_password}}",
+            "instancegroup": "{{nim_instancegroup}}",
+            "synctime": 0,
+            "modules": [
+                "ngx_http_js_module",
+                "ngx_stream_js_module"
+            ]
+        }
+    },
+    "declaration": {
+        "http": {
+            "servers": [
+                {
+                    "name": "Petstore API",
+                    "names": [
+                        "apigw.nginx.lab"
+                    ],
+                    "resolver": "8.8.8.8",
+                    "listen": {
+                        "address": "80"
+                    },
+                    "log": {
+                        "access": "/var/log/nginx/apigw.nginx.lab-access_log",
+                        "error": "/var/log/nginx/apigw.nginx.lab-error_log"
+                    },
+                    "locations": [
+                        {
+                            "uri": "/petstore",
+                            "urimatch": "prefix",
+                            "apigateway": {
+                                "openapi_schema": "https://petstore.swagger.io/v2/swagger.json",
+                                "strip_uri": true,
+                                "server_url": "https://petstore.swagger.io/v2",
+                                "rate_limit": {
+                                    "profile": "petstore_ratelimit",
+                                    "httpcode": 429,
+                                    "burst": 0,
+                                    "delay": 0
+                                },
+                                "log": {
+                                    "access": "/var/log/nginx/petstore-access_log",
+                                    "error": "/var/log/nginx/petstore-error_log"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "rate_limit": [
+                {
+                    "name": "petstore_ratelimit",
+                    "key": "$binary_remote_addr",
+                    "size": "10m",
+                    "rate": "2r/s"
+                }
+            ]
+        }
+    }
+}
+```
+
+It can be tested using:
+
+    curl -iH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/store/inventory
+
 ### Maps ###
 
 Map entries `.declaration.maps[].entries.keymatch` can be:
@@ -58,7 +149,6 @@ Map entries `.declaration.maps[].entries.keymatch` can be:
 - *exact* - exact variable matching
 - *regex* - case sensitive regex matching
 - *iregex* - case insensitive regex matching
-
 
 ### Snippets ###
 
@@ -68,21 +158,21 @@ Snippets for http, upstream, server and location can be specified as:
 
 ### Methods ###
 
-- `POST /v2/config/` - Publish a new declaration
-- `PATCH /v2/config/{config_uid}` - Update an existing declaration
+- `POST /v3/config/` - Publish a new declaration
+- `PATCH /v3/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
-- `GET /v2/config/{config_uid}` - Retrieve an existing declaration
-- `DELETE /v2/config/{config_uid}` - Delete an existing declaration
-
-A sample Postman collection is available [here](/postman)
+- `GET /v3/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v3/config/{config_uid}` - Delete an existing declaration
 
 ### Sample declaration ###
 
-A sample declaration (to be POSTed to /v2/config) is:
+A sample Postman collection is available [here](/contrib/postman)
+
+A declaration example (to be POSTed to /v3/config) is:
 
 ```
 {

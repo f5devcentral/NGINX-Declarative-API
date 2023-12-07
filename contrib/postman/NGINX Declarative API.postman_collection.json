@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "c58cbfa1-c6e8-482c-8752-31e95820d164",
+		"_postman_id": "1cf18104-4fb6-435c-9613-2020dbb411d3",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "1667416"
+		"_exporter_id": "30973250"
 	},
 	"item": [
 		{
@@ -1087,7 +1087,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"sample_layer4_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"l4_upstream\",\n                    \"snippet\": \"IyBUaGlzIGlzIGEgc2VydmVyIHNuaXBwZXQK\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"l4_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.3:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.4:53\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"TCP_10053_service\",\n                    \"listen\": {\n                        \"address\": \"10053\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"TCP_10053_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"TCP_10053_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"10.0.0.1:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.2:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.3:53\"\n                        },\n                        {\n                            \"server\": \"10.0.0.4:53\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1132,7 +1132,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"new_tcp_service\",\n                    \"listen\": {\n                        \"address\": \"15432\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"tcp_5432_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"tcp_5432_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        },\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"TCP_15432_service\",\n                    \"listen\": {\n                        \"address\": \"15432\",\n                        \"protocol\": \"tcp\"\n                    },\n                    \"upstream\": \"TCP_15432_upstream\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"TCP_15432_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        },\n                        {\n                            \"server\": \"172.16.10.1:5432\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1156,7 +1156,7 @@
 							"response": []
 						},
 						{
-							"name": "Remove stream server and upstream",
+							"name": "Remove stream server and upstream #1",
 							"event": [
 								{
 									"listen": "test",
@@ -1177,7 +1177,52 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"new_tcp_service\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"tcp_5432_upstream\"\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"TCP_10053_service\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"TCP_10053_upstream\"\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove stream server and upstream #2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"TCP_15432_service\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"TCP_15432_upstream\"\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1333,10 +1378,10 @@
 					]
 				},
 				{
-					"name": "Erase configuration",
+					"name": "API Gateway",
 					"item": [
 						{
-							"name": "Clean NGINX configuration",
+							"name": "Ergast API Gateway",
 							"event": [
 								{
 									"listen": "test",
@@ -1357,7 +1402,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Ergast API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"8.8.8.8\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/ergast\",\n                            \"urimatch\": \"prefix\",\n                            \"snippet\": \"IyBUZXN0IFNOSVBQRVQK\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://raw.githubusercontent.com/adampax/ergast-f1-openapi-doc/e558eea18e176e4f78a8765ac7eccc804b5157ff/ergast-openapi-doc.yaml\",\n                                \"strip_uri\": true,\n                                \"rate_limit\": {\n                                    \"profile\": \"ergast_ratelimit\",\n                                    \"httpcode\": 429,\n                                    \"burst\": 0,\n                                    \"delay\": 0\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"ergast_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1374,6 +1419,183 @@
 									"path": [
 										"{{ngc_api_version}}",
 										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Petstore API Gateway",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Petstore API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"8.8.8.8\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/petstore\",\n                            \"urimatch\": \"prefix\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://petstore.swagger.io/v2/swagger.json\",\n                                \"strip_uri\": true,\n                                \"server_url\": \"https://petstore.swagger.io/v2\"\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Petstore & Ergast API Gateway",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Petstore and Ergast API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"192.168.2.13\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/petstore\",\n                            \"urimatch\": \"prefix\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://petstore.swagger.io/v2/swagger.json\",\n                                \"strip_uri\": true,\n                                \"server_url\": \"https://petstore.swagger.io/v2\",\n                                \"rate_limit\": {\n                                    \"profile\": \"petstore_ratelimit\",\n                                    \"httpcode\": 429,\n                                    \"burst\": 0,\n                                    \"delay\": 0\n                                },\n                                \"log\": {\n                                    \"access\": \"/var/log/nginx/petstore-access_log\",\n                                    \"error\": \"/var/log/nginx/petstore-error_log\"\n                                }\n                            }\n                        },\n                        {\n                            \"uri\": \"/ergast\",\n                            \"urimatch\": \"prefix\",\n                            \"snippet\": \"IyBUZXN0IFNOSVBQRVQK\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://raw.githubusercontent.com/adampax/ergast-f1-openapi-doc/e558eea18e176e4f78a8765ac7eccc804b5157ff/ergast-openapi-doc.yaml\",\n                                \"strip_uri\": true,\n                                \"rate_limit\": {\n                                    \"profile\": \"ergast_ratelimit\",\n                                    \"httpcode\": 429,\n                                    \"burst\": 0,\n                                    \"delay\": 0\n                                },\n                                \"log\": {\n                                    \"access\": \"/var/log/nginx/ergast-access_log\",\n                                    \"error\": \"/var/log/nginx/ergast-error_log\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"ergast_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"1r/s\"\n                },\n                {\n                    \"name\": \"petstore_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"2r/s\"\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get declaration status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}/status",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config",
+										"{{configUid}}",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config",
+										"{{configUid}}"
 									]
 								}
 							},
@@ -1470,6 +1692,96 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Erase configuration",
+					"item": [
+						{
+							"name": "Clean NGINX configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete  declaration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config",
+										"{{configUid}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
@@ -1516,7 +1828,7 @@
 		},
 		{
 			"key": "nim_host",
-			"value": "https://nms.k8s.f5.ff.lan",
+			"value": "https://nms.ie.gslb.it",
 			"type": "string"
 		},
 		{

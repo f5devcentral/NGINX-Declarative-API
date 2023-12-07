@@ -11,8 +11,6 @@ import schedule
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
-from openapi_parser import parse as openAPIparse
-from pydantic import BaseModel, BaseConfig, create_model
 
 # NGINX Declarative API modules
 import NcgConfig
@@ -22,7 +20,6 @@ import V3_NginxConfigDeclaration
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
-BaseConfig.arbitrary_types_allowed = True
 
 app = FastAPI(
     title=cfg.config['main']['banner'],

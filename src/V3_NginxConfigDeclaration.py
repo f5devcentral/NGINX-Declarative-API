@@ -247,6 +247,8 @@ class Location(BaseModel, extra=Extra.forbid):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
+    log: Optional[Log] = {}
+    apigateway: Optional[APIGateway] = {}
     caching: Optional[str] = ""
     rate_limit: Optional[RateLimit] = {}
     health_check: Optional[HealthCheck] = {}
@@ -256,10 +258,15 @@ class Location(BaseModel, extra=Extra.forbid):
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
         urimatch = self.urimatch
+        upstream = self.upstream
 
         valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
         if urimatch not in valid:
             raise ValueError("Invalid URI match type '" + urimatch + "' must be one of " + str(valid))
+
+        prefixes = ["http://", "https://"]
+        if upstream != "" and not upstream.lower().startswith(tuple(prefixes)):
+            raise ValueError("Upstream must start with one of " + str(prefixes))
 
         return self
 
@@ -391,9 +398,12 @@ class Declaration(BaseModel, extra=Extra.forbid):
 
 class APIGateway(BaseModel, extra=Extra.forbid):
     openapi_schema: Optional[str] = ""
+    strip_uri: Optional[bool] = False
+    server_url: Optional[str] = ""
+    rate_limit: Optional[RateLimit] = {}
+    log: Optional[Log] = {}
 
 
 class ConfigDeclaration(BaseModel, extra=Extra.forbid):
     output: Output
     declaration: Optional[Declaration] = {}
-    apigateway: Optional[APIGateway] = {}

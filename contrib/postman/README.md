@@ -7,8 +7,36 @@ API v3
 - `Declarative automation - NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
 - `Declarative automation - GitOps` - GitOps automation demo
 - `CRUD automation` - Sample requests for CRUD-based automation
-- `Erase configuration` - Erase NGINX Plus configuration
+- `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
 - `Examples` - Additional declaration examples
+- `Erase configuration` - Erase NGINX Plus configuration
+
+---
+
+## API Gateway ##
+
+Test requests for the `API Gateway` folder in the Postman collection are:
+
+### Petstore ###
+
+Valid request:
+
+    curl -sH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/store/inventory | jq
+
+Invalid method:
+
+    curl -sH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/store/inventory -X POST
+
+### Ergast ###
+
+Valid request:
+
+    curl -sH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/ergast/2023.json | jq
+
+Invalid request:
+
+    curl -sH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/ergast/2023.json -X POST
+
 
 ---
 

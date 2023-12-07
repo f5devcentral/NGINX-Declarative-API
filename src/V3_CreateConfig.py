@@ -17,15 +17,19 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+import Contrib.APIGateway
 import Contrib.DeclarationPatcher
 import Contrib.GitOps
 import Contrib.MiscUtils
+
 # NGINX App Protect helper functions
 import Contrib.NAPUtils
 import Contrib.NIMUtils
+
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
+
 # pydantic models
 from V3_NginxConfigDeclaration import *
 
@@ -64,6 +68,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     d = declaration.model_dump()
     decltype = d['output']['type']
+
+    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
+                         trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
+    j2_env.filters['regex_replace'] = Contrib.MiscUtils.regex_replace
 
     if 'http' in d['declaration']:
         if 'snippet' in d['declaration']['http']:
@@ -104,14 +112,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         d_servers = Contrib.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
+            apiGatewaySnippet = ''
+
             for server in d_servers:
+                serverSnippet = ''
+
                 if server['snippet']:
-                    status, snippet = Contrib.GitOps.getObjectFromRepo(server['snippet'])
+                    status, serverSnippet = Contrib.GitOps.getObjectFromRepo(server['snippet'],base64Encode=False)
 
                     if status != 200:
-                        return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
-
-                    server['snippet'] = snippet
+                        return {"status_code": 422, "message": {"status_code": status, "message": serverSnippet}}
 
                 for loc in server['locations']:
                     if loc['snippet']:
@@ -122,10 +132,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         loc['snippet'] = snippet
 
-                    if 'upstream' in loc and loc['upstream'] and loc['upstream'].split('://')[1] not in all_upstreams:
+                    if 'upstream' in loc and loc['upstream'] and urlparse(loc['upstream']).netloc not in all_upstreams:
                         return {"status_code": 422,
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
+
+                    if loc['apigateway']:
+                        status, apiGatewayConfigDeclaration = (
+                            Contrib.APIGateway.createAPIGateway(locationDeclaration=loc))
+                    else:
+                        apiGatewayConfigDeclaration = ''
 
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
@@ -137,6 +153,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                             {"code": status,
                                              "content":
                                                  f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
+
+                    # API Gateway configuration template rendering
+                    apiGatewaySnippet += j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
+                        declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)\
+                            if apiGatewayConfigDeclaration else ''
+
+            server['snippet'] = base64.b64encode(bytes(serverSnippet + apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
@@ -166,16 +189,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "message":
                                     {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
 
-    j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
-                         trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
-
+    # HTTP configuration template rendering
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
         declaration=d['declaration']['http'], ncgconfig=NcgConfig.config) if 'http' in d['declaration'] else ''
+
+    # Stream configuration template rendering
     streamConf = j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
         declaration=d['declaration']['layer4'], ncgconfig=NcgConfig.config) if 'layer4' in d['declaration'] else ''
 
-    b64HttpConf = str(base64.urlsafe_b64encode(httpConf.encode("utf-8")), "utf-8")
-    b64StreamConf = str(base64.urlsafe_b64encode(streamConf.encode("utf-8")), "utf-8")
+    b64HttpConf = str(base64.b64encode(httpConf.encode("utf-8")), "utf-8")
+    b64StreamConf = str(base64.b64encode(streamConf.encode("utf-8")), "utf-8")
 
     if decltype.lower() == "plaintext":
         # Plaintext output
