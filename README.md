@@ -45,13 +45,13 @@ sequenceDiagram
 
 title GitOps with NGINX Instance Manager
 
-User ->> GitLab: Push policy update
-NGINX Declarative API ->> GitLab: Check for updates
-GitLab ->> NGINX Declarative API: Latest timestamp
+User ->> Source of truth: Commit object updates
+NGINX Declarative API ->> Source of truth: Check for updates
+Source of truth ->> NGINX Declarative API: Latest timestamp
 
 NGINX Declarative API->> NGINX Declarative API: If updates available
-NGINX Declarative API->> GitLab: Fetch updated policies
-GitLab ->> NGINX Declarative API : Updated policies
+NGINX Declarative API->> Source of truth: Pull updated objects
+Source of truth ->> NGINX Declarative API : Updated objects
 
 NGINX Declarative API->> NGINX Declarative API: Build staged config
 NGINX Declarative API->> NGINX Instance Manager: POST staged config to instance group
