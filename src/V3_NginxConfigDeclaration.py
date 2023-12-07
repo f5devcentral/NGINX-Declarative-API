@@ -130,7 +130,7 @@ class Output(BaseModel, extra=Extra.forbid):
     def check_type(self) -> 'Output':
         _type, configmap, http, nms = self.type, self.configmap, self.http, self.nms
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nim']
+        valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
         if _type not in valid:
             raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
 
