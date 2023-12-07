@@ -10,12 +10,15 @@ Use cases include:
 
 - Rapid configuration generation and templating
 - CI/CD integration with NGINX Instance Manager (instance groups and staged configs)
+- NGINX App Protect DevSecOps integration
+- API Gateway deployments with automated Swagger / OpenAPI schemas import
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
   - TLS certificates, keys and chains/bundles
   - mTLS certificates
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
+  - Swagger / OpenAPI schemas
 
 ## Requirements
 
