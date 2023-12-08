@@ -1,7 +1,7 @@
 # Usage for API v3
 
 Version 3 API requires:
-- NGINX Instance Manager 2.10.0+
+- NGINX Instance Manager 2.14+
 - NGINX Plus R30+
 
 If NGINX App Protect declarations are used:
