@@ -65,7 +65,7 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `developer_portal.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 
-A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API DevPortal, API Gateway and enforce:
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
 
 - REST API endpoint URIs
 - HTTP Methods

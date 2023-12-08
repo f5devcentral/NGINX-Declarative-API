@@ -4,7 +4,7 @@
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "1667416"
+		"_exporter_id": "30973250"
 	},
 	"item": [
 		{
@@ -1828,7 +1828,7 @@
 		},
 		{
 			"key": "nim_host",
-			"value": "https://nms.k8s.f5.ff.lan",
+			"value": "https://nms.ie.gslb.it",
 			"type": "string"
 		},
 		{

@@ -47,6 +47,7 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
 
     {% if declaration.location.apigateway.api_gateway.server_url -%}
     proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
+
     {% endif %}
 
     proxy_pass {{ destination_server }}$uri;
