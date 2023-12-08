@@ -73,7 +73,7 @@ NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [X] Output to NGINX Instance Manager 2.1.0+ imperative REST API
+- [X] Output to NGINX Instance Manager 2.14+ imperative REST API
   
 ## Supported NGINX Plus features
 
@@ -126,6 +126,6 @@ Configuration can be customized mounting `config.toml` as a volume `nginx-declar
 
 When NGINX Declarative API is running, REST API documentation can be accessed at:
 
-- Documentation and testing: http://127.0.0.1:5000/docs
-- Redoc documentation: http://127.0.0.1:5000/redoc
-- OpenAPI specification: http://127.0.0.1:5000/openapi.json
+- Documentation and testing: http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/docs
+- Redoc documentation: http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/redoc
+- OpenAPI specification: http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/openapi.json
