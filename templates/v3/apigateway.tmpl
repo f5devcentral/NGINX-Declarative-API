@@ -5,17 +5,17 @@
         {% set destination_server = declaration.servers[0].url %}
     {% else %}
         {# --- OpenAPI schema contains a server URI --- #}
-        {% set destination_server = declaration.location.apigateway.server_url + declaration.servers[0].url %}
+        {% set destination_server = declaration.location.apigateway.api_gateway.server_url + declaration.servers[0].url %}
     {% endif %}
 {% else %}
     {# --- OpenAPI schema contains no server details --- #}
-    {% set destination_server = declaration.location.apigateway.server_url %}
+    {% set destination_server = declaration.location.apigateway.api_gateway.server_url %}
 {% endif %}
 
 # API Gateway: {{ declaration.info.title }} {{ declaration.info.version }}
 # OpenAPI version: {{ declaration.version }}
 # Base URI: {{ declaration.location.uri }}
-# Strip base URI: {{ declaration.location.apigateway.strip_uri }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
 # Destination server: {{ destination_server }}
 
 {% if declaration.paths -%}
@@ -41,12 +41,12 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
     {% endif %}
 
 
-    {% if declaration.location.apigateway.strip_uri -%}
+    {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
     {% endif %}
 
-    {% if declaration.location.apigateway.server_url -%}
-    proxy_set_header Host {{ declaration.location.apigateway.server_url.split('://')[1].split('/')[0] }};
+    {% if declaration.location.apigateway.api_gateway.server_url -%}
+    proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
     {% endif %}
 
     proxy_pass {{ destination_server }}$uri;

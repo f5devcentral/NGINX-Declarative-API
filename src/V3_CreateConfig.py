@@ -137,7 +137,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
 
-                    if loc['apigateway']:
+                    if loc['apigateway'] and loc['apigateway']['api_gateway']['enabled'] == True:
                         status, apiGatewayConfigDeclaration = (
                             Contrib.APIGateway.createAPIGateway(locationDeclaration=loc))
                     else:
