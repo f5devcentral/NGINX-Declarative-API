@@ -18,6 +18,7 @@ from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import Contrib.APIGateway
+import Contrib.DevPortal
 import Contrib.DeclarationPatcher
 import Contrib.GitOps
 import Contrib.MiscUtils
@@ -59,6 +60,8 @@ def configautosync(configUid):
 # { "status_code": nnn, "headers": {}, "message": {} }
 def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
     # Building NGINX configuration for the given declaration
+
+    auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
     try:
         # Pydantic JSON validation
@@ -137,11 +140,25 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
 
+                    # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway']['enabled'] == True:
                         status, apiGatewayConfigDeclaration = (
                             Contrib.APIGateway.createAPIGateway(locationDeclaration=loc))
                     else:
                         apiGatewayConfigDeclaration = ''
+
+                    # API Gateway Developer portal provisioning
+                    if loc['apigateway'] and loc['apigateway']['developer_portal']['enabled'] == True:
+                        status, devPortalHTML = (
+                            Contrib.DevPortal.createDevPortal(locationDeclaration=loc))
+
+                        ### Add optional API Developer portal HTML files
+                        # devPortalHTML
+                        newAuxFile = {'contents': devPortalHTML, 'name': NcgConfig.config['nms']['devportal_dir'] +
+                                                                           loc['apigateway']['developer_portal']['uri']}
+                        auxFiles['files'].append(newAuxFile)
+
+                        ### / Add optional API Developer portal HTML files
 
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
@@ -278,8 +295,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     "message": {"status_code": 400, "message": {"code": 400, "content": "synctime must be >= 0"}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
-
         # Fetch NGINX App Protect WAF policies from source of truth if needed
         d_policies = Contrib.MiscUtils.getDictKey(d, 'output.nms.policies')
         if d_policies is not None:
@@ -360,7 +375,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                         server['names'])}
                                     }}
 
-        # Adds optional certificates specified under output.nms.certificates
+        # Add optional certificates specified under output.nms.certificates
         extensions_map = {'certificate': '.crt', 'key': '.key'}
 
         d_certificates = Contrib.MiscUtils.getDictKey(d, 'output.nms.certificates')
@@ -376,7 +391,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                '/' + c['name'] + extensions_map[c['type']]}
                 auxFiles['files'].append(newAuxFile)
 
-        ### / Adds optional certificates specified under output.nms.certificates
+        ### / Add optional certificates specified under output.nms.certificates
 
         # NGINX main configuration file through template
         j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),

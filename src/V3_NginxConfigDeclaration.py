@@ -403,7 +403,7 @@ class API_Gateway(BaseModel, extra=Extra.forbid):
 
 class DeveloperPortal(BaseModel, extra=Extra.forbid):
     enabled: Optional[bool] = False
-
+    uri: Optional[str] = "/devportal.html"
 
 class APIGateway(BaseModel, extra=Extra.forbid):
     openapi_schema: Optional[str] = ""

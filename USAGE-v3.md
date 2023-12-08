@@ -53,7 +53,7 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 
 ### API Gateway ###
 
-Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway.
+Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway. Developer portal creation is supported through [Redocly](https://redocly.com/)
 
 Declaration path `.declaration.http.servers[].locations[].apigateway` defines the API Gateway configuration:
 
@@ -62,9 +62,10 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
+- `developer_portal.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 
-A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API DevPortal, API Gateway and enforce:
 
 - REST API endpoint URIs
 - HTTP Methods
@@ -116,7 +117,8 @@ is:
                                     "server_url": "https://petstore.swagger.io/v2"
                                 },
                                 "developer_portal": {
-                                    "enabled": false
+                                    "enabled": false,
+                                    "uri": "/petstore-devportal.html"
                                 },
                                 "rate_limit": {
                                     "profile": "petstore_ratelimit",
@@ -149,6 +151,10 @@ is:
 It can be tested using:
 
     curl -iH "Host: apigw.nginx.lab" http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/store/inventory
+
+The API Developer portal can be accessed at:
+
+    http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/petstore-devportal.html
 
 ### Maps ###
 

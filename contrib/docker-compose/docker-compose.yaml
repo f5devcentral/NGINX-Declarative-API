@@ -14,6 +14,14 @@ services:
     volumes:
       - redis_data:/data:rw
 
+  devportal:
+    image: fiorucci/nginx-declarative-api-devportal:latest
+    user: "${USERID}:${USERGROUP}"
+    container_name: "devportal"
+    restart: always
+    ports:
+      - "5001:5000"
+
   nginx-dapi:
     image: fiorucci/nginx-declarative-api:latest
     user: "${USERID}:${USERGROUP}"

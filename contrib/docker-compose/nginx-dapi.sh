@@ -30,6 +30,9 @@ USERNAME=`whoami`
 export USERID=`id -u $USERNAME`
 export USERGROUP=`id -g $USERNAME`
 
+echo "-> Updating docker images"
+docker-compose -f $DOCKER_COMPOSE_YAML pull
+
 echo "-> Deploying NGINX Declarative API"
 COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML up -d --remove-orphans
 }

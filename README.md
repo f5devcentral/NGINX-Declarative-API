@@ -88,8 +88,9 @@ NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
 | Cookie-based stickiness    | X                                                                                       |                                                                                                  |
 | Maps                       | X                                                                                       |                                                                                                  |
 | NGINX Plus REST API access | X                                                                                       |                                                                                                  |
-| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                               | 
-| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                        | Automated configuration, HTTP methods and rate limiting enforcement                              | 
+| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                                | 
+| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                        | Automated configuration, HTTP methods and rate limiting enforcement                              |
+| API Developer Portal       | Swagger and OpenAPI YAML and JSON schema support                                        | Based on Redocly                                                                                 |
 
 ## How to use
 
@@ -105,7 +106,7 @@ This is the recommended method to run NGINX Declarative API on a Linux virtual m
 
 ### As a Python application
 
-This repository has been tested with and requires Python 3.9 or newer.
+This repository requires Python 3.10+
 A running instance of [redis](https://redis.io/) is required: redis host and port can be configured in the `config.toml` file.
 
 Run NGINX Declarative API using:
@@ -124,8 +125,8 @@ The docker image can be built and run using:
 ```
 $ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
 $ cd NGINX-Declarative-API
-$ docker build -t nginx-declarative-api:latest -f contrib/docker/Dockerfile .
-$ docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api:latest
+$ docker build --no-cache -t nginx-declarative-api -f ./Dockerfile .
+$ docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api
 ```
 
 Pre-built docker images are available on Docker Hub at https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general and can be run using:
