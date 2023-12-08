@@ -9,11 +9,12 @@ This script is used to deploy/undeploy NGINX Declarative API using docker-compos
 === Usage:\n\n
 $0 [options]\n\n
 === Options:\n\n
--h\t\t\t- This help\n
--c [start|stop]\t- Deployment command\n\n
+-h\t\t\t\t- This help\n
+-c [start|stop|restart]\t- Deployment command\n\n
 === Examples:\n\n
-Deploy NGINX DAPI:\t$0 -c start\n
-Remove NGINX DAPI:\t$0 -c stop\n
+Deploy NGINX DAPI :\t$0 -c start\n
+Remove NGINX DAPI :\t$0 -c stop\n
+Restart NGINX DAPI:\t$0 -c restart\n
 "
 
 echo -e $BANNER 2>&1
@@ -52,6 +53,14 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 }
 
 #
+# NGINX Declarative API restart
+#
+nginx_dapi_restart() {
+nginx_dapi_stop
+nginx_dapi_start
+}
+
+#
 # Main
 #
 
@@ -70,7 +79,7 @@ do
         esac
 done
 
-if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop) ]] 
+if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|restart) ]] 
 then
 	usage
 fi
@@ -81,5 +90,8 @@ case "$ACTION" in
         ;;
     stop)
         nginx_dapi_stop
+        ;;
+    restart)
+        nginx_dapi_restart
         ;;
 esac

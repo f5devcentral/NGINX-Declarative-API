@@ -1,6 +1,6 @@
 # Docker compose
 
-NGINX Declarative API can be deployed using docker compose on a Linux virtual machine running Docker.
+NGINX Declarative API can be deployed using docker compose on a Linux virtual machine running docker-compose v2.20+
 
 Usage:
 
@@ -18,13 +18,14 @@ NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-AP
 
  === Options:
 
- -h                     - This help
- -c [start|stop]        - Deployment command
+ -h                             - This help
+ -c [start|stop|restart]        - Deployment command
 
  === Examples:
 
- Deploy NGINX DAPI:       ./nginx-dapi.sh -c start
- Remove NGINX DAPI:       ./nginx-dapi.sh -c stop
+ Deploy NGINX DAPI :    ./nginx-dapi.sh -c start
+ Remove NGINX DAPI :    ./nginx-dapi.sh -c stop
+ Restart NGINX DAPI:    ./nginx-dapi.sh -c restart
 ```
 
 ## How to deploy
@@ -34,17 +35,22 @@ NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-AP
    - [API v1](/USAGE-v1.md) - deprecated
    - [API v2](/USAGE-v2.md)
 
-## Starting & stopping with docker-compose
+## How to run
 
 Starting NGINX Declarative API:
 
 ```
 $ ./nginx-dapi.sh -c start
+-> Updating docker images
+[+] Pulling 3/3
+ ✔ nginx-dapi Pulled 
+ ✔ redis Pulled 
+ ✔ devportal Pulled 
 -> Deploying NGINX Declarative API
-Creating network "nginx-dapi_default" with the default driver
-Creating redis ... done
-Creating nginx-dapi ... done
-$
+[+] Running 3/3
+ ✔ Container redis       Running 
+ ✔ Container devportal   Running 
+ ✔ Container nginx-dapi  Started
 ```
 
 Stopping NGINX Declarative API:
@@ -52,8 +58,36 @@ Stopping NGINX Declarative API:
 ```
 $ ./nginx-dapi.sh -c stop
 -> Undeploying NGINX Declarative API
-Removing redis ... done
-Removing nginx-dapi ... done
-Removing network nginx-dapi_default
-$
+[+] Running 4/4
+ ✔ Container nginx-dapi        Removed 
+ ✔ Container devportal         Removed 
+ ✔ Container redis             Removed 
+ ✔ Network nginx-dapi_default  Removed 
+```
+
+Restarting NGINX Declarative API:
+
+```
+$ ./nginx-dapi.sh -c restart
+[+] Running 4/4
+ ✔ Container devportal         Removed 
+ ✔ Container nginx-dapi        Removed 
+ ✔ Container redis             Removed 
+ ✔ Network nginx-dapi_default  Removed 
+-> Updating docker images
+[+] Pulling 3/3
+ ✔ nginx-dapi Pulled 
+ ✔ redis Pulled 
+ ✔ devportal Pulled 
+-> Deploying NGINX Declarative API
+[+] Running 4/4
+ ✔ Network nginx-dapi_default  Created-> Undeploying NGINX Declarative API
+[+] Running 4/4
+ ✔ Container nginx-dapi        Removed 
+ ✔ Container devportal         Removed 
+ ✔ Container redis             Removed 
+ ✔ Network nginx-dapi_default  Removed
+ ✔ Container devportal         Started 
+ ✔ Container redis             Started 
+ ✔ Container nginx-dapi        Started
 ```

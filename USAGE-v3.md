@@ -117,7 +117,7 @@ is:
                                     "server_url": "https://petstore.swagger.io/v2"
                                 },
                                 "developer_portal": {
-                                    "enabled": false,
+                                    "enabled": true,
                                     "uri": "/petstore-devportal.html"
                                 },
                                 "rate_limit": {

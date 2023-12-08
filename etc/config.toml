@@ -24,13 +24,13 @@ port = 5000
 
 # Redis backend for CI/CD automation
 [redis]
-host = redis
+host = "redis"
 port = 6379
 
 # Devportal helper
 [devportal]
-host = devportal
-port = 5001
+host = "devportal"
+port = 5000
 uri = "/v1/devportal"
 
 # Staged configuration for NGINX Management Suite
