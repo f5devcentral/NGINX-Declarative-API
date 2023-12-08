@@ -396,10 +396,19 @@ class Declaration(BaseModel, extra=Extra.forbid):
     http: Optional[Http] = {}
 
 
-class APIGateway(BaseModel, extra=Extra.forbid):
-    openapi_schema: Optional[str] = ""
+class API_Gateway(BaseModel, extra=Extra.forbid):
+    enabled: Optional[bool] = False
     strip_uri: Optional[bool] = False
     server_url: Optional[str] = ""
+
+class DeveloperPortal(BaseModel, extra=Extra.forbid):
+    enabled: Optional[bool] = False
+    uri: Optional[str] = "/devportal.html"
+
+class APIGateway(BaseModel, extra=Extra.forbid):
+    openapi_schema: Optional[str] = ""
+    api_gateway: Optional[API_Gateway] =  {}
+    developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[RateLimit] = {}
     log: Optional[Log] = {}
 

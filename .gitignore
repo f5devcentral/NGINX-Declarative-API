@@ -1,3 +1,5 @@
 /.idea/
 /src/__pycache__/
+/src/Contrib/__pycache__/
+/contrib/devportal/src/__pycache__/
 /venv/

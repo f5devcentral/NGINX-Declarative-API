@@ -1,0 +1,4 @@
+typing
+uvicorn
+fastapi
+uuid

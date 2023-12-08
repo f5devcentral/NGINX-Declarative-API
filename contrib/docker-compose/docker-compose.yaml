@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.9"
 
 volumes:
   redis_data:
@@ -11,8 +11,20 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - dapi-network
     volumes:
       - redis_data:/data:rw
+
+  devportal:
+    image: fiorucci/nginx-declarative-api-devportal:latest
+    user: "${USERID}:${USERGROUP}"
+    container_name: "devportal"
+    restart: always
+    ports:
+      - "5001:5000"
+    networks:
+      - dapi-network
 
   nginx-dapi:
     image: fiorucci/nginx-declarative-api:latest
@@ -23,3 +35,8 @@ services:
       - redis
     ports:
       - "5000:5000"
+    networks:
+      - dapi-network
+
+networks:
+  dapi-network:
