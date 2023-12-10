@@ -48,6 +48,7 @@ stateDiagram-v2
     POST: Generic POST endpoint
     CONFIGMAP: Kubernetes ConfigMap
     PLAINTEXT: Plaintext
+    BASE64: Base64-encoded
 
     DevOps --> Pipeline
     Pipeline --> INPUT
@@ -58,6 +59,7 @@ stateDiagram-v2
     SOT --> NDAPI
     NDAPI --> REDIS
     REDIS --> NDAPI
+    OUTPUT --> BASE64
     OUTPUT --> POST
     OUTPUT --> CONFIGMAP
     OUTPUT --> PLAINTEXT
@@ -77,30 +79,43 @@ title GitOps autosync operations
 
 participant CI/CD Pipeline
 participant Source of Truth
-participant NGINX Declarative API core
+participant NGINX Declarative API Core
+participant Redis
 participant Developer Portal Service
 participant NGINX Instance Manager
 participant NGINX
 
-CI/CD Pipeline ->> Source of Truth: Commit object updates
+box NGINX Declarative API
+    participant NGINX Declarative API Core
+    participant Developer Portal Service
+    participant Redis
+end
 
+CI/CD Pipeline ->> Source of Truth: Commit object updates
 
 critical Run every "synctime" seconds
 
-NGINX Declarative API core -->> Source of Truth: Check for updates
-Source of Truth -->> NGINX Declarative API core: Latest timestamp
+NGINX Declarative API Core ->>+ Source of Truth: Check for referenced objects updates
+Source of Truth ->>- NGINX Declarative API Core: Latest timestamp
+
+Note over NGINX Declarative API Core, Redis: data synchronization
 
 option If updates available
-NGINX Declarative API core -->> Source of Truth: Pull updated objects
-Source of Truth -->> NGINX Declarative API core : Updated objects
+NGINX Declarative API Core ->>+ Source of Truth: Pull updated objects
+Source of Truth ->>- NGINX Declarative API Core : Updated objects
 
-NGINX Declarative API core -->> Developer Portal Service: DevPortal generation request
-Developer Portal Service -->> NGINX Declarative API core: DevPortal definition
+critical Build Staged Config
+critical If Developer Portal enabled
+    NGINX Declarative API Core ->>+ Developer Portal Service: DevPortal generation request
+    Developer Portal Service ->>- NGINX Declarative API Core: DevPortal definition
+end
+end
 
-NGINX Declarative API core -->> NGINX Declarative API core: Build staged config
-NGINX Declarative API core -->> NGINX Instance Manager: POST staged config to instance group
-
+NGINX Declarative API Core ->>+ NGINX Instance Manager: Publish staged config to instance group
 NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
+NGINX Instance Manager ->>- NGINX Declarative API Core: Publish outcome
+
+Note over NGINX Declarative API Core, Redis: data synchronization
 
 end
 ```
