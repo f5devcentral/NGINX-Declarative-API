@@ -30,7 +30,7 @@ Use cases include:
 
 ```mermaid
 ---
-title: NGINX Declarative API internal architecture
+title: NGINX Declarative API architecture
 ---
 stateDiagram-v2
     DevOps: User
