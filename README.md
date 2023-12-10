@@ -29,38 +29,80 @@ Use cases include:
 ## Architecture
 
 ```mermaid
-graph TD
-DEVOPS([DevOps]) -- REST API --> CICD
-User([User]) -- REST API --> NCG
-CICD(CI/CD Pipeline) -- REST API --> NCG[[NGINX Declarative API]]
-NCG -- Staged Configs --> NIM(NGINX Instance Manager)
-NCG -- REST API --> Generic(Generic REST API endpoint)
-NCG -- AutoSync / GitOps --> CICD
-NIM -- REST API --> NGINX(NGINX Plus) & NGINXOSS(NGINX OSS)
-NCG -- ConfigMap --> K8S(Kubernetes)
-REDIS[[Redis backend]] --> NCG
-NCG --> REDIS
+---
+title: NGINX Declarative API internal architecture
+---
+stateDiagram-v2
+    DevOps: User
+    Client: REST Client
+    Pipeline: CI/CD Pipeline
+    NIM: NGINX Instance Manager
+    AGENT: NGINX Agent
+    NGINX: NGINX
+    INPUT: Input
+    SOT: Source of Truth
+    NDAPI: NGINX Declarative API Core
+    DEVP: Developer Portal Service
+    OUTPUT: Output
+    REDIS: Redis
+    POST: Generic POST endpoint
+    CONFIGMAP: Kubernetes ConfigMap
+    PLAINTEXT: Plaintext
+
+    DevOps --> Pipeline
+    Pipeline --> INPUT
+    Client --> INPUT
+    INPUT --> NDAPI
+    NDAPI --> OUTPUT
+    NDAPI --> SOT
+    SOT --> NDAPI
+    NDAPI --> REDIS
+    REDIS --> NDAPI
+    OUTPUT --> POST
+    OUTPUT --> CONFIGMAP
+    OUTPUT --> PLAINTEXT
+    OUTPUT --> NIM
+    NDAPI --> DEVP
+    DEVP --> NDAPI
+    NIM --> AGENT
+    AGENT --> NGINX
 ```
 
-## GitOps
+## GitOps Autosync Mode
 
 ```mermaid
 sequenceDiagram
 
-title GitOps with NGINX Instance Manager
+title GitOps autosync operations
 
-User ->> Source of truth: Commit object updates
-NGINX Declarative API ->> Source of truth: Check for updates
-Source of truth ->> NGINX Declarative API: Latest timestamp
+participant CI/CD Pipeline
+participant Source of Truth
+participant NGINX Declarative API core
+participant Developer Portal Service
+participant NGINX Instance Manager
+participant NGINX
 
-NGINX Declarative API->> NGINX Declarative API: If updates available
-NGINX Declarative API->> Source of truth: Pull updated objects
-Source of truth ->> NGINX Declarative API : Updated objects
+CI/CD Pipeline ->> Source of Truth: Commit object updates
 
-NGINX Declarative API->> NGINX Declarative API: Build staged config
-NGINX Declarative API->> NGINX Instance Manager: POST staged config to instance group
+
+critical Run every "synctime" seconds
+
+NGINX Declarative API core -->> Source of Truth: Check for updates
+Source of Truth -->> NGINX Declarative API core: Latest timestamp
+
+option If updates available
+NGINX Declarative API core -->> Source of Truth: Pull updated objects
+Source of Truth -->> NGINX Declarative API core : Updated objects
+
+NGINX Declarative API core -->> Developer Portal Service: DevPortal generation request
+Developer Portal Service -->> NGINX Declarative API core: DevPortal definition
+
+NGINX Declarative API core -->> NGINX Declarative API core: Build staged config
+NGINX Declarative API core -->> NGINX Instance Manager: POST staged config to instance group
 
 NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
+
+end
 ```
 
 ## Input formats
