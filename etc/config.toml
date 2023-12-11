@@ -1,9 +1,9 @@
-# NGINX Declarative API
+# NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/
 
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "3.1.0"
+version = "3.3.0"
 url = "https://github.com/fabriziofiorucci/NGINX-Declarative-API"
 
 # Templates
@@ -17,12 +17,12 @@ apigwconf = "apigateway.tmpl"
 streamconf = "stream.tmpl"
 configmap = "configmap.tmpl"
 
-# API Server configuration
+# NGINX Declarative API Server
 [apiserver]
 host = "0.0.0.0"
 port = 5000
 
-# Redis backend for CI/CD automation
+# Redis backend
 [redis]
 host = "redis"
 port = 6379
