@@ -24,13 +24,13 @@ port = 5000
 
 # Redis backend for CI/CD automation
 [redis]
-host = "127.0.0.1"
+host = "redis"
 port = 6379
 
 # Devportal helper
 [devportal]
 host = "devportal"
-port = 5000
+port = 5001
 uri = "/v1/devportal"
 
 # Staged configuration for NGINX Management Suite
@@ -42,15 +42,13 @@ devportal_dir = '/etc/nginx/devportal'
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
 
-# API v0 & V1
+# NGINX App Protect support
 nap_policies_dir = '/etc/nginx/waf/policies'
 nap_logformats_dir = '/etc/nginx/waf/logformats'
 nap_logformats_template = "logformat.tmpl"
-
-# API v2 - support for v2 Policy Compiler
 nap_policies_dir_pum = '/etc/nms'
 nap_logformats_dir_pum = '/etc/nms'
 
-# Staged configuration filenames
+# NGINX Instance Manager staged configuration filenames
 staged_config_http_filename = 'conf.d/services.conf'
 staged_config_stream_filename = 'stream-conf.d/services.conf'

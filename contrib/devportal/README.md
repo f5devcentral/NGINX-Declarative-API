@@ -6,7 +6,7 @@ To build:
 
 	docker build --no-cache -t <YOUR_TARGET_IMAGE_NAME> .
 
-To run the pre-build image:
+To run the pre-built image:
 
 	docker run --rm -d -p 5001:5000 --name devportal fiorucci/nginx-declarative-api-devportal
 

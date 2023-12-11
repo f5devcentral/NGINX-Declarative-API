@@ -10,9 +10,9 @@ from pydantic import BaseModel, Extra, model_validator
 
 
 class OutputConfigMap(BaseModel, extra=Extra.forbid):
-    name: str = ""
+    name: str = "nginx-config"
     namespace: Optional[str] = ""
-    filename: str = ""
+    filename: str = "nginx-config.conf"
 
 
 class OutputHttp(BaseModel, extra=Extra.forbid):
