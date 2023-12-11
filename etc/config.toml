@@ -30,7 +30,7 @@ port = 6379
 # Devportal helper
 [devportal]
 host = "devportal"
-port = 5000
+port = 5001
 uri = "/v1/devportal"
 
 # Staged configuration for NGINX Management Suite

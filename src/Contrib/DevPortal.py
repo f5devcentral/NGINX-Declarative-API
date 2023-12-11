@@ -13,9 +13,12 @@ import Contrib.MiscUtils
 
 
 def buildDevPortal(openapischema):
-    response = requests.post(f"http://{NcgConfig.config['devportal']['host']}:"
-                             f"{NcgConfig.config['devportal']['port']}{NcgConfig.config['devportal']['uri']}",
-                             headers={'Content-Type': 'application/json'}, data=openapischema)
+    try:
+        response = requests.post(f"http://{NcgConfig.config['devportal']['host']}:"
+                                 f"{NcgConfig.config['devportal']['port']}{NcgConfig.config['devportal']['uri']}",
+                                 headers={'Content-Type': 'application/json'}, data=openapischema)
+    except Exception as e:
+        return 400, ""
 
     return response.status_code, json.loads(response.text)
 
@@ -32,6 +35,9 @@ def createDevPortal(locationDeclaration: dict):
             apiSchemaString = Contrib.MiscUtils.yaml_to_json(apiSchemaString)
 
         status, devportalJSON = buildDevPortal(openapischema=apiSchemaString)
-        devportalHTML = base64.b64encode(bytes(devportalJSON['devportal'], 'utf-8')).decode('utf-8')
+        if status == 200:
+            devportalHTML = base64.b64encode(bytes(devportalJSON['devportal'], 'utf-8')).decode('utf-8')
+        else:
+            devportalHTML = ""
 
-    return 200, devportalHTML
+    return status, devportalHTML

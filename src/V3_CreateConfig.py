@@ -152,6 +152,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         status, devPortalHTML = (
                             Contrib.DevPortal.createDevPortal(locationDeclaration=loc))
 
+                        if status != 200:
+                            return {"status_code": 400,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status, "content": f"Developer Portal creation failed for {loc['apigateway']['openapi_schema']}"}}}
+
                         ### Add optional API Developer portal HTML files
                         # devPortalHTML
                         newAuxFile = {'contents': devPortalHTML, 'name': NcgConfig.config['nms']['devportal_dir'] +
@@ -443,8 +448,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             print(f'Configuration [{configUid}] changed, publishing to NMS')
 
             # Retrieve instance group uid
-            ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
-                              verify=False)
+            try:
+                ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
+                                  verify=False)
+            except Exception as e:
+                return {"status_code": 400,
+                        "message": {"status_code": 400,
+                                    "message": {"code": 400, "content": f"Can't connect to {nmsUrl}"}}}
 
             if ig.status_code != 200:
                 try:
