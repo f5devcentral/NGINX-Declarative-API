@@ -186,3 +186,7 @@ When NGINX Declarative API is running, REST API documentation can be accessed at
 - Documentation and testing: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/docs`
 - Redoc documentation: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/redoc`
 - OpenAPI specification: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/openapi.json`
+
+## License
+
+This repository is licensed under the Apache License, Version 2.0. You are free to use, modify, and distribute this codebase within the terms and conditions outlined in the license. For more details, please refer to the [LICENSE](/LICENSE.md) file.
