@@ -1,3 +1,20 @@
+# Any private crt and keys #
+############################
+*.crt
+*.key
+*~
+\#*
+
+# OS Specific #
+###############
+Thumbs.db
+.DS_Store
+.vscode
+
+# Logs #
+########
+*.log
+
 /.idea/
 /src/__pycache__/
 /src/Contrib/__pycache__/

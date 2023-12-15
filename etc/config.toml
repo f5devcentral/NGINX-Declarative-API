@@ -33,7 +33,7 @@ host = "devportal"
 port = 5000
 uri = "/v1/devportal"
 
-# Staged configuration for NGINX Management Suite
+# Staged configuration for NGINX Instance Manager
 [nms]
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
