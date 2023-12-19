@@ -17,6 +17,7 @@ Thumbs.db
 
 # Additional dirs #
 ###################
+=======
 /.idea/
 /src/__pycache__/
 /src/Contrib/__pycache__/
