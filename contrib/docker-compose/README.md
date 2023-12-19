@@ -31,9 +31,7 @@ NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-AP
 ## How to deploy
 
 1. Start NGINX Declarative API using the provided `nginx-dapi.sh` script
-2. Start Postman using the collection provided [here](/contrib/postman) or refer to the for CI/CD integration
-   - [API v1](/USAGE-v1.md) - deprecated
-   - [API v2](/USAGE-v2.md)
+2. Start Postman using the collection provided [here](/contrib/postman)
 
 ## How to run
 

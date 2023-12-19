@@ -17,7 +17,12 @@ services:
       - redis_data:/data:rw
 
   devportal:
-    image: fiorucci/nginx-declarative-api-devportal:latest
+    # Pre-built image
+    #image: fiorucci/nginx-declarative-api-devportal:latest
+    image: nginx-declarative-api-devportal
+    build:
+      context: ../devportal/
+      dockerfile: Dockerfile
     user: "${USERID}:${USERGROUP}"
     container_name: "devportal"
     restart: always
@@ -27,7 +32,12 @@ services:
       - dapi-network
 
   nginx-dapi:
-    image: fiorucci/nginx-declarative-api:latest
+    # Pre-built image
+    #image: fiorucci/nginx-declarative-api:latest
+    image: nginx-declarative-api
+    build:
+      context: ../../
+      dockerfile: Dockerfile
     user: "${USERID}:${USERGROUP}"
     container_name: "nginx-dapi"
     restart: always
