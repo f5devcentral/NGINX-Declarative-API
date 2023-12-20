@@ -6,7 +6,6 @@ volumes:
 services:
   redis:
     image: redis
-    user: "${USERID}:${USERGROUP}"
     container_name: "redis"
     restart: always
     ports:
