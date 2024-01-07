@@ -6,9 +6,9 @@ COPY src/ src/
 
 RUN apk update && \
     apk add --update --no-cache bash python3 && \
-    python3 -m ensurepip && \
+    python3 -m venv /deployment/env/ && \
+    . /deployment/env/bin/activate && \
     pip3 install --no-cache --upgrade pip setuptools virtualenv && \
-    virtualenv /deployment/env/ && source /deployment/env/bin/activate && \
     python3 -m pip install --upgrade pip && \
     pip3 install -r /deployment/src/requirements.txt
 
