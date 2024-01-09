@@ -16,7 +16,9 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import NcgConfig
 import NcgRedis
 import V3_CreateConfig
+import V3_1_CreateConfig
 import V3_NginxConfigDeclaration
+import V3_1_NginxConfigDeclaration
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
@@ -56,10 +58,38 @@ def post_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Res
     return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
 
 
+# Submit declaration using v3.1 API
+@app.post("/v3.1/config", status_code=200, response_class=PlainTextResponse)
+def post_config_v3_1(d: V3_1_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+    output = V3_1_CreateConfig.createconfig(declaration=d, apiversion='v3.1')
+
+    if type(output) in [Response, str]:
+        # ConfigMap or plaintext response
+        return output
+
+    headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
+
+    if 'message' in output:
+        if 'message' in output['message']:
+            response = output['message']['message']
+        else:
+            response = output['message']
+    else:
+        response = output
+
+    return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
+
+
 # Modify declaration using v3 API
 @app.patch("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v3(d: V3_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
     return V3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v3')
+
+
+# Modify declaration using v3.1 API
+@app.patch("/v3.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def patch_config_v3_1(d: V3_1_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
+    return V3_1_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v3.1')
 
 
 # Get declaration - v3 API
@@ -81,8 +111,28 @@ def get_config_declaration(configuid: str):
     )
 
 
+# Get declaration - v3.1 API
+@app.get("/v3.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+def get_config_declaration(configuid: str):
+    status_code, content = V3_1_CreateConfig.get_declaration(configUid=configuid)
+
+    if status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
+            headers={'Content-Type': 'application/json'}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content=content,
+        headers={'Content-Type': 'application/json'}
+    )
+
+
 # Get declaration status - v3 API
 @app.get("/v3/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
+@app.get("/v3.1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
     status = redis.redis.get('ncg.status.' + configuid)
 
@@ -102,6 +152,7 @@ def get_config_status(configuid: str):
 
 # Delete declaration - v3 API
 @app.delete("/v3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
+@app.delete("/v3.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):
     if configuid not in redis.declarationsList:
         return JSONResponse(
