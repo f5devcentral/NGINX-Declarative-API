@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "70e4c74d-c5cc-43e5-8ee9-e5b9704fa660",
+		"_postman_id": "dcd3614b-258f-476b-8b00-13ff55dbb38e",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "30973250"
+		"_exporter_id": "1667416"
 	},
 	"item": [
 		{
@@ -3224,7 +3224,51 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Petstore API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"8.8.8.8\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/petstore\",\n                            \"urimatch\": \"prefix\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://petstore.swagger.io/v2/swagger.json\",\n                                \"api_gateway\": {\n                                    \"enabled\": true,\n                                    \"strip_uri\": true,\n                                    \"server_url\": \"https://petstore.swagger.io/v2\"\n                                },\n                                \"developer_portal\": {\n                                    \"enabled\": false,\n                                    \"uri\": \"/petstore-devportal.html\"\n                                },\n                                \"rate_limit\": [\n                                    {\n                                        \"profile\": \"petstore_ratelimit\",\n                                        \"httpcode\": 429,\n                                        \"burst\": 0,\n                                        \"delay\": 0,\n                                        \"enforceOnPaths\": true,\n                                        \"paths\": [\n                                            \"/user/login\",\n                                            \"/user/logout\"\n                                        ]\n                                    }\n                                ],\n                                \"log\": {\n                                    \"access\": \"/var/log/nginx/petstore-access_log\",\n                                    \"error\": \"/var/log/nginx/petstore-error_log\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"petstore_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"2r/s\"\n                }\n            ]\n        }\n    }\n}",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Petstore API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"8.8.8.8\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/petstore\",\n                            \"urimatch\": \"prefix\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://petstore.swagger.io/v2/swagger.json\",\n                                \"api_gateway\": {\n                                    \"enabled\": true,\n                                    \"strip_uri\": true,\n                                    \"server_url\": \"https://petstore.swagger.io/v2\"\n                                },\n                                \"developer_portal\": {\n                                    \"enabled\": true,\n                                    \"uri\": \"/petstore-devportal.html\"\n                                },\n                                \"rate_limit\": [\n                                    {\n                                        \"profile\": \"petstore_ratelimit\",\n                                        \"httpcode\": 429,\n                                        \"burst\": 0,\n                                        \"delay\": 0,\n                                        \"enforceOnPaths\": true,\n                                        \"paths\": [\n                                            \"/user/login\",\n                                            \"/user/logout\"\n                                        ]\n                                    }\n                                ],\n                                \"log\": {\n                                    \"access\": \"/var/log/nginx/petstore-access_log\",\n                                    \"error\": \"/var/log/nginx/petstore-error_log\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"petstore_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"2r/s\"\n                }\n            ]\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+									"protocol": "http",
+									"host": [
+										"{{ncg_host}}"
+									],
+									"port": "{{ncg_port}}",
+									"path": [
+										"{{ngc_api_version}}",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Petstore API Gateway RateLimit + Auth",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var respData = JSON.parse(responseBody);",
+											"",
+											"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+											"",
+											"pm.collectionVariables.set('configUid',respData.configUid);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Petstore API\",\n                    \"names\": [\n                        \"apigw.nginx.lab\"\n                    ],\n                    \"resolver\": \"8.8.8.8\",\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/apigw.nginx.lab-access_log\",\n                        \"error\": \"/var/log/nginx/apigw.nginx.lab-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/petstore\",\n                            \"urimatch\": \"prefix\",\n                            \"apigateway\": {\n                                \"openapi_schema\": \"https://petstore.swagger.io/v2/swagger.json\",\n                                \"api_gateway\": {\n                                    \"enabled\": true,\n                                    \"strip_uri\": true,\n                                    \"server_url\": \"https://petstore.swagger.io/v2\"\n                                },\n                                \"developer_portal\": {\n                                    \"enabled\": false,\n                                    \"uri\": \"/petstore-devportal.html\"\n                                },\n                                \"authentication\": {\n                                    \"jwt\": {\n                                        \"realm\": \"petstore authentication\",\n                                        \"token\": \"\",\n                                        \"key\": \"http://192.168.2.19/jwks.json\",\n                                        \"cachetime\": 5\n                                    },\n                                    \"enforceOnPaths\": true,\n                                    \"paths\": [\n                                        \"/user/login\",\n                                        \"/user/logout\"\n                                    ]\n                                },\n                                \"rate_limit\": [\n                                    {\n                                        \"profile\": \"petstore_ratelimit\",\n                                        \"httpcode\": 429,\n                                        \"burst\": 0,\n                                        \"delay\": 0,\n                                        \"enforceOnPaths\": true,\n                                        \"paths\": [\n                                            \"/user/login\",\n                                            \"/user/logout\"\n                                        ]\n                                    }\n                                ],\n                                \"log\": {\n                                    \"access\": \"/var/log/nginx/petstore-access_log\",\n                                    \"error\": \"/var/log/nginx/petstore-error_log\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"rate_limit\": [\n                {\n                    \"name\": \"petstore_ratelimit\",\n                    \"key\": \"$binary_remote_addr\",\n                    \"size\": \"10m\",\n                    \"rate\": \"2r/s\"\n                }\n            ]\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -3606,7 +3650,7 @@
 		},
 		{
 			"key": "nim_host",
-			"value": "https://nms.ie.gslb.it",
+			"value": "https://nms.k8s.f5.ff.lan",
 			"type": "string"
 		},
 		{

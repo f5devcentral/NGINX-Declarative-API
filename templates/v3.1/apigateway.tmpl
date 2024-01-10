@@ -102,7 +102,7 @@ location = /_jwks_uri {
     internal;
 	proxy_method GET;
     #proxy_cache jwk;
-	proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
+    proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
 }
 {% endif %}
 

@@ -122,6 +122,19 @@ is:
                                     "enabled": true,
                                     "uri": "/petstore-devportal.html"
                                 },
+                                "authentication": {
+                                    "jwt": {
+                                        "realm": "petstore authentication",
+                                        "token": "",
+                                        "key": "http://192.168.2.19/jwks.json",
+                                        "cachetime": 5
+                                    },
+                                    "enforceOnPaths": true,
+                                    "paths": [
+                                        "/user/login",
+                                        "/user/logout"
+                                    ]
+                                },
                                 "rate_limit": [
                                     {
                                         "profile": "petstore_ratelimit",

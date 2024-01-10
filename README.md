@@ -11,7 +11,7 @@ Use cases include:
 - Rapid configuration generation and templating
 - CI/CD integration with NGINX Instance Manager (instance groups and staged configs)
 - NGINX App Protect DevSecOps integration
-- API Gateway deployments with automated Swagger / OpenAPI schemas import
+- API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
@@ -134,21 +134,21 @@ end
   
 ## Supported NGINX Plus features
 
-| Feature                    | API v3.1                                                                                 | Notes                                                                                            |
-|----------------------------|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD                                                                                     | Snippets supported: static and from source of truth                                              |
-| HTTP servers               | CRUD                                                                                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth |
-| TCP/UDP servers            | CRUD                                                                                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth           |
-| TLS                        | CRUD                                                                                     | Certificates and keys can be dynamically fetched from source of truth                            |
-| mTLS                       | CRUD                                                                                     | Certificates and keys can be dynamically fetched from source of truth                            |
-| Rate limiting              | X                                                                                        |                                                                                                  |
-| Active healthchecks        | X                                                                                        |                                                                                                  |
-| Cookie-based stickiness    | X                                                                                        |                                                                                                  |
-| Maps                       | X                                                                                        |                                                                                                  |
-| NGINX Plus REST API access | X                                                                                        |                                                                                                  |
-| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                                | 
-| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                         | Automated configuration, HTTP methods and per-URI rate limiting enforcement                      |
-| API Developer Portal       | Swagger and OpenAPI YAML and JSON schema support                                         | Based on Redocly                                                                                 |
+| Feature                    | API v3.1                                                                                 | Notes                                                                                                           |
+|----------------------------|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD                                                                                     | Snippets supported: static and from source of truth                                                             |
+| HTTP servers               | CRUD                                                                                     | Snippets supported (`http`, `servers`, `locations`, `upstreams`: static and from source of truth                |
+| TCP/UDP servers            | CRUD                                                                                     | Snippets supported (`streams`, `servers`, `upstreams`: static and from source of truth                          |
+| TLS                        | CRUD                                                                                     | Certificates and keys can be dynamically fetched from source of truth                                           |
+| mTLS                       | CRUD                                                                                     | Certificates and keys can be dynamically fetched from source of truth                                           |
+| Rate limiting              | X                                                                                        |                                                                                                                 |
+| Active healthchecks        | X                                                                                        |                                                                                                                 |
+| Cookie-based stickiness    | X                                                                                        |                                                                                                                 |
+| Maps                       | X                                                                                        |                                                                                                                 |
+| NGINX Plus REST API access | X                                                                                        |                                                                                                                 |
+| NGINX App Protect WAF      | Per-policy CRUD at `server` and `location` level with dataplane-based bundle compilation | Security policies can be dynamically fetched from source of truth                                               | 
+| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                         | Automated configuration, HTTP methods enforcement, per-URI rate limiting, per-URI JWT authentication |
+| API Developer Portal       | Swagger and OpenAPI YAML and JSON schema support                                         | Based on Redocly                                                                                                |
 
 ## How to use
 
