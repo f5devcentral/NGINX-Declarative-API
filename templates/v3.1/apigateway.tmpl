@@ -20,7 +20,7 @@
 
 {% if declaration.paths -%}
 {% for path in declaration.paths %}
-location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+location ^~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
     {% endfor -%}
@@ -33,7 +33,7 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
 
     limit_except {{ method_names|join(' ')|upper }} { deny all; }
 
-    {# --- Rate limiting --- #}
+    {# --- Rate limiting start --- #}
     {%- for rl in declaration.location.apigateway.rate_limit -%}
     {%- set enforceRL = namespace(toBeEnforced = False) -%}
     {%- if rl.enforceOnPaths == False -%}
@@ -56,19 +56,55 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
     {%- endif -%}
     {%- endfor -%}
 
+    {# --- Rate limiting end --- #}
+
+
+    {# --- Authentication start --- #}
+    {%- if declaration.location.apigateway.authentication -%}
+    {%- set enforceAuth = namespace(toBeEnforced = False) -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == False -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for authPath in declaration.location.apigateway.authentication.paths -%}
+    {%- if path.path == authPath -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == True -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceRL.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if enforceAuth.toBeEnforced == True -%}
+    auth_jwt "{{ declaration.location.apigateway.authentication.jwt.realm }}";
+	auth_jwt_key_request /_jwks_uri;
+	auth_jwt_key_cache {{ declaration.location.apigateway.authentication.jwt.cachetime }};
+    {%- endif -%}
+    {%- endif %}
+
+    {# --- Authentication end --- #}
+
     {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
     {% endif %}
 
     {% if declaration.location.apigateway.api_gateway.server_url -%}
     proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
-
-    {% endif %}
+    {% endif -%}
 
     proxy_pass {{ destination_server }}$uri;
 }
 
 {% endfor %}
+
+{%- if declaration.location.apigateway.authentication -%}
+location = /_jwks_uri {
+    internal;
+	proxy_method GET;
+    #proxy_cache jwk;
+	proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
+}
+{% endif %}
 
 {% if declaration.location.apigateway.developer_portal.enabled == True -%}
 location = {{ declaration.location.uri }}{{ declaration.location.apigateway.developer_portal.uri }} {
