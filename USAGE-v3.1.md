@@ -64,6 +64,9 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
 - `developer_portal.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
+- `authentication` - optional, used to enforce JWT authentication at the API Gateway level
+- `authentication.jwt` - JWT configuration
+- `authentication.enforceOnPaths` - if set to `true` JWT authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` JWT authentication is enforced on all API endpoints but those listed under `authentication.paths`
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
 
@@ -121,6 +124,19 @@ is:
                                 "developer_portal": {
                                     "enabled": true,
                                     "uri": "/petstore-devportal.html"
+                                },
+                                "authentication": {
+                                    "jwt": {
+                                        "realm": "petstore authentication",
+                                        "token": "",
+                                        "key": "http://192.168.2.19/jwks.json",
+                                        "cachetime": 5
+                                    },
+                                    "enforceOnPaths": true,
+                                    "paths": [
+                                        "/user/login",
+                                        "/user/logout"
+                                    ]
                                 },
                                 "rate_limit": [
                                     {

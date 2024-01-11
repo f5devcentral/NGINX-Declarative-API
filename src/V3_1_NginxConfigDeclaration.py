@@ -230,6 +230,27 @@ class RateLimitApiGw(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
+class Authentication(BaseModel, extra="forbid"):
+    jwt: AuthJWT
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
+class AuthJWT(BaseModel, extra="forbid"):
+    realm: str = "Authentication"
+    token: Optional[str] = ""
+    key: str = ""
+    cachetime: Optional[int] = 0
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthJWT':
+        key = self.key
+
+        valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
+        if not key.strip() :
+            raise ValueError("Invalid JWT key '" + key + "' must not be empty")
+
+        return self
+
 class HealthCheck(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     uri: Optional[str] = "/"
@@ -417,6 +438,7 @@ class APIGateway(BaseModel, extra="forbid"):
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
+    authentication: Optional[Authentication] = {}
     log: Optional[Log] = {}
 
 

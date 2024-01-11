@@ -141,14 +141,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
 
                     # API Gateway provisioning
-                    if loc['apigateway'] and loc['apigateway']['api_gateway']['enabled'] == True:
+                    if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
                         status, apiGatewayConfigDeclaration = (
                             Contrib.APIGateway.createAPIGateway(locationDeclaration=loc))
                     else:
                         apiGatewayConfigDeclaration = ''
 
                     # API Gateway Developer portal provisioning
-                    if loc['apigateway'] and loc['apigateway']['developer_portal']['enabled'] == True:
+                    if loc['apigateway'] and loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] and loc['apigateway']['developer_portal']['enabled'] == True:
                         status, devPortalHTML = (
                             Contrib.DevPortal.createDevPortal(locationDeclaration=loc))
 
@@ -440,12 +440,12 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         redisDeclarationRendered = NcgRedis.redis.get(f'ncg.declarationrendered.{configUid}')
 
         if redisDeclarationRendered is not None and json.dumps(d) == redisDeclarationRendered.decode('utf-8'):
-            print(f'Configuration [{configUid}] not changed')
+            print(f'Declaration [{configUid}] not changed')
             return {"status_code": 200,
                     "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
         else:
             # Configuration objects have changed, publish to NIM needed
-            print(f'Configuration [{configUid}] changed, publishing to NMS')
+            print(f'Declaration [{configUid}] changed, publishing to NMS')
 
             # Retrieve instance group uid
             try:
