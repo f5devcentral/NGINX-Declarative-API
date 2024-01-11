@@ -29,8 +29,10 @@ port = 6379
 
 # Devportal helper
 [devportal]
-host = "devportal"
-port = 5000
+#host = "devportal"
+#port = 5000
+host = "127.0.0.1"
+port = 5001
 uri = "/v1/devportal"
 
 # Staged configuration for NGINX Instance Manager

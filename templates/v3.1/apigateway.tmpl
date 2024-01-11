@@ -20,7 +20,7 @@
 
 {% if declaration.paths -%}
 {% for path in declaration.paths %}
-location ^~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
     {% endfor -%}
@@ -77,8 +77,8 @@ location ^~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}'
 
     {%- if enforceAuth.toBeEnforced == True -%}
     auth_jwt "{{ declaration.location.apigateway.authentication.jwt.realm }}";
-	auth_jwt_key_request /_jwks_uri;
-	auth_jwt_key_cache {{ declaration.location.apigateway.authentication.jwt.cachetime }};
+    auth_jwt_key_request /_jwks_uri;
+    auth_jwt_key_cache {{ declaration.location.apigateway.authentication.jwt.cachetime }};
     {%- endif -%}
     {%- endif %}
 
@@ -100,7 +100,7 @@ location ^~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}'
 {%- if declaration.location.apigateway.authentication -%}
 location = /_jwks_uri {
     internal;
-	proxy_method GET;
+    proxy_method GET;
     #proxy_cache jwk;
     proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
 }
