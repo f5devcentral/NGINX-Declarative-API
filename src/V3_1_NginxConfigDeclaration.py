@@ -146,7 +146,7 @@ class Output(BaseModel, extra="forbid"):
         if isError:
             raise ValueError("Invalid output data for type '" + _type + "'")
 
-        return self
+        return selfsmartmontools
 
 
 class OcspStapling(BaseModel, extra="forbid"):
