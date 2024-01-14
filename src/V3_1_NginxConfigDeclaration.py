@@ -237,7 +237,6 @@ class Authentication(BaseModel, extra="forbid"):
 
 class AuthJWT(BaseModel, extra="forbid"):
     realm: str = "Authentication"
-    token: Optional[str] = ""
     key: str = ""
     cachetime: Optional[int] = 0
 
@@ -245,7 +244,6 @@ class AuthJWT(BaseModel, extra="forbid"):
     def check_type(self) -> 'AuthJWT':
         key = self.key
 
-        valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
         if not key.strip() :
             raise ValueError("Invalid JWT key '" + key + "' must not be empty")
 

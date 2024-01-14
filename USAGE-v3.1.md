@@ -128,7 +128,6 @@ is:
                                 "authentication": {
                                     "jwt": {
                                         "realm": "petstore authentication",
-                                        "token": "",
                                         "key": "http://192.168.2.19/jwks.json",
                                         "cachetime": 5
                                     },
