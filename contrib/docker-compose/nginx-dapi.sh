@@ -4,7 +4,7 @@
 # Usage
 #
 usage() {
-BANNER="NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/\n\n
+BANNER="NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/\n\n
 This script is used to deploy/undeploy NGINX Declarative API using docker-compose\n\n
 === Usage:\n\n
 $0 [options]\n\n

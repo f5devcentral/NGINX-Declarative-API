@@ -3685,7 +3685,7 @@
 		},
 		{
 			"key": "github_root",
-			"value": "https://raw.githubusercontent.com/fabriziofiorucci/NGINX-Declarative-API/main/contrib/sample-source-of-truth/configs/",
+			"value": "https://raw.githubusercontent.com/f5devcentral/NGINX-Declarative-API/main/contrib/sample-source-of-truth/configs/",
 			"type": "string"
 		},
 		{
@@ -3719,7 +3719,7 @@
 		},
 		{
 			"key": "github_gitops_root",
-			"value": "https://raw.githubusercontent.com/fabriziofiorucci/NGINX-Declarative-API/main/contrib/gitops-examples",
+			"value": "https://raw.githubusercontent.com/f5devcentral/NGINX-Declarative-API/main/contrib/gitops-examples",
 			"type": "string"
 		},
 		{
