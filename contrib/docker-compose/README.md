@@ -5,10 +5,10 @@ NGINX Declarative API can be deployed using docker compose on a Linux virtual ma
 Usage:
 
 ```
-$ git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
+$ git clone https://github.com/f5devcentral/NGINX-Declarative-API
 $ cd NGINX-Declarative-API/contrib/docker-compose
 $ ./nginx-dapi.sh 
-NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/
+NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 
  This script is used to deploy/undeploy NGINX Declarative API using docker-compose
 

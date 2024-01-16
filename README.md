@@ -161,21 +161,21 @@ A sample Postman collection and usage instructions can be found [here](/contrib/
 
 ## How to run
 
-Docker-compose is the recommended method to run NGINX Declarative API on a Linux virtual machine. Full details are available [here](https://github.com/fabriziofiorucci/NGINX-Declarative-API/tree/main/contrib/docker-compose)
+Docker-compose is the recommended method to run NGINX Declarative API on a Linux virtual machine. Full details are available [here](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/docker-compose)
 
 ## Building Docker images
 
 Docker images can be built and run using:
 
-    git clone https://github.com/fabriziofiorucci/NGINX-Declarative-API
+    git clone https://github.com/f5devcentral/NGINX-Declarative-API
 
     cd NGINX-Declarative-API
-    docker build --no-cache -t fiorucci/nginx-declarative-api -f ./Dockerfile .
-    docker run --name nginx-declarative-api -d -p 5000:5000 fiorucci/nginx-declarative-api
+    docker build --no-cache -t nginx-declarative-api -f ./Dockerfile .
+    docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api
 
     cd contrib/devportal
-    docker build --no-cache -t fiorucci/nginx-declarative-api-devportal .
-    docker run --name devportal -d -p 5001:5000 fiorucci/nginx-declarative-api-devportal
+    docker build --no-cache -t nginx-declarative-api-devportal .
+    docker run --name devportal -d -p 5001:5000 nginx-declarative-api-devportal
 
 Pre-built docker images are available on Docker Hub at https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general
 Configuration can be customized mounting `config.toml` as a volume `nginx-declarative-api` docker image as a volume to customize 

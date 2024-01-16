@@ -1,10 +1,10 @@
-# NGINX Declarative API - https://github.com/fabriziofiorucci/NGINX-Declarative-API/
+# NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "3.3.1"
-url = "https://github.com/fabriziofiorucci/NGINX-Declarative-API"
+version = "3.1"
+url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
 [templates]

@@ -12,7 +12,7 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 app = FastAPI(
     title="Redoc connector",
     version="1.0.0",
-    contact={"name": "GitHub", "url": "https://github.com/fabriziofiorucci/NGINX-Declarative-API"}
+    contact={"name": "GitHub", "url": "https://github.com/f5devcentral/NGINX-Declarative-API"}
 )
 
 JSONObject = Dict[AnyStr, Any]
