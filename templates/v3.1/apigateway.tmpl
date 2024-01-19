@@ -77,7 +77,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 
     {%- if enforceAuth.toBeEnforced == True -%}
     auth_jwt "{{ declaration.location.apigateway.authentication.jwt.realm }}";
-    auth_jwt_key_request /_jwks_uri;
+    auth_jwt_key_request {{ declaration.location.uri }}/_jwks_uri;
     auth_jwt_key_cache {{ declaration.location.apigateway.authentication.jwt.cachetime }};
     {%- endif -%}
     {%- endif %}
@@ -98,11 +98,17 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 {% endfor %}
 
 {%- if declaration.location.apigateway.authentication -%}
-location = /_jwks_uri {
+location = {{ declaration.location.uri }}/_jwks_uri {
     internal;
-    proxy_method GET;
     #proxy_cache jwk;
+
+    {% if declaration.location.apigateway.authentication.jwt.key.startswith('http://') or declaration.location.apigateway.authentication.jwt.key.startswith('https://') -%}
+    proxy_method GET;
     proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
+    {%- else -%}
+    return 200 '{{declaration.location.apigateway.authentication.jwt.key }}';
+    {% endif %}
+
 }
 {% endif %}
 
