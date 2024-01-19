@@ -22,7 +22,7 @@ Currently supported features:
 
 Currently supported features:
 
-| Feature                    | API v3.1                                                                                | Notes                                                                      |
-|----------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                        | Automated configuration, HTTP methods enforcement, per-URI rate limiting, per-URI JWT authentication |
-| API Developer Portal       | Swagger and OpenAPI YAML and JSON schema support                                        | Based on Redocly                                                           |
+| Feature                    | API v3.1                                                                                | Notes                                                                                                                                                                              |
+|----------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| API Gateway                | Swagger and OpenAPI YAML and JSON schema support                                        | <li>Automated configuration</li><li>HTTP methods enforcement</li><li>per-URI rate limiting</li><li>per-URI JWT authentication: JWT key hardwired or referenced as HTTP(S) URL</li> |
+| API Developer Portal       | Swagger and OpenAPI YAML and JSON schema support                                        | Based on Redocly                                                                                                                                                                   |
