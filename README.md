@@ -182,6 +182,10 @@ This repository is licensed under the Apache License, Version 2.0. You are free 
 
 See [Support](/SUPPORT.md)
 
+## Contributing
+
+See [Contributing](/CONTRIBUTING.md)
+
 ## Code of Conduct
 
 See the [Code of Conduct](/code_of_conduct.md)
