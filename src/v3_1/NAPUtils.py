@@ -5,7 +5,7 @@ NGINX App Protect support functions
 import requests
 import json
 
-import Contrib.GitOps
+import v3_1.GitOps
 
 from fastapi.responses import Response, JSONResponse
 
@@ -171,7 +171,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = Contrib.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v3_1.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                     if status != 200:
                         return JSONResponse(

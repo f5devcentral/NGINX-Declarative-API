@@ -9,17 +9,17 @@ from typing import List, Optional
 from pydantic import BaseModel, Extra, model_validator
 
 
-class OutputConfigMap(BaseModel, extra=Extra.forbid):
+class OutputConfigMap(BaseModel, extra="forbid"):
     name: str = "nginx-config"
     namespace: Optional[str] = ""
     filename: str = "nginx-config.conf"
 
 
-class OutputHttp(BaseModel, extra=Extra.forbid):
+class OutputHttp(BaseModel, extra="forbid"):
     url: str = ""
 
 
-class NmsCertificate(BaseModel, extra=Extra.forbid):
+class NmsCertificate(BaseModel, extra="forbid"):
     type: str
     name: str
     contents: str
@@ -35,14 +35,14 @@ class NmsCertificate(BaseModel, extra=Extra.forbid):
         return self
 
 
-class NmsPolicyVersion(BaseModel, extra=Extra.forbid):
+class NmsPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
     contents: str = ""
 
 
-class NmsPolicy(BaseModel, extra=Extra.forbid):
+class NmsPolicy(BaseModel, extra="forbid"):
     type: str = ""
     name: str = ""
     active_tag: str = ""
@@ -59,7 +59,7 @@ class NmsPolicy(BaseModel, extra=Extra.forbid):
         return self
 
 
-class AppProtectLogProfile(BaseModel, extra=Extra.forbid):
+class AppProtectLogProfile(BaseModel, extra="forbid"):
     name: str
     format: Optional[str] = "default"
     format_string: Optional[str] = ""
@@ -85,7 +85,7 @@ class AppProtectLogProfile(BaseModel, extra=Extra.forbid):
         return self
 
 
-class LogProfile(BaseModel, extra=Extra.forbid):
+class LogProfile(BaseModel, extra="forbid"):
     type: str
     app_protect: Optional[AppProtectLogProfile] = {}
 
@@ -108,7 +108,7 @@ class LogProfile(BaseModel, extra=Extra.forbid):
         return self
 
 
-class OutputNMS(BaseModel, extra=Extra.forbid):
+class OutputNMS(BaseModel, extra="forbid"):
     url: str = ""
     username: str = ""
     password: str = ""
@@ -120,7 +120,7 @@ class OutputNMS(BaseModel, extra=Extra.forbid):
     log_profiles: Optional[List[LogProfile]] = []
 
 
-class Output(BaseModel, extra=Extra.forbid):
+class Output(BaseModel, extra="forbid"):
     type: str
     configmap: Optional[OutputConfigMap] = {}
     http: Optional[OutputHttp] = {}
@@ -149,18 +149,18 @@ class Output(BaseModel, extra=Extra.forbid):
         return self
 
 
-class OcspStapling(BaseModel, extra=Extra.forbid):
+class OcspStapling(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     verify: Optional[bool] = False
     responder: Optional[str] = ""
 
 
-class Ocsp(BaseModel, extra=Extra.forbid):
+class Ocsp(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     responder: Optional[str] = ""
 
 
-class Mtls(BaseModel, extra=Extra.forbid):
+class Mtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
 
@@ -175,7 +175,7 @@ class Mtls(BaseModel, extra=Extra.forbid):
         return self
 
 
-class Tls(BaseModel, extra=Extra.forbid):
+class Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
     trusted_ca_certificates: str = ""
@@ -186,13 +186,13 @@ class Tls(BaseModel, extra=Extra.forbid):
     stapling: Optional[OcspStapling] = {}
 
 
-class Listen(BaseModel, extra=Extra.forbid):
+class Listen(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     http2: Optional[bool] = False
     tls: Optional[Tls] = {}
 
 
-class ListenL4(BaseModel, extra=Extra.forbid):
+class ListenL4(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
     tls: Optional[Tls] = {}
@@ -211,19 +211,59 @@ class ListenL4(BaseModel, extra=Extra.forbid):
         return self
 
 
-class Log(BaseModel, extra=Extra.forbid):
+class Log(BaseModel, extra="forbid"):
     access: Optional[str] = ""
     error: Optional[str] = ""
 
 
-class RateLimit(BaseModel, extra=Extra.forbid):
+class RateLimit(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
     httpcode: Optional[int] = 429
     burst: Optional[int] = 0
     delay: Optional[int] = 0
 
+class RateLimitApiGw(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+    httpcode: Optional[int] = 429
+    burst: Optional[int] = 0
+    delay: Optional[int] = 0
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
 
-class HealthCheck(BaseModel, extra=Extra.forbid):
+class JWTAuthentication(BaseModel, extra="forbid"):
+    jwt: AuthClientJWT
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
+
+class AuthClientJWT(BaseModel, extra="forbid"):
+    realm: str = "JWT Authentication"
+    key: str = ""
+    cachetime: Optional[int] = 0
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthClientJWT':
+        key = self.key
+
+        if not key.strip() :
+            raise ValueError("Invalid JWT key '" + key + "' must not be empty")
+
+        return self
+
+class AuthServerJWT(BaseModel, extra="forbid"):
+    token: str = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthServerJWT':
+        token = self.token
+
+        if not token.strip():
+            raise ValueError("Invalid JWT token '" + token + "' must not be empty")
+
+        return self
+
+
+class HealthCheck(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     uri: Optional[str] = "/"
     interval: Optional[int] = 5
@@ -231,19 +271,19 @@ class HealthCheck(BaseModel, extra=Extra.forbid):
     passes: Optional[int] = 1
 
 
-class AppProtectLog(BaseModel, extra=Extra.forbid):
+class AppProtectLog(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     profile_name: Optional[str] = ""
     destination: Optional[str] = ""
 
 
-class AppProtect(BaseModel, extra=Extra.forbid):
+class AppProtect(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     policy: str = ""
     log: AppProtectLog = {}
 
 
-class Location(BaseModel, extra=Extra.forbid):
+class Location(BaseModel, extra="forbid"):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
@@ -271,7 +311,7 @@ class Location(BaseModel, extra=Extra.forbid):
         return self
 
 
-class Server(BaseModel, extra=Extra.forbid):
+class Server(BaseModel, extra="forbid"):
     name: str
     names: Optional[List[str]] = []
     resolver: Optional[str] = ""
@@ -282,21 +322,21 @@ class Server(BaseModel, extra=Extra.forbid):
     snippet: Optional[str] = ""
 
 
-class L4Server(BaseModel, extra=Extra.forbid):
+class L4Server(BaseModel, extra="forbid"):
     name: str
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[str] = ""
 
 
-class Sticky(BaseModel, extra=Extra.forbid):
+class Sticky(BaseModel, extra="forbid"):
     cookie: str = ""
     expires: Optional[str] = ""
     domain: Optional[str] = ""
     path: Optional[str] = ""
 
 
-class Origin(BaseModel, extra=Extra.forbid):
+class Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
@@ -306,7 +346,7 @@ class Origin(BaseModel, extra=Extra.forbid):
     backup: Optional[bool] = False
 
 
-class L4Origin(BaseModel, extra=Extra.forbid):
+class L4Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
@@ -316,45 +356,45 @@ class L4Origin(BaseModel, extra=Extra.forbid):
     backup: Optional[bool] = False
 
 
-class Upstream(BaseModel, extra=Extra.forbid):
+class Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
     snippet: Optional[str] = ""
 
 
-class L4Upstream(BaseModel, extra=Extra.forbid):
+class L4Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[str] = ""
 
 
-class ValidItem(BaseModel, extra=Extra.forbid):
+class ValidItem(BaseModel, extra="forbid"):
     codes: Optional[List[int]] = [200]
     ttl: Optional[str] = 60
 
 
-class CachingItem(BaseModel, extra=Extra.forbid):
+class CachingItem(BaseModel, extra="forbid"):
     name: str
     key: str
     size: Optional[str] = "10m"
     valid: Optional[List[ValidItem]] = []
 
 
-class RateLimitItem(BaseModel, extra=Extra.forbid):
+class RateLimitItem(BaseModel, extra="forbid"):
     name: str
     key: str
     size: Optional[str] = ""
     rate: Optional[str] = ""
 
 
-class NginxPlusApi(BaseModel, extra=Extra.forbid):
+class NginxPlusApi(BaseModel, extra="forbid"):
     write: Optional[bool] = False
     listen: Optional[str] = ""
     allow_acl: Optional[str] = ""
 
 
-class MapEntry(BaseModel, extra=Extra.forbid):
+class MapEntry(BaseModel, extra="forbid"):
     key: str
     keymatch: str
     value: str
@@ -370,18 +410,72 @@ class MapEntry(BaseModel, extra=Extra.forbid):
         return self
 
 
-class Map(BaseModel, extra=Extra.forbid):
+class Map(BaseModel, extra="forbid"):
     match: str
     variable: str
     entries: Optional[List[MapEntry]] = []
 
 
-class Layer4(BaseModel, extra=Extra.forbid):
+class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
 
 
-class Http(BaseModel, extra=Extra.forbid):
+class Authentication_Client_Item(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthClientJWT] = {}
+
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authentication_Client_Item':
+        _type, jwt = self.type, self.jwt
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError("Invalid client authentication type '" + _type + "' must be one of " + str(valid))
+
+        isError = False
+
+        if _type == 'jwt' and not jwt:
+            isError = True
+
+
+class Authentication_Server_Item(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthServerJWT] = {}
+
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authentication_Server_Item':
+        _type, jwt = self.type, self.jwt
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError("Invalid server authentication type '" + _type + "' must be one of " + str(valid))
+
+        isError = False
+
+        if _type == 'jwt' and not jwt:
+            isError = True
+
+class Authentication_Client(BaseModel, extra="forbid"):
+    Optional[List[Authentication_Client_Item]] = []
+
+
+class Authentication_Server(BaseModel, extra="forbid"):
+    Optional[List[Authentication_Server_Item]] = []
+
+
+class Authentication(BaseModel, extra="forbid"):
+    client: Optional[Authentication_Client] = {}
+    server: Optional[Authentication_Server] = {}
+
+
+class Http(BaseModel, extra="forbid"):
     servers: Optional[List[Server]] = []
     upstreams: Optional[List[Upstream]] = []
     caching: Optional[List[CachingItem]] = []
@@ -389,30 +483,32 @@ class Http(BaseModel, extra=Extra.forbid):
     nginx_plus_api: Optional[NginxPlusApi] = {}
     maps: Optional[List[Map]] = []
     snippet: Optional[str] = ""
+    authentication: Optional[Authentication] = {}
 
 
-class Declaration(BaseModel, extra=Extra.forbid):
+class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
 
 
-class API_Gateway(BaseModel, extra=Extra.forbid):
+class API_Gateway(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     strip_uri: Optional[bool] = False
     server_url: Optional[str] = ""
 
-class DeveloperPortal(BaseModel, extra=Extra.forbid):
+class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     uri: Optional[str] = "/devportal.html"
 
-class APIGateway(BaseModel, extra=Extra.forbid):
+class APIGateway(BaseModel, extra="forbid"):
     openapi_schema: Optional[str] = ""
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
-    rate_limit: Optional[RateLimit] = {}
+    rate_limit: Optional[List[RateLimitApiGw]] = []
+    authentication: Optional[JWTAuthentication] = {}
     log: Optional[Log] = {}
 
 
-class ConfigDeclaration(BaseModel, extra=Extra.forbid):
+class ConfigDeclaration(BaseModel, extra="forbid"):
     output: Output
     declaration: Optional[Declaration] = {}
