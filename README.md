@@ -140,8 +140,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v3.1](/USAGE-v3.1.md) - latest
-- [API v3](/USAGE-v3.md)
+- [API v4.0](/USAGE-v4.0.md) - latest
+- [API v3.1](/USAGE-v3.1.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
@@ -163,7 +163,10 @@ Docker images can be built and run using:
     docker build --no-cache -t nginx-declarative-api-devportal .
     docker run --name devportal -d -p 5001:5000 nginx-declarative-api-devportal
 
-Pre-built docker images are available on Docker Hub at https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general
+Pre-built docker images are available on Docker Hub at
+- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general
+- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api-devportal/general
+
 Configuration can be customized mounting `config.toml` as a volume `nginx-declarative-api` docker image as a volume to customize 
 
 ## REST API documentation

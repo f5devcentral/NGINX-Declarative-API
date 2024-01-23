@@ -244,8 +244,8 @@ class RateLimitApiGw(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
-class JWTAuthentication(BaseModel, extra="forbid"):
-    jwt: AuthClientJWT
+class APIGatewayAuthentication(BaseModel, extra="forbid"):
+    client: Optional[List[LocationAuthClient]] = []
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
@@ -500,7 +500,7 @@ class APIGateway(BaseModel, extra="forbid"):
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
-    authentication: Optional[JWTAuthentication] = {}
+    authentication: Optional[APIGatewayAuthentication] = {}
     log: Optional[Log] = {}
 
 

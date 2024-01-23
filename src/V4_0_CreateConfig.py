@@ -465,9 +465,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                     "message": {
                                         "status_code": 422,
                                         "message": {"code": 422,
-                                                    "content": "invalid mTLS client certificates " +
-                                                               client_cert_name + " for server" + str(
-                                                        server['names'])}
+                                                    "content": f"invalid mTLS client certificates [{client_cert_name}] for server {str(server['names'])}"}
                                     }}
 
         # Add optional certificates specified under output.nms.certificates

@@ -5,7 +5,7 @@ NGINX Instance Manager support functions
 import requests
 import json
 
-import v3_1.GitOps
+import v4_0.GitOps
 
 from fastapi.responses import Response, JSONResponse
 
