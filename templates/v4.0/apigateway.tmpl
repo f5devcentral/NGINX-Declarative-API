@@ -20,7 +20,7 @@
 
 {% if declaration.paths -%}
 {% for path in declaration.paths %}
-location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
     {% endfor -%}
@@ -33,13 +33,60 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
 
     limit_except {{ method_names|join(' ')|upper }} { deny all; }
 
-    {# --- Rate limiting --- #}
-    {%- if declaration.location.apigateway.rate_limit -%}
-    {%- if declaration.location.apigateway.rate_limit.profile %}limit_req zone={{ declaration.location.apigateway.rate_limit.profile }}{% if declaration.location.apigateway.rate_limit.burst %} burst={{ declaration.location.apigateway.rate_limit.burst }}{% endif %}{% if declaration.location.apigateway.rate_limit.delay == 0 %} nodelay;{% else %} delay={{ declaration.location.apigateway.rate_limit.delay }};{% endif %}{% endif %}
+    {# --- Rate limiting start --- #}
+    {%- for rl in declaration.location.apigateway.rate_limit -%}
+    {%- set enforceRL = namespace(toBeEnforced = False) -%}
+    {%- if rl.enforceOnPaths == False -%}
+    {%- set enforceRL.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for rlPath in rl.paths -%}
+    {%- if path.path == rlPath -%}
+    {%- if rl.enforceOnPaths == True -%}
+    {%- set enforceRL.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceRL.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
 
-    {% if declaration.location.apigateway.rate_limit.httpcode %}limit_req_status {{ declaration.location.apigateway.rate_limit.httpcode }};{% endif %}
-    {% endif %}
+    {%- if enforceRL.toBeEnforced == True -%}
+    {%- if rl.profile %}limit_req zone={{ rl.profile }}{% if rl.burst %} burst={{ rl.burst }}{% endif %}{% if rl.delay == 0 %} nodelay;{% else %} delay={{ rl.delay }};{% endif %}{% endif %}
 
+    {% if rl.httpcode %}limit_req_status {{ rl.httpcode }};{% endif %}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Rate limiting end --- #}
+
+
+    {# --- Authentication start --- #}
+    {%- if declaration.location.apigateway.authentication -%}
+    {%- set enforceAuth = namespace(toBeEnforced = False) -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == False -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for authPath in declaration.location.apigateway.authentication.paths -%}
+    {%- if path.path == authPath -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == True -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceRL.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Client authentication --- #}
+    {%- if enforceAuth.toBeEnforced == True -%}
+    {%- if declaration.location.apigateway.authentication and declaration.location.apigateway.authentication.client -%}
+    {%- for clientAuthProfile in declaration.location.apigateway.authentication.client -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+    {% endfor -%}
+    {%- endif -%}
+    {%- endif -%}
+
+    {%- endif %}
+
+    {# --- Authentication end --- #}
 
     {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
@@ -47,8 +94,7 @@ location ~ {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}',
 
     {% if declaration.location.apigateway.api_gateway.server_url -%}
     proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
-
-    {% endif %}
+    {% endif -%}
 
     proxy_pass {{ destination_server }}$uri;
 }

@@ -5,9 +5,9 @@ API Gateway support functions
 import json
 import base64
 
-import Contrib.GitOps
-import Contrib.MiscUtils
-from Contrib.OpenAPIParser import OpenAPIParser
+import v3_1.GitOps
+import v3_1.MiscUtils
+from v3_1.OpenAPIParser import OpenAPIParser
 
 
 # Builds the declarative JSON for the API Gateway configuration
@@ -16,11 +16,11 @@ def createAPIGateway(locationDeclaration: dict):
     apiGwDeclaration = {}
 
     if locationDeclaration['apigateway']['openapi_schema']:
-        status, apiSchemaString = Contrib.GitOps.getObjectFromRepo(content=locationDeclaration['apigateway']['openapi_schema'], base64Encode=False)
+        status, apiSchemaString = v3_1.GitOps.getObjectFromRepo(content=locationDeclaration['apigateway']['openapi_schema'], base64Encode=False)
 
-        if Contrib.MiscUtils.yaml_or_json(apiSchemaString) == 'yaml':
+        if v3_1.MiscUtils.yaml_or_json(apiSchemaString) == 'yaml':
             # YAML to JSON conversion
-            apiSchemaString = Contrib.MiscUtils.yaml_to_json(apiSchemaString)
+            apiSchemaString = v3_1.MiscUtils.yaml_to_json(apiSchemaString)
 
         apiSchema = OpenAPIParser(json.loads(apiSchemaString))
 

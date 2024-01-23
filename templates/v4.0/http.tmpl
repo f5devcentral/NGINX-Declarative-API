@@ -222,6 +222,13 @@ server {
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
         {% endif %}
 
+        {# --- Client authentication --- #}
+        {%- if loc.authentication and loc.authentication.client -%}
+        {%- for clientAuthProfile in loc.authentication.client -%}
+        include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+        {% endfor -%}
+        {%- endif -%}
+
         {# --- Location NGINX App Protect WAF --- #}
 
         {% if loc.app_protect -%}
@@ -248,7 +255,16 @@ server {
     }
     {% endfor %}
 
-{% if s.listen.address %}
+    {# --- JWT authentication JWKS endpoints --- #}
+    {%- if declaration.authentication and declaration.authentication.client -%}
+    {%- for clientAuthProfile in declaration.authentication.client -%}
+    {%- if clientAuthProfile.type == "jwt" -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/jwks_{{ clientAuthProfile.name | replace(" ", "_") }}.conf";
+    {% endif -%}
+    {%- endfor -%}
+    {%- endif -%}
+
+{%- if s.listen.address -%}
 {%- endif -%}
 }
-{%- endfor %}
+{% endfor -%}

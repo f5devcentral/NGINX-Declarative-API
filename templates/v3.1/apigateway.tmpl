@@ -100,7 +100,6 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 {%- if declaration.location.apigateway.authentication -%}
 location = {{ declaration.location.uri }}/_jwks_uri {
     internal;
-    #proxy_cache jwk;
 
     {% if declaration.location.apigateway.authentication.jwt.key.startswith('http://') or declaration.location.apigateway.authentication.jwt.key.startswith('https://') -%}
     proxy_method GET;
