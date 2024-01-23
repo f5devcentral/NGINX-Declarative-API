@@ -30,7 +30,7 @@ class NmsCertificate(BaseModel, extra="forbid"):
 
         valid = ['certificate', 'key']
         if _type not in valid:
-            raise ValueError("Invalid certificate type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid certificate type [{_type}] must be one of {str(valid)}")
 
         return self
 
@@ -54,7 +54,7 @@ class NmsPolicy(BaseModel, extra="forbid"):
 
         valid = ['app_protect']
         if _type not in valid:
-            raise ValueError("Invalid policy type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid policy type [{_type}] must be one of {str(valid)}")
 
         return self
 
@@ -73,11 +73,11 @@ class AppProtectLogProfile(BaseModel, extra="forbid"):
 
         valid = ['all', 'illegal', 'blocked']
         if _type not in valid:
-            raise ValueError("Invalid NGINX App Protect log type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid NGINX App Protect log type [{_type}] must be one of {str(valid)}")
 
         valid = ['default', 'grpc', 'arcsight', 'splunk', 'user-defined']
         if _format not in valid:
-            raise ValueError("Invalid NGINX App Protect log format '" + _format + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid NGINX App Protect log format [{_format}] must be one of {str(valid)}")
 
         if _format == 'user-defined' and _format_string == "":
             raise ValueError(f"NGINX App Protect log format {_format} requires format_string")
@@ -95,7 +95,7 @@ class LogProfile(BaseModel, extra="forbid"):
 
         valid = ['app_protect']
         if _type not in valid:
-            raise ValueError("Invalid log profile type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid log profile type [{_type}] must be one of {str(valid)}")
 
         isError = False
         if _type == 'app_protect':
@@ -103,7 +103,7 @@ class LogProfile(BaseModel, extra="forbid"):
                 isError = True
 
         if isError:
-            raise ValueError("Invalid log profile data for type '" + _type + "'")
+            raise ValueError(f"Invalid log profile data for type [{_type}]")
 
         return self
 
@@ -132,7 +132,7 @@ class Output(BaseModel, extra="forbid"):
 
         valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
         if _type not in valid:
-            raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
@@ -144,7 +144,7 @@ class Output(BaseModel, extra="forbid"):
             isError = True
 
         if isError:
-            raise ValueError("Invalid output data for type '" + _type + "'")
+            raise ValueError(f"Invalid output data for type [{_type}]")
 
         return self
 
@@ -170,7 +170,7 @@ class Mtls(BaseModel, extra="forbid"):
 
         valid = ['on', 'off', 'optional', 'optional_no_ca']
         if _enabled not in valid:
-            raise ValueError("Invalid mTLS type '" + _enabled + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid mTLS type [{_enabled}] must be one of {str(valid)}")
 
         return self
 
@@ -203,7 +203,7 @@ class ListenL4(BaseModel, extra="forbid"):
 
         valid = ['tcp', 'udp']
         if protocol not in valid:
-            raise ValueError("Invalid protocol '" + protocol + "'")
+            raise ValueError(f"Invalid protocol [{protocol}] must be one of {str(valid)}")
 
         if protocol != 'tcp' and tls and tls.certificate:
             raise ValueError("TLS termination over UDP is not supported")
@@ -221,6 +221,20 @@ class RateLimit(BaseModel, extra="forbid"):
     httpcode: Optional[int] = 429
     burst: Optional[int] = 0
     delay: Optional[int] = 0
+
+
+class LocationAuthClient(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+
+
+class LocationAuthServer(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+
+
+class LocationAuth(BaseModel, extra="forbid"):
+    client: Optional[List[LocationAuthClient]] = []
+    server: Optional[List[LocationAuthServer]] = []
+
 
 class RateLimitApiGw(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -251,7 +265,7 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
         valid = ['signed', 'encrypted', 'nested']
         if jwt_type not in valid:
-            raise ValueError("Invalid JWT type '" + jwt_type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid JWT type [{jwt_type}] must be one of {str(valid)}")
 
         return self
 
@@ -299,6 +313,7 @@ class Location(BaseModel, extra="forbid"):
     health_check: Optional[HealthCheck] = {}
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[str] = ""
+    authentication: Optional[LocationAuth] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -307,11 +322,11 @@ class Location(BaseModel, extra="forbid"):
 
         valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
         if urimatch not in valid:
-            raise ValueError("Invalid URI match type '" + urimatch + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid URI match type [{urimatch}] must be one of {str(valid)}")
 
         prefixes = ["http://", "https://"]
         if upstream != "" and not upstream.lower().startswith(tuple(prefixes)):
-            raise ValueError("Upstream must start with one of " + str(prefixes))
+            raise ValueError(f"Upstream must start with one of {str(prefixes)}")
 
         return self
 
@@ -410,7 +425,7 @@ class MapEntry(BaseModel, extra="forbid"):
 
         valid = ['exact', 'regex', 'iregex']
         if keymatch not in valid:
-            raise ValueError("Invalid key match type '" + keymatch + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid key match type [{keymatch}] must be one of {str(valid)}")
 
         return self
 
@@ -431,6 +446,16 @@ class Authentication_Client(BaseModel, extra="forbid"):
     type: str
 
     jwt: Optional[AuthClientJWT] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authentication_Client':
+        _type, name = self.type, self.name
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        return self
 
 
 class Authentication_Server(BaseModel, extra="forbid"):

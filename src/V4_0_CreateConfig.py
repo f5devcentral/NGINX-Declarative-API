@@ -118,6 +118,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 all_ratelimits.append(d_rate_limit[i]['name'])
 
         # Check authentication profiles validity and creates authentication config files
+
+        # List of all auth client & server profile names
+        all_auth_client_profiles = []
+        all_auth_server_profiles = []
+
         d_auth_profiles = v4_0.MiscUtils.getDictKey(d, 'declaration.http.authentication')
         if d_auth_profiles is not None:
             if 'client' in d_auth_profiles:
@@ -126,29 +131,53 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 auth_client_profiles = d_auth_profiles['client']
                 for i in range(len(auth_client_profiles)):
                     auth_profile = auth_client_profiles[i]
-                    templateName = NcgConfig.config['templates']['auth_client_root']+"/"+auth_profile['type']+".tmpl"
-                    renderedClientAuthProfile = j2_env.get_template(templateName).render(
-                        authprofile=auth_profile, ncgconfig=NcgConfig.config)
 
-                    # Add the rendered authentication configuration snippet as a config file in the staged configuration
-                    b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
-                    configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
-                    authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
-                                      'name': configFileName }
+                    match auth_profile['type']:
+                        case 'jwt':
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - jwt template
+                            templateName = NcgConfig.config['templates']['auth_client_root']+"/jwt.tmpl"
+                            renderedClientAuthProfile = j2_env.get_template(templateName).render(
+                                authprofile=auth_profile, ncgconfig=NcgConfig.config)
 
-                    auxFiles['files'].append(authProfileConfigFile)
+                            b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
+                            configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
+                            authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                              'name': configFileName }
 
-            if 'server' in d_auth_profiles:
-                    auth_server_profiles = d_auth_profiles['server']
-                    for i in range(len(auth_server_profiles)):
-                        print(f"=> Rendering SERVER AUTH PROFILE {i} [{auth_server_profiles[i]}]")
-                        serverAuthName = auth_client_profiles[i]['name']
-                        serverAuthType = auth_server_profiles[i]['type']
-                        templateName = NcgConfig.config['templates']['auth_server_root'] + "/" + serverAuthType + ".tmpl"
-                        renderedServerAuthProfile = j2_env.get_template(templateName).render(
-                            authprofile=auth_server_profiles[i], ncgconfig=NcgConfig.config)
+                            all_auth_client_profiles.append(auth_profile['name'])
+                            auxFiles['files'].append(authProfileConfigFile)
 
-                        print(f"==> RENDERED SERVER TEMPLATE {renderedServerAuthProfile}")
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - jwks template
+                            templateName = NcgConfig.config['templates']['auth_client_root']+"/jwks.tmpl"
+                            renderedClientAuthProfile = j2_env.get_template(templateName).render(
+                                authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                            b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
+                            configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/jwks_'+auth_profile['name'].replace(' ','_')+".conf"
+                            authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                              'name': configFileName }
+
+                            all_auth_client_profiles.append(auth_profile['name'])
+                            auxFiles['files'].append(authProfileConfigFile)
+
+            #if 'server' in d_auth_profiles:
+            #    # Render all server authentication profiles
+            #
+            #    auth_server_profiles = d_auth_profiles['server']
+            #    for i in range(len(auth_server_profiles)):
+            #        auth_profile = auth_server_profiles[i]
+            #        templateName = NcgConfig.config['templates']['auth_server_root']+"/"+auth_profile['type']+".tmpl"
+            #        renderedServerAuthProfile = j2_env.get_template(templateName).render(
+            #            authprofile=auth_profile, ncgconfig=NcgConfig.config)
+            #
+            #        # Add the rendered authentication configuration snippet as a config file in the staged configuration
+            #        b64renderedServerAuthProfile = base64.b64encode(bytes(renderedServerAuthProfile, 'utf-8')).decode('utf-8')
+            #        configFileName = NcgConfig.config['nms']['auth_server_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
+            #        authProfileConfigFile = {'contents': b64renderedServerAuthProfile,
+            #                          'name': configFileName }
+            #
+            #        all_auth_server_profiles.append(auth_profile['name'])
+            #        auxFiles['files'].append(authProfileConfigFile)
 
         # Parse HTTP servers
         d_servers = v4_0.MiscUtils.getDictKey(d, 'declaration.http.servers')
@@ -173,10 +202,31 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         loc['snippet'] = snippet
 
+                    # Location upstream name validity check
                     if 'upstream' in loc and loc['upstream'] and urlparse(loc['upstream']).netloc not in all_upstreams:
                         return {"status_code": 422,
                                 "message": {"status_code": status, "message":
                                     {"code": status, "content": f"invalid HTTP upstream [{loc['upstream']}]"}}}
+
+                    # Location client authentication name validity check
+                    if 'authentication' in loc and loc['authentication']:
+                        locAuthClientProfiles = loc['authentication']['client']
+
+                        for authClientProfile in locAuthClientProfiles:
+                            if authClientProfile['profile'] not in all_auth_client_profiles:
+                                return {"status_code": 422,
+                                        "message": {"status_code": status, "message":
+                                            {"code": status, "content": f"invalid client authentication profile [{authClientProfile['profile']}] in location [{loc['uri']}]"}}}
+
+                    # Location server authentication name validity check
+                    if 'authentication' in loc and loc['authentication']:
+                        locAuthServerProfiles = loc['authentication']['server']
+
+                        for authServerProfile in locAuthServerProfiles:
+                            if authServerProfile['profile'] not in all_auth_server_profiles:
+                                return {"status_code": 422,
+                                        "message": {"status_code": status, "message":
+                                            {"code": status, "content": f"invalid server authentication profile [{authServerProfile['profile']}] in location [{loc['uri']}]"}}}
 
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:

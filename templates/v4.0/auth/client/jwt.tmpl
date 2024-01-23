@@ -1,16 +1,4 @@
 auth_jwt "{{ authprofile.jwt.realm }}";
 auth_jwt_type {{ authprofile.jwt.jwt_type }};
-auth_jwt_key_request $uri/_auth/jwt/{{ authprofile.name | replace(" ", "_") }}/_jwks_uri;
+auth_jwt_key_request /_auth/jwt/{{ authprofile.name | replace(" ", "_") }}/_jwks_uri;
 auth_jwt_key_cache {{ authprofile.jwt.cachetime }};
-
-location ~ (.*)/_auth/jwt/{{ authprofile.name | replace(" ", "_") }}/_jwks_uri {
-    internal;
-
-    {% if authprofile.jwt.key.startswith('http://') or authprofile.jwt.key.startswith('https://') -%}
-    proxy_method GET;
-    proxy_pass {{ authprofile.jwt.key }};
-    {% else -%}
-    return 200 '{{ authprofile.jwt.key }}';
-    {%- endif %}
-
-}

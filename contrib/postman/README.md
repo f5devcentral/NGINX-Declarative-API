@@ -2,7 +2,18 @@
 
 This collection contains:
 
-API v3
+API v4.0 - Latest
+- `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
+- `Declarative automation examples` - Several examples and use cases
+  - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
+  - `CRUD automation` - Sample requests for CRUD-based automation
+  - `GitOps autosync` - GitOps automation demo
+  - `Housekeeping - common endpoints` - Miscellaneous general purpose requests
+  - `JWT Client Authentication` - JWT-based client authentication for HTTP
+  - `mTLS Client Authentication` - mTLS client authentication for HTTP
+  - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management 
+
+API v3.1 - Deprecated
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
 - `Declarative automation - NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
 - `Declarative automation - GitOps` - GitOps automation demo
@@ -40,6 +51,6 @@ Invalid request:
 
 ---
 
-**Note**: The `GitOps` folder requires either
+**Note**: The `GitOps autosync` folder requires either
 - an NGINX instance (OSS or Plus) reachable as `acme.gitlab.local` on port `80/TCP` using the sample configuration available here: [/contrib/sample-source-of-truth/ncg-nginx.conf](/contrib/sample-source-of-truth/ncg-nginx.conf)
-- access to the GitHub repository at https://github.com/f5devcentral/NGINX-Declarative-API/ to fetch files under https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/gitops-examples/v2
+- access to the GitHub repository at https://github.com/f5devcentral/NGINX-Declarative-API/ to fetch files under https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/gitops-examples/v4.0
