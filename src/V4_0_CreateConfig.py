@@ -61,6 +61,10 @@ def configautosync(configUid):
 def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
     # Building NGINX configuration for the given declaration
 
+    # NGINX configuration files for staged config
+    configFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
+
+    # NGINX auxiliary files for staged config
     auxFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
 
     try:
@@ -113,6 +117,40 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             for i in range(len(d_rate_limit)):
                 all_ratelimits.append(d_rate_limit[i]['name'])
 
+        # Check authentication profiles validity and creates authentication config files
+        d_auth_profiles = v4_0.MiscUtils.getDictKey(d, 'declaration.http.authentication')
+        if d_auth_profiles is not None:
+            if 'client' in d_auth_profiles:
+                # Render all client authentication profiles
+
+                auth_client_profiles = d_auth_profiles['client']
+                for i in range(len(auth_client_profiles)):
+                    auth_profile = auth_client_profiles[i]
+                    templateName = NcgConfig.config['templates']['auth_client_root']+"/"+auth_profile['type']+".tmpl"
+                    renderedClientAuthProfile = j2_env.get_template(templateName).render(
+                        authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                    # Add the rendered authentication configuration snippet as a config file in the staged configuration
+                    b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
+                    configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
+                    authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                      'name': configFileName }
+
+                    auxFiles['files'].append(authProfileConfigFile)
+
+            if 'server' in d_auth_profiles:
+                    auth_server_profiles = d_auth_profiles['server']
+                    for i in range(len(auth_server_profiles)):
+                        print(f"=> Rendering SERVER AUTH PROFILE {i} [{auth_server_profiles[i]}]")
+                        serverAuthName = auth_client_profiles[i]['name']
+                        serverAuthType = auth_server_profiles[i]['type']
+                        templateName = NcgConfig.config['templates']['auth_server_root'] + "/" + serverAuthType + ".tmpl"
+                        renderedServerAuthProfile = j2_env.get_template(templateName).render(
+                            authprofile=auth_server_profiles[i], ncgconfig=NcgConfig.config)
+
+                        print(f"==> RENDERED SERVER TEMPLATE {renderedServerAuthProfile}")
+
+        # Parse HTTP servers
         d_servers = v4_0.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
             apiGatewaySnippet = ''
@@ -279,7 +317,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
 
     elif decltype.lower() == 'nms':
-        # NGINX Management Suite Staged Configuration publish
+        # NGINX Instance Manager Staged Configuration publish
+
         nmsUsername = v4_0.MiscUtils.getDictKey(d, 'output.nms.username')
         nmsPassword = v4_0.MiscUtils.getDictKey(d, 'output.nms.password')
         nmsInstanceGroup = v4_0.MiscUtils.getDictKey(d, 'output.nms.instancegroup')
@@ -414,6 +453,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             'mimetypes'], 'r')
         nginxMimeTypes = f.read()
         f.close()
+
         b64NginxMimeTypes = str(base64.urlsafe_b64encode(nginxMimeTypes.encode("utf-8")), "utf-8")
         filesMimeType = {'contents': b64NginxMimeTypes, 'name': NcgConfig.config['nms']['config_dir'] + '/mime.types'}
         auxFiles['files'].append(filesMimeType)
@@ -427,7 +467,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                            'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
                                'staged_config_stream_filename']}
 
-        configFiles = {'files': [], 'rootDir': NcgConfig.config['nms']['config_dir']}
+        # Append config files to staged configuration
         configFiles['files'].append(filesNginxMain)
         configFiles['files'].append(filesHttpConf)
         configFiles['files'].append(filesStreamConf)
@@ -635,7 +675,6 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
         if d_upstreams:
             # HTTP upstream patch
             for u in d_upstreams:
-                #print(f"Patching HTTP upstream [{u['name']}]")
                 currentDeclaration = v4_0.DeclarationPatcher.patchHttpUpstream(
                     sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
 
@@ -643,7 +682,6 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
         if d_servers:
             # HTTP servers patch
             for s in d_servers:
-                #print(f"Patching HTTP server [{s['name']}]")
                 currentDeclaration = v4_0.DeclarationPatcher.patchHttpServer(
                     sourceDeclaration=currentDeclaration, patchedHttpServer=s)
 
@@ -652,7 +690,6 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
         if d_upstreams:
             # Stream upstream patch
             for u in d_upstreams:
-                #print(f"Patching Stream upstream [{u['name']}]")
                 currentDeclaration = v4_0.DeclarationPatcher.patchStreamUpstream(
                     sourceDeclaration=currentDeclaration, patchedStreamUpstream=u)
 
@@ -660,7 +697,6 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
         if d_servers:
             # Stream servers patch
             for s in d_servers:
-                #print(f"Patching Stream server [{s['name']}]")
                 currentDeclaration = v4_0.DeclarationPatcher.patchStreamServer(
                     sourceDeclaration=currentDeclaration, patchedStreamServer=s)
 

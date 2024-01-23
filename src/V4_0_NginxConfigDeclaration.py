@@ -240,27 +240,32 @@ class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
     key: str = ""
     cachetime: Optional[int] = 0
+    jwt_type: str = "signed"
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthClientJWT':
-        key = self.key
+        jwt_type, key = self.jwt_type, self.key
 
         if not key.strip() :
-            raise ValueError("Invalid JWT key '" + key + "' must not be empty")
+            raise ValueError(f"Invalid: JWT key must not be empty")
+
+        valid = ['signed', 'encrypted', 'nested']
+        if jwt_type not in valid:
+            raise ValueError("Invalid JWT type '" + jwt_type + "' must be one of " + str(valid))
 
         return self
 
 class AuthServerJWT(BaseModel, extra="forbid"):
     token: str = ""
 
-    @model_validator(mode='after')
-    def check_type(self) -> 'AuthServerJWT':
-        token = self.token
+    #@model_validator(mode='after')
+    #def check_type(self) -> 'AuthServerJWT':
+    #    token = self.token
 
-        if not token.strip():
-            raise ValueError("Invalid JWT token '" + token + "' must not be empty")
+    #    if not token.strip():
+    #        raise ValueError("Invalid JWT token '" + token + "' must not be empty")
 
-        return self
+    #    return self
 
 
 class HealthCheck(BaseModel, extra="forbid"):
@@ -421,58 +426,23 @@ class Layer4(BaseModel, extra="forbid"):
     upstreams: Optional[List[L4Upstream]] = []
 
 
-class Authentication_Client_Item(BaseModel, extra="forbid"):
+class Authentication_Client(BaseModel, extra="forbid"):
     name: str
     type: str
 
     jwt: Optional[AuthClientJWT] = {}
 
 
-    @model_validator(mode='after')
-    def check_type(self) -> 'Authentication_Client_Item':
-        _type, jwt = self.type, self.jwt
-
-        valid = ['jwt']
-        if _type not in valid:
-            raise ValueError("Invalid client authentication type '" + _type + "' must be one of " + str(valid))
-
-        isError = False
-
-        if _type == 'jwt' and not jwt:
-            isError = True
-
-
-class Authentication_Server_Item(BaseModel, extra="forbid"):
+class Authentication_Server(BaseModel, extra="forbid"):
     name: str
     type: str
 
     jwt: Optional[AuthServerJWT] = {}
 
 
-    @model_validator(mode='after')
-    def check_type(self) -> 'Authentication_Server_Item':
-        _type, jwt = self.type, self.jwt
-
-        valid = ['jwt']
-        if _type not in valid:
-            raise ValueError("Invalid server authentication type '" + _type + "' must be one of " + str(valid))
-
-        isError = False
-
-        if _type == 'jwt' and not jwt:
-            isError = True
-
-class Authentication_Client(BaseModel, extra="forbid"):
-    Optional[List[Authentication_Client_Item]] = []
-
-
-class Authentication_Server(BaseModel, extra="forbid"):
-    Optional[List[Authentication_Server_Item]] = []
-
-
 class Authentication(BaseModel, extra="forbid"):
-    client: Optional[Authentication_Client] = {}
-    server: Optional[Authentication_Server] = {}
+    client: Optional[List[Authentication_Client]] = []
+    server: Optional[List[Authentication_Server]] = []
 
 
 class Http(BaseModel, extra="forbid"):

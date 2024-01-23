@@ -17,6 +17,9 @@ apigwconf = "apigateway.tmpl"
 streamconf = "stream.tmpl"
 configmap = "configmap.tmpl"
 
+auth_client_root = "auth/client"
+auth_server_root = "auth/server"
+
 # NGINX Declarative API Server
 [apiserver]
 host = "0.0.0.0"
@@ -38,6 +41,9 @@ uri = "/v1/devportal"
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 devportal_dir = '/etc/nginx/devportal'
+auth_client_dir = '/etc/nginx/auth/client'
+auth_server_dir = '/etc/nginx/auth/server'
+
 
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
@@ -52,3 +58,6 @@ nap_logformats_dir_pum = '/etc/nms'
 # NGINX Instance Manager staged configuration filenames
 staged_config_http_filename = 'conf.d/services.conf'
 staged_config_stream_filename = 'stream-conf.d/services.conf'
+
+# Authentication configuration files root
+auth_config_files = 'conf.d/auth'
