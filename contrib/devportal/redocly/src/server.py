@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
 
 app = FastAPI(
-    title="Redoc connector",
+    title="Redocly connector",
     version="1.0.0",
     contact={"name": "GitHub", "url": "https://github.com/f5devcentral/NGINX-Declarative-API"}
 )

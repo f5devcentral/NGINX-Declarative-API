@@ -13,10 +13,10 @@ from V4_1_NginxConfigDeclaration import *
 
 
 # Fetches a URL content
-def __fetchfromsourceoftruth__(url):
+def __fetchfromsourceoftruth__(url, headers = {} ):
     # Object is fetched from external repository
     try:
-        reply = requests.get(url=url, verify=False)
+        reply = requests.get(url = url, headers = headers, verify=False)
     except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):
         return 408, "URL " + url + " unreachable"
 
@@ -27,26 +27,38 @@ def __fetchfromsourceoftruth__(url):
 # base64Encode to be set to False to disable b64 encoding
 # Returns the status original content otherwise.
 # Return is a tuple: status_code, content
-def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: List[LocationAuthServer]=[], base64Encode: bool=True):
+def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authentication={}, base64Encode: bool=True):
     status_code = 200
-    content = ""
-
-    print("=> SOURCE OF TRUTH")
-    print(f"- object: {object['authentication'] if 'authentication' in object else 'NONE'}")
-    print(f"- auth  : {authProfiles}")
+    response = object
 
     if object:
-        if object['content'].lower().startswith("http://") or object['content'].lower().startswith("https://"):
+        if object['content'].lower().startswith(("http://","https://")):
             # Object is fetched from external repository
+            headers = {}
 
             # Set server authentication if needed
+            if authProfiles and 'server' in authProfiles:
+                for authP in authProfiles['server']:
+                    if object['authentication'][0]['profile'] == authP['name']:
+                        # Sets up authentication
+                        if authP['type'].lower() == 'token':
+                            authToken = authP['token']['token']
+                            authTokenType = authP['token']['type']
+                            authTokenLocation = authP['token']['location']
 
-            status_code, content = __fetchfromsourceoftruth__(object['content'])
+                            if authTokenType.lower() == 'bearer':
+                                headers['Authorization'] = f"Bearer {authToken}"
+                            elif authTokenType.lower() == 'header':
+                                headers[authTokenLocation] = authToken
+
+            status_code, fetchedContent = __fetchfromsourceoftruth__(url = object['content'], headers = headers)
 
             if status_code == 200:
                 if base64Encode == True:
-                    content = base64.b64encode(bytes(content, 'utf-8')).decode('utf-8')
+                    fetchedContent = base64.b64encode(bytes(fetchedContent, 'utf-8')).decode('utf-8')
                 else:
-                    content = bytes(content, 'utf-8').decode("utf-8")
+                    fetchedContent = bytes(fetchedContent, 'utf-8').decode("utf-8")
 
-    return status_code, content
+            response['content'] = fetchedContent
+
+    return status_code, response

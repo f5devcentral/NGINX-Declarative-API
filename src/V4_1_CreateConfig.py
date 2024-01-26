@@ -82,7 +82,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     if 'http' in d['declaration']:
         if 'snippet' in d['declaration']['http']:
-            status, snippet = v4_1.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication']['server'])
+            status, snippet = v4_1.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
             if status != 200:
                 return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -99,7 +99,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 upstream = http['upstreams'][i]
 
                 if upstream['snippet']:
-                    status, snippet = v4_1.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication']['server'])
+                    status, snippet = v4_1.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -192,14 +192,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 serverSnippet = ''
 
                 if server['snippet']:
-                    status, serverSnippet = v4_1.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication']['server'], base64Encode = False)
+                    status, serverSnippet = v4_1.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": serverSnippet}}
 
+                    serverSnippet = serverSnippet['content']
+
                 for loc in server['locations']:
                     if loc['snippet']:
-                        status, snippet = v4_1.GitOps.getObjectFromRepo(object = loc['snippet'], authProfiles = d['declaration']['http']['authentication']['server'])
+                        status, snippet = v4_1.GitOps.getObjectFromRepo(object = loc['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                         if status != 200:
                             return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -234,21 +236,26 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
-                        status, apiGatewayConfigDeclaration = (
-                            v4_1.APIGateway.createAPIGateway(locationDeclaration=loc))
+                        openApiAuthProfile = loc['apigateway']['openapi_schema']['authentication']
+                        if openApiAuthProfile and openApiAuthProfile[0]['profile'] not in all_auth_server_profiles:
+                            return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid server authentication profile [{openApiAuthProfile[0]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}]"}}}
+
+                        status, apiGatewayConfigDeclaration = v4_1.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
                     else:
                         apiGatewayConfigDeclaration = ''
 
                     # API Gateway Developer portal provisioning
                     if loc['apigateway'] and loc['apigateway']['developer_portal'] and 'enabled' in loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] == True:
 
-                        status, devPortalHTML = (
-                            v4_1.DevPortal.createDevPortal(locationDeclaration=loc))
+                        status, devPortalHTML = v4_1.DevPortal.createDevPortal(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
 
                         if status != 200:
                             return {"status_code": 400,
                                     "message": {"status_code": status, "message":
-                                        {"code": status, "content": f"Developer Portal creation failed for {loc['apigateway']['openapi_schema']}"}}}
+                                        {"code": status, "content": f"Developer Portal creation failed for {loc['apigateway']['openapi_schema']['content']}"}}}
 
                         ### Add optional API Developer portal HTML files
                         # devPortalHTML
@@ -274,7 +281,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)\
                             if apiGatewayConfigDeclaration else ''
 
-            server['snippet'] = base64.b64encode(bytes(serverSnippet + apiGatewaySnippet, 'utf-8')).decode('utf-8')
+            server['snippet']['content'] = base64.b64encode(bytes(serverSnippet + apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
@@ -290,7 +297,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             for server in d_servers:
 
                 if server['snippet']:
-                    status, snippet = v4_1.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication']['server'])
+                    status, snippet = v4_1.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -400,7 +407,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             for policy in d_policies:
                 if 'versions' in policy:
                     for policyVersion in policy['versions']:
-                        status, content = v4_1.GitOps.getObjectFromRepo(object = policyVersion['contents'], authProfiles = d['declaration']['http']['authentication']['server'])
+                        status, content = v4_1.GitOps.getObjectFromRepo(object = policyVersion['contents'], authProfiles = d['declaration']['http']['authentication'])
 
                         if status != 200:
                             return {"status_code": 422, "message": {"status_code": status, "message": content}}
@@ -478,13 +485,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         d_certificates = v4_1.MiscUtils.getDictKey(d, 'output.nms.certificates')
         if d_certificates is not None:
             for c in d_certificates:
-                status, certContent = v4_1.GitOps.getObjectFromRepo(object = c['contents'], authProfiles = d['declaration']['http']['authentication']['server'])
+                status, certContent = v4_1.GitOps.getObjectFromRepo(object = c['contents'], authProfiles = d['declaration']['http']['authentication'])
 
                 if status != 200:
                     return {"status_code": 422,
                             "message": {"status_code": status, "message": {"code": status, "content": certContent}}}
 
-                newAuxFile = {'contents': certContent, 'name': NcgConfig.config['nms']['certs_dir'] +
+                newAuxFile = {'contents': certContent['content'], 'name': NcgConfig.config['nms']['certs_dir'] +
                                                                '/' + c['name'] + extensions_map[c['type']]}
                 auxFiles['files'].append(newAuxFile)
 
@@ -579,7 +586,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             if status != 200:
                 return {"status_code": 422, "message": {"status_code": status, "message": description}}
 
-            # Provision NGINX App Protect WAF policies to NGINX Management Suite
+            # Provision NGINX App Protect WAF policies to NGINX Instance Manager
             provisionedNapPolicies, activePolicyUids = v4_1.NAPUtils.provisionPolicies(
                 nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 

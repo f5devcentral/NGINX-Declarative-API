@@ -18,7 +18,7 @@ map {{ m.match }} {{ m.variable }} {
 {% endif %}
 
 {# --- Snippets section --- #}
-{% if declaration.snippet %}{{ declaration.snippet | b64decode }}{% endif %}
+{% if declaration.snippet and declaration.snippet.content %}{{ declaration.snippet.content | b64decode }}{% endif %}
 
 
 {# --- Upstreams section --- #}
@@ -36,7 +36,7 @@ upstream {{ u.name }} {
     sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
     {% endif -%}
 
-    {% if u.snippet %}{{ u.snippet | b64decode }}{% endif %}
+    {% if u.snippet and u.snippet.content %}{{ u.snippet.content | b64decode }}{% endif %}
 
 }
 {% endif %}
@@ -184,7 +184,7 @@ server {
 
 
     {% filter indent(width=4) %}
-{% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
+{% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
     {% endfilter %}
 
     {# --- Server location section start --- #}
@@ -254,7 +254,7 @@ server {
 
         {# --- Location snipptes --- #}
 
-        {% if loc.snippet %}{{ loc.snippet | b64decode }}{% endif %}
+        {% if loc.snippet and loc.snippet.content %}{{ loc.snippet.content | b64decode }}{% endif %}
 
     }
     {% endfor %}

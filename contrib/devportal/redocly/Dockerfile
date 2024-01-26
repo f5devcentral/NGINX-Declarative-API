@@ -2,7 +2,7 @@ FROM redocly/cli
 
 WORKDIR /deployment
 
-COPY src/ src/
+COPY src src/
 
 RUN apk update && \
     apk add --update --no-cache bash python3 && \
