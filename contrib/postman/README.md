@@ -2,7 +2,7 @@
 
 This collection contains:
 
-API v4.0 - Latest
+API v4.1 - Latest
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
 - `Declarative automation examples` - Several examples and use cases
   - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
@@ -11,7 +11,19 @@ API v4.0 - Latest
   - `Housekeeping - common endpoints` - Miscellaneous general purpose requests
   - `JWT Client Authentication` - JWT-based client authentication for HTTP
   - `mTLS Client Authentication` - mTLS client authentication for HTTP
-  - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management 
+  - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
+  - `Server-side and source of truth authentication` - Requests for authentication towards upstreams and source of truth
+
+API v4.0
+- `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
+- `Declarative automation examples` - Several examples and use cases
+  - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
+  - `CRUD automation` - Sample requests for CRUD-based automation
+  - `GitOps autosync` - GitOps automation demo
+  - `Housekeeping - common endpoints` - Miscellaneous general purpose requests
+  - `JWT Client Authentication` - JWT-based client authentication for HTTP
+  - `mTLS Client Authentication` - mTLS client authentication for HTTP
+  - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
 
 API v3.1 - Deprecated
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST

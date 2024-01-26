@@ -20,7 +20,7 @@ services:
     #image: fiorucci/nginx-declarative-api-devportal:latest
     image: nginx-declarative-api-devportal
     build:
-      context: ../devportal/
+      context: ../devportal/redocly
       dockerfile: Dockerfile
     user: "${USERID}:${USERGROUP}"
     container_name: "devportal"

@@ -132,7 +132,7 @@ end
 - [X] POST to Generic REST API endpoint
 - [X] Output to NGINX Instance Manager 2.14+ imperative REST API
   
-## Supported NGINX Plus features
+## Supported features
 
 See the [features list](/FEATURES.md)
 
@@ -140,7 +140,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v4.0](/USAGE-v4.0.md) - latest
+- [API v4.1](/USAGE-v4.1.md) - latest
+- [API v4.0](/USAGE-v4.0.md)
 - [API v3.1](/USAGE-v3.1.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
@@ -159,13 +160,9 @@ Docker images can be built and run using:
     docker build --no-cache -t nginx-declarative-api -f ./Dockerfile .
     docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api
 
-    cd contrib/devportal
+    cd contrib/redocly/devportal
     docker build --no-cache -t nginx-declarative-api-devportal .
     docker run --name devportal -d -p 5001:5000 nginx-declarative-api-devportal
-
-Pre-built docker images are available on Docker Hub at
-- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general
-- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api-devportal/general
 
 Configuration can be customized mounting `config.toml` as a volume `nginx-declarative-api` docker image as a volume to customize 
 
