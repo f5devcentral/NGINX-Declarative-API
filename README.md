@@ -160,13 +160,9 @@ Docker images can be built and run using:
     docker build --no-cache -t nginx-declarative-api -f ./Dockerfile .
     docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api
 
-    cd contrib/devportal
+    cd contrib/redocly/devportal
     docker build --no-cache -t nginx-declarative-api-devportal .
     docker run --name devportal -d -p 5001:5000 nginx-declarative-api-devportal
-
-Pre-built docker images are available on Docker Hub at
-- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api/general
-- https://hub.docker.com/repository/docker/fiorucci/nginx-declarative-api-devportal/general
 
 Configuration can be customized mounting `config.toml` as a volume `nginx-declarative-api` docker image as a volume to customize 
 

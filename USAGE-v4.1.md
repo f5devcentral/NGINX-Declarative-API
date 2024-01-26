@@ -74,7 +74,8 @@ A sample API Gateway declaration to publish the `https://petstore.swagger.io` RE
 
 - REST API endpoint URIs
 - HTTP Methods
-- Rate limiting on `/user/login` and `/user/logout` endpoints
+- Rate limiting on `/user/login` and `/user/logout`
+- JWT authentication on `/user/login` and `/usr/logout`
 
 is:
 
@@ -115,7 +116,14 @@ is:
                             "uri": "/petstore",
                             "urimatch": "prefix",
                             "apigateway": {
-                                "openapi_schema": "https://petstore.swagger.io/v2/swagger.json",
+                                 "openapi_schema": {
+                                    "content": "http://petstore.swagger.io/v2/swagger.json",
+                                    "authentication": [
+                                        {
+                                            "profile": "Source of truth authentication profile using HTTP header token authentication"
+                                        }
+                                    ]
+                                },
                                 "api_gateway": {
                                     "enabled": true,
                                     "strip_uri": true,
@@ -176,6 +184,17 @@ is:
                             "realm": "Petstore Authentication",
                             "key": "{\"keys\": [{\"k\":\"ZmFudGFzdGljand0\",\"kty\":\"oct\",\"kid\":\"0001\"}]}",
                             "cachetime": 5
+                        }
+                    }
+                ],
+                "server": [
+                    {
+                        "name": "Source of truth authentication profile using HTTP header token authentication",
+                        "type": "token",
+                        "token": {
+                            "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
+                            "type": "header",
+                            "location": "X-AUTH-TOKEN"
                         }
                     }
                 ]
