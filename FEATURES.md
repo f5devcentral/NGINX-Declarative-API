@@ -9,7 +9,7 @@
 | TCP/UDP servers            | CRUD     | CRUD     | CRUD        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                            |
 | TLS                        | CRUD     | CRUD     | CRUD        | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                 |
 | mTLS                       | CRUD     | CRUD     | CRUD        | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                 |
-| JWT client authentication  |          | X        | X           | <li>JWT key can be hardwired or fetched from source of truth</li>                                                                                                              |
+| JWT client authentication  |          | X        | X           | <li>Static JWT key</li><li>JWT fetched from URL</li>                                                                                                             |
 | Upstream authentication    |          |          | X           | <li>Bearer token</li><li>HTTP header</li>                                                                                                                                      |
 | Rate limiting              | X        | X        | X           |                                                                                                                                                                                |
 | Active healthchecks        | X        | X        | X           |                                                                                                                                                                                |
@@ -20,12 +20,12 @@
 
 ### API Gateway
 
-| Feature                                      | API v3.1 | API v4.0 | API v4.1 | Notes                                                                     |
-|----------------------------------------------|----------|----------|----------|---------------------------------------------------------------------------|
-| Configuration generation from OpenAPI schema | X        | X        | X        |                                                                           | 
-| HTTP methods enforcement                     | X        | X        | X        |                                                                           |
-| per-URI rate limiting                        | X        | X        | X        |                                                                           |
-| per-URI JWT authentication                   | X        | X        | X        | <li>Static JWT key</li><li>JWT fetched from URL</li><li>Bearer token</li> |
+| Feature                                      | API v3.1 | API v4.0 | API v4.1 | Notes                                                                                |
+|----------------------------------------------|----------|----------|----------|--------------------------------------------------------------------------------------|
+| Configuration generation from OpenAPI schema | X        | X        | X        |                                                                                      | 
+| HTTP methods enforcement                     | X        | X        | X        |                                                                                      |
+| per-URI rate limiting                        | X        | X        | X        |                                                                                      |
+| per-URI JWT authentication                   | X        | X        | X        | <li>Static JWT key</li><li>JWT fetched from URL</li><li>Bearer token (API v4.1)</li> |
 
 ### API Gateway - Developer Portal
 
