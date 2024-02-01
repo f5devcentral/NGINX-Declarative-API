@@ -5634,7 +5634,7 @@
 		},
 		{
 			"key": "ngc_api_version",
-			"value": "v4.2",
+			"value": "v4.1",
 			"type": "string"
 		}
 	]
