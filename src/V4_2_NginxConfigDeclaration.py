@@ -22,7 +22,7 @@ class OutputHttp(BaseModel, extra="forbid"):
 class NmsCertificate(BaseModel, extra="forbid"):
     type: str
     name: str
-    contents: str
+    contents: Optional[ObjectFromSourceOfTruth] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'NmsCertificate':
@@ -30,7 +30,7 @@ class NmsCertificate(BaseModel, extra="forbid"):
 
         valid = ['certificate', 'key']
         if _type not in valid:
-            raise ValueError("Invalid certificate type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid certificate type [{_type}] must be one of {str(valid)}")
 
         return self
 
@@ -39,7 +39,7 @@ class NmsPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
-    contents: str = ""
+    contents: Optional[ObjectFromSourceOfTruth] = {}
 
 
 class NmsPolicy(BaseModel, extra="forbid"):
@@ -54,7 +54,7 @@ class NmsPolicy(BaseModel, extra="forbid"):
 
         valid = ['app_protect']
         if _type not in valid:
-            raise ValueError("Invalid policy type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid policy type [{_type}] must be one of {str(valid)}")
 
         return self
 
@@ -73,11 +73,11 @@ class AppProtectLogProfile(BaseModel, extra="forbid"):
 
         valid = ['all', 'illegal', 'blocked']
         if _type not in valid:
-            raise ValueError("Invalid NGINX App Protect log type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid NGINX App Protect log type [{_type}] must be one of {str(valid)}")
 
         valid = ['default', 'grpc', 'arcsight', 'splunk', 'user-defined']
         if _format not in valid:
-            raise ValueError("Invalid NGINX App Protect log format '" + _format + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid NGINX App Protect log format [{_format}] must be one of {str(valid)}")
 
         if _format == 'user-defined' and _format_string == "":
             raise ValueError(f"NGINX App Protect log format {_format} requires format_string")
@@ -95,7 +95,7 @@ class LogProfile(BaseModel, extra="forbid"):
 
         valid = ['app_protect']
         if _type not in valid:
-            raise ValueError("Invalid log profile type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid log profile type [{_type}] must be one of {str(valid)}")
 
         isError = False
         if _type == 'app_protect':
@@ -103,7 +103,7 @@ class LogProfile(BaseModel, extra="forbid"):
                 isError = True
 
         if isError:
-            raise ValueError("Invalid log profile data for type '" + _type + "'")
+            raise ValueError(f"Invalid log profile data for type [{_type}]")
 
         return self
 
@@ -132,7 +132,7 @@ class Output(BaseModel, extra="forbid"):
 
         valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
         if _type not in valid:
-            raise ValueError("Invalid output type '" + _type + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
@@ -144,9 +144,10 @@ class Output(BaseModel, extra="forbid"):
             isError = True
 
         if isError:
-            raise ValueError("Invalid output data for type '" + _type + "'")
+            raise ValueError(f"Invalid output data for type [{_type}]")
 
         return self
+
 
 
 class OcspStapling(BaseModel, extra="forbid"):
@@ -160,17 +161,17 @@ class Ocsp(BaseModel, extra="forbid"):
     responder: Optional[str] = ""
 
 
-class Mtls(BaseModel, extra="forbid"):
+class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
 
     @model_validator(mode='after')
-    def check_type(self) -> 'Mtls':
+    def check_type(self) -> 'AuthClientMtls':
         _enabled = self.enabled
 
         valid = ['on', 'off', 'optional', 'optional_no_ca']
         if _enabled not in valid:
-            raise ValueError("Invalid mTLS type '" + _enabled + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid mTLS type [{_enabled}] must be one of {str(valid)}")
 
         return self
 
@@ -181,9 +182,9 @@ class Tls(BaseModel, extra="forbid"):
     trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    mtls: Optional[Mtls] = {}
     ocsp: Optional[Ocsp] = {}
     stapling: Optional[OcspStapling] = {}
+    authentication: Optional[LocationAuth] = {}
 
 
 class Listen(BaseModel, extra="forbid"):
@@ -203,7 +204,7 @@ class ListenL4(BaseModel, extra="forbid"):
 
         valid = ['tcp', 'udp']
         if protocol not in valid:
-            raise ValueError("Invalid protocol '" + protocol + "'")
+            raise ValueError(f"Invalid protocol [{protocol}] must be one of {str(valid)}")
 
         if protocol != 'tcp' and tls and tls.certificate:
             raise ValueError("TLS termination over UDP is not supported")
@@ -222,6 +223,20 @@ class RateLimit(BaseModel, extra="forbid"):
     burst: Optional[int] = 0
     delay: Optional[int] = 0
 
+
+class LocationAuthClient(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+
+
+class LocationAuthServer(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+
+
+class LocationAuth(BaseModel, extra="forbid"):
+    client: Optional[List[LocationAuthClient]] = []
+    server: Optional[List[LocationAuthServer]] = []
+
+
 class RateLimitApiGw(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
     httpcode: Optional[int] = 429
@@ -230,24 +245,49 @@ class RateLimitApiGw(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
-class Authentication(BaseModel, extra="forbid"):
-    jwt: AuthJWT
+class APIGatewayAuthentication(BaseModel, extra="forbid"):
+    client: Optional[List[LocationAuthClient]] = []
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
-class AuthJWT(BaseModel, extra="forbid"):
-    realm: str = "Authentication"
+
+class AuthClientJWT(BaseModel, extra="forbid"):
+    realm: str = "JWT Authentication"
     key: str = ""
     cachetime: Optional[int] = 0
+    jwt_type: str = "signed"
 
     @model_validator(mode='after')
-    def check_type(self) -> 'AuthJWT':
-        key = self.key
+    def check_type(self) -> 'AuthClientJWT':
+        jwt_type, key = self.jwt_type, self.key
 
         if not key.strip() :
-            raise ValueError("Invalid JWT key '" + key + "' must not be empty")
+            raise ValueError(f"Invalid: JWT key must not be empty")
+
+        valid = ['signed', 'encrypted', 'nested']
+        if jwt_type not in valid:
+            raise ValueError(f"Invalid JWT type [{jwt_type}] must be one of {str(valid)}")
 
         return self
+
+class AuthServerToken(BaseModel, extra="forbid"):
+    token: str = ""
+    type: Optional[str] = "bearer"
+    location: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthServerToken':
+        location, type = self.location, self.type.lower()
+
+        valid = ['bearer', 'header']
+        if type not in valid:
+            raise ValueError(f"Invalid token type [{type}] must be one of {str(valid)}")
+
+        if type in ['header'] and location == "":
+            raise ValueError(f"Empty location for [{type}] token")
+
+        return self
+
 
 class HealthCheck(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
@@ -279,7 +319,8 @@ class Location(BaseModel, extra="forbid"):
     rate_limit: Optional[RateLimit] = {}
     health_check: Optional[HealthCheck] = {}
     app_protect: Optional[AppProtect] = {}
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    authentication: Optional[LocationAuth] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -288,14 +329,18 @@ class Location(BaseModel, extra="forbid"):
 
         valid = ['prefix', 'exact', 'regex', 'iregex', 'best']
         if urimatch not in valid:
-            raise ValueError("Invalid URI match type '" + urimatch + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid URI match type [{urimatch}] must be one of {str(valid)}")
 
         prefixes = ["http://", "https://"]
         if upstream != "" and not upstream.lower().startswith(tuple(prefixes)):
-            raise ValueError("Upstream must start with one of " + str(prefixes))
+            raise ValueError(f"Upstream must start with one of {str(prefixes)}")
 
         return self
 
+
+class ObjectFromSourceOfTruth(BaseModel, extra="forbid"):
+    content: str = ""
+    authentication: Optional[List[LocationAuthServer]] = []
 
 class Server(BaseModel, extra="forbid"):
     name: str
@@ -305,14 +350,14 @@ class Server(BaseModel, extra="forbid"):
     log: Optional[Log] = {}
     locations: Optional[List[Location]] = []
     app_protect: Optional[AppProtect] = {}
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
 
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
 
 
 class Sticky(BaseModel, extra="forbid"):
@@ -346,13 +391,13 @@ class Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
 
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[L4Origin]] = []
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
 
 
 class ValidItem(BaseModel, extra="forbid"):
@@ -391,7 +436,7 @@ class MapEntry(BaseModel, extra="forbid"):
 
         valid = ['exact', 'regex', 'iregex']
         if keymatch not in valid:
-            raise ValueError("Invalid key match type '" + keymatch + "' must be one of " + str(valid))
+            raise ValueError(f"Invalid key match type [{keymatch}] must be one of {str(valid)}")
 
         return self
 
@@ -407,6 +452,46 @@ class Layer4(BaseModel, extra="forbid"):
     upstreams: Optional[List[L4Upstream]] = []
 
 
+class Authentication_Client(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthClientJWT] = {}
+    mtls: Optional[AuthClientMtls] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authentication_Client':
+        _type, name = self.type, self.name
+
+        valid = ['jwt', 'mtls']
+        if _type not in valid:
+            raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        return self
+
+
+class Authentication_Server(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    token: Optional[AuthServerToken] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authentication_Server':
+        _type, name = self.type, self.name
+
+        valid = ['token']
+        if _type not in valid:
+            raise ValueError(f"Invalid server authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        return self
+
+
+class Authentication(BaseModel, extra="forbid"):
+    client: Optional[List[Authentication_Client]] = []
+    server: Optional[List[Authentication_Server]] = []
+
+
 class Http(BaseModel, extra="forbid"):
     servers: Optional[List[Server]] = []
     upstreams: Optional[List[Upstream]] = []
@@ -414,7 +499,8 @@ class Http(BaseModel, extra="forbid"):
     rate_limit: Optional[List[RateLimitItem]] = []
     nginx_plus_api: Optional[NginxPlusApi] = {}
     maps: Optional[List[Map]] = []
-    snippet: Optional[str] = ""
+    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    authentication: Optional[Authentication] = {}
 
 
 class Declaration(BaseModel, extra="forbid"):
@@ -432,11 +518,11 @@ class DeveloperPortal(BaseModel, extra="forbid"):
     uri: Optional[str] = "/devportal.html"
 
 class APIGateway(BaseModel, extra="forbid"):
-    openapi_schema: Optional[str] = ""
+    openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
-    authentication: Optional[Authentication] = {}
+    authentication: Optional[APIGatewayAuthentication] = {}
     log: Optional[Log] = {}
 
 

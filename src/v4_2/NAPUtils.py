@@ -5,7 +5,7 @@ NGINX App Protect support functions
 import requests
 import json
 
-import v3_1.GitOps
+import v4_2.GitOps
 
 from fastapi.responses import Response, JSONResponse
 
@@ -171,13 +171,13 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v3_1.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v4_2.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                     if status != 200:
                         return JSONResponse(
                             status_code=422,
                             content={"code": status,
-                                     "details": policyBody}
+                                     "details": policyBody['content']}
                         )
 
                     # Create the NGINX App Protect policy on NMS
@@ -186,7 +186,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
                         policyName=policy_name,
                         policyDisplayName=policyVersion['displayName'],
                         policyDescription=policyVersion['description'],
-                        policyJson=policyBody
+                        policyJson=policyBody['content']
                     )
 
                     # Check for errors creating NGINX App Protect policy

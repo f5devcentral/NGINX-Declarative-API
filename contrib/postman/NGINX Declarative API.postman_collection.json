@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fc1e8cd7-6c83-4877-8095-50f28e9bb468",
+		"_postman_id": "62d6afe4-77ff-4d5a-809a-ba20f8d8cdf5",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -5284,7 +5284,7 @@
 							"name": "JWT Client Authentication",
 							"item": [
 								{
-									"name": "JWT Client Authentication - local JWT key",
+									"name": "Local JWT key",
 									"event": [
 										{
 											"listen": "test",
@@ -5305,7 +5305,51 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online-boutique.lan-access_log\",\n                        \"error\": \"/var/log/nginx/online-boutique.lan-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://onlineboutique_upstream\",\n                            \"authentication\": {\n                                \"client\": [\n                                    {\n                                        \"profile\": \"online_boutique_jwt_authentication_local\"\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"onlineboutique_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.200:80\"\n                        }\n                    ]\n                }\n            ],\n            \"authentication\": {\n                \"client\": [\n                    {\n                        \"name\": \"online_boutique_jwt_authentication_local\",\n                        \"type\": \"jwt\",\n                        \"jwt\": {\n                            \"realm\": \"Online Boutique Authentication\",\n                            \"key\": \"{\\\"keys\\\": [{\\\"k\\\":\\\"ZmFudGFzdGljand0\\\",\\\"kty\\\":\\\"oct\\\",\\\"kid\\\":\\\"0001\\\"}]}\",\n                            \"cachetime\": 5\n                        }\n                    },\n                    {\n                        \"name\": \"online_boutique_jwt_authentication_key_from_url\",\n                        \"type\": \"jwt\",\n                        \"jwt\": {\n                            \"realm\": \"Online Boutique Authentication GitOps\",\n                            \"key\": \"http://192.168.2.19/jwks.json\",\n                            \"cachetime\": 5\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online-boutique.lan-access_log\",\n                        \"error\": \"/var/log/nginx/online-boutique.lan-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://onlineboutique_upstream\",\n                            \"authentication\": {\n                                \"client\": [\n                                    {\n                                        \"profile\": \"online_boutique_jwt_authentication_local\"\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"onlineboutique_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.200:80\"\n                        }\n                    ]\n                }\n            ],\n            \"authentication\": {\n                \"client\": [\n                    {\n                        \"name\": \"online_boutique_jwt_authentication_local\",\n                        \"type\": \"jwt\",\n                        \"jwt\": {\n                            \"realm\": \"Online Boutique Authentication\",\n                            \"key\": \"{\\\"keys\\\": [{\\\"k\\\":\\\"ZmFudGFzdGljand0\\\",\\\"kty\\\":\\\"oct\\\",\\\"kid\\\":\\\"0001\\\"}]}\"\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "JWT key from URL",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online-boutique.lan-access_log\",\n                        \"error\": \"/var/log/nginx/online-boutique.lan-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://onlineboutique_upstream\",\n                            \"authentication\": {\n                                \"client\": [\n                                    {\n                                        \"profile\": \"online_boutique_jwt_authentication_key_from_url\"\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"onlineboutique_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.200:80\"\n                        }\n                    ]\n                }\n            ],\n            \"authentication\": {\n                \"client\": [\n                    {\n                        \"name\": \"online_boutique_jwt_authentication_key_from_url\",\n                        \"type\": \"jwt\",\n                        \"jwt\": {\n                            \"realm\": \"Online Boutique Authentication GitOps\",\n                            \"key\": \"http://192.168.2.19/jwks.json\",\n                            \"cachetime\": 5\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5741,7 +5785,7 @@
 							"name": "Server-side and source of truth authentication",
 							"item": [
 								{
-									"name": "Server-side and source of truth authentication",
+									"name": "Server-side HTTP header-based and Bearer Token authentication",
 									"event": [
 										{
 											"listen": "test",

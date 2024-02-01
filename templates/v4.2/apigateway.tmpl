@@ -75,11 +75,15 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     {%- endif -%}
     {%- endfor -%}
 
+    {# --- Client authentication --- #}
     {%- if enforceAuth.toBeEnforced == True -%}
-    auth_jwt "{{ declaration.location.apigateway.authentication.jwt.realm }}";
-    auth_jwt_key_request {{ declaration.location.uri }}/_jwks_uri;
-    auth_jwt_key_cache {{ declaration.location.apigateway.authentication.jwt.cachetime }};
+    {%- if declaration.location.apigateway.authentication and declaration.location.apigateway.authentication.client -%}
+    {%- for clientAuthProfile in declaration.location.apigateway.authentication.client -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+    {% endfor -%}
     {%- endif -%}
+    {%- endif -%}
+
     {%- endif %}
 
     {# --- Authentication end --- #}
@@ -96,20 +100,6 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 }
 
 {% endfor %}
-
-{%- if declaration.location.apigateway.authentication -%}
-location = {{ declaration.location.uri }}/_jwks_uri {
-    internal;
-
-    {% if declaration.location.apigateway.authentication.jwt.key.startswith('http://') or declaration.location.apigateway.authentication.jwt.key.startswith('https://') -%}
-    proxy_method GET;
-    proxy_pass {{ declaration.location.apigateway.authentication.jwt.key }};
-    {%- else -%}
-    return 200 '{{declaration.location.apigateway.authentication.jwt.key }}';
-    {% endif %}
-
-}
-{% endif %}
 
 {% if declaration.location.apigateway.developer_portal.enabled == True -%}
 location = {{ declaration.location.uri }}{{ declaration.location.apigateway.developer_portal.uri }} {

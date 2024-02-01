@@ -1,0 +1,6 @@
+{%- if authprofile.mtls.enabled|lower != "off" -%}
+ssl_verify_client {{ authprofile.mtls.enabled }};
+{% if authprofile.mtls.client_certificates -%}
+ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.mtls.client_certificates }}.crt;
+{% endif %}
+{% endif %}
