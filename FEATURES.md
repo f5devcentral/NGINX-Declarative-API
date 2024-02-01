@@ -72,10 +72,11 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Upstream and Source of truth authentication profiles
 
-| Type         | Description                                  | API v4.0 | API v4.1 | API v4.2 | Notes                                                                 |
-|--------------|----------------------------------------------|----------|----------|----------|-----------------------------------------------------------------------|
-| Bearer token | Authentication token as Authorization Bearer |          | X        | X        | Bearer token is injected in requests to upstreams and source of truth |
-| HTTP header  | Authentication token in custom HTTP header   |          | X        | X        | HTTP header is injected in requests to upstreams and source of truth  |
+| Type         | Description                                  | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                  |
+|--------------|----------------------------------------------|----------|----------|----------|----------------------------------------------------------------------------------------|
+| Bearer token | Authentication token as Authorization Bearer |          | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
+| Basic Auth   | Authentication token as Authorization Basic  |          |          | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
+| HTTP header  | Authentication token in custom HTTP header   |          | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
 
 #### Examples
 
@@ -90,6 +91,20 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
     "token": {
         "token": "<AUTHENTICATION_TOKEN>",
         "type": "bearer"
+    }
+}
+```
+
+- Basic authentication profile
+
+ ```json
+{
+    "name": "<PROFILE_NAME>",
+    "type": "token",
+    "token": {
+        "username": "<AUTHENTICATION_USERNAME>",
+        "password": "<BASE64_ENCODED_PASSWORD>",
+        "type": "basic"
     }
 }
 ```
