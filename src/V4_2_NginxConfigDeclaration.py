@@ -232,10 +232,30 @@ class LocationAuthServer(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
 
 
+class LocationHeaderToClient(BaseModel, extra="forbid"):
+    add: Optional[List[HTTPHeader]] = []
+    delete: Optional[List[str]] = []
+    replace: Optional[List[HTTPHeader]] = []
+
+
+class LocationHeaderToServer(BaseModel, extra="forbid"):
+    set: Optional[List[HTTPHeader]] = []
+    delete: Optional[List[str]] = []
+
+
+class HTTPHeader(BaseModel, extra="forbid"):
+    name: str = ""
+    value: str = ""
+
+
 class LocationAuth(BaseModel, extra="forbid"):
     client: Optional[List[LocationAuthClient]] = []
     server: Optional[List[LocationAuthServer]] = []
 
+
+class LocationHeaders(BaseModel, extra="forbid"):
+    to_server: Optional[LocationHeaderToServer] = {}
+    to_client: Optional[LocationHeaderToClient] = {}
 
 class RateLimitApiGw(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -326,6 +346,7 @@ class Location(BaseModel, extra="forbid"):
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
+    headers: Optional[LocationHeaders]= {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -347,6 +368,7 @@ class ObjectFromSourceOfTruth(BaseModel, extra="forbid"):
     content: str = ""
     authentication: Optional[List[LocationAuthServer]] = []
 
+
 class Server(BaseModel, extra="forbid"):
     name: str
     names: Optional[List[str]] = []
@@ -356,6 +378,7 @@ class Server(BaseModel, extra="forbid"):
     locations: Optional[List[Location]] = []
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+    headers: Optional[LocationHeaders] = {}
 
 
 class L4Server(BaseModel, extra="forbid"):

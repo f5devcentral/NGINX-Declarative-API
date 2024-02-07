@@ -145,7 +145,6 @@ server {
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
-    proxy_set_header Host $host;
     proxy_ssl_server_name on;
     {% endif -%}
 
@@ -172,6 +171,51 @@ server {
     {% endif %}
     {% endif %}
     {# --- Server NGINX App Protect WAF section end --- #}
+
+    {# --- HTTP headers manipulation section start --- #}
+    {%- if s.headers -%}
+    {% if s.headers.to_server -%}
+
+    {% if s.headers.to_server.set -%}
+    {% for hSet in s.headers.to_server.set -%}
+    proxy_set_header {{ hSet.name }} {{ hSet.value }};
+    {% endfor %}
+    {% else %}
+    proxy_set_header Host $host;
+    {% endif %}
+
+    {% if s.headers.to_server.delete -%}
+    {% for hDel in s.headers.to_server.delete -%}
+    proxy_set_header {{ hDel.name }} "";
+    {% endfor %}
+    {% endif %}
+
+    {% endif %}
+
+    {% if s.headers.to_client -%}
+
+    {% if s.headers.to_client.add -%}
+    {% for hAdd in s.headers.to_client.add -%}
+    add_header {{ hAdd.name }} "{{ hAdd.value }}";
+    {% endfor %}
+    {% endif %}
+
+    {% if s.headers.to_client.delete -%}
+    {% for hDel in s.headers.to_client.delete -%}
+    proxy_hide_header {{ hDel }};
+    {% endfor %}
+    {% endif %}
+
+    {% if s.headers.to_client.replace -%}
+    {% for hDel in s.headers.to_client.replace -%}
+    proxy_hide_header {{ hDel.name }};
+    add_header {{ hDel.name }} "{{ hDel.value }}";
+    {% endfor %}
+    {% endif %}
+
+    {% endif %}
+    {% endif %}
+    {# --- HTTP headers manipulation section end --- #}
 
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
 
@@ -263,7 +307,5 @@ server {
     {%- endfor -%}
     {%- endif -%}
 
-{%- if s.listen.address -%}
-{%- endif -%}
 }
 {% endfor -%}

@@ -114,7 +114,7 @@ is:
                     "locations": [
                         {
                             "uri": "/petstore",
-                            "urimatch": "prefix",
+                            "urimatch": "prefix",                       
                             "apigateway": {
                                  "openapi_schema": {
                                     "content": "http://petstore.swagger.io/v2/swagger.json",
