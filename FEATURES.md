@@ -35,9 +35,9 @@
 ### Client authentication profiles
 
 | Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                               |
-|------|----------------------|----------|----------|----------|-------------------------------------|
-| jwt  | Java Web Token (JWT) |          | X        | X        |                                     |
-| mtls | Mutual TLS           | X        |  X       |  X       | <li>Supported for HTTP servers</li> |
+|------|----------------------|----------|---------|----------|-------------------------------------|
+| jwt  | Java Web Token (JWT) |          | X       | X        |                                     |
+| mtls | Mutual TLS           | X        | X       | X        | <li>Supported for HTTP servers</li> |
 
 #### Examples
 
@@ -89,8 +89,8 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
     "name": "<PROFILE_NAME>",
     "type": "token",
     "token": {
-        "token": "<AUTHENTICATION_TOKEN>",
-        "type": "bearer"
+        "type": "bearer",
+        "token": "<AUTHENTICATION_TOKEN>"
     }
 }
 ```
@@ -102,9 +102,9 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
     "name": "<PROFILE_NAME>",
     "type": "token",
     "token": {
+        "type": "basic",
         "username": "<AUTHENTICATION_USERNAME>",
-        "password": "<BASE64_ENCODED_PASSWORD>",
-        "type": "basic"
+        "password": "<BASE64_ENCODED_PASSWORD>"
     }
 }
 ```
@@ -116,8 +116,8 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
     "name": "<PROFILE_NAME>",
     "type": "token",
     "token": {
-        "token": "<AUTHENTICATION_TOKEN>",
         "type": "header",
+        "token": "<AUTHENTICATION_TOKEN>",
         "location": "<HTTP_HEADER_NAME>"
     }
 }

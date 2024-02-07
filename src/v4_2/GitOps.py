@@ -43,13 +43,21 @@ def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authenticat
                         # Sets up authentication
                         if authP['type'].lower() == 'token':
 
+                            print(f"===> {authP['name']} {authP['token']['username']} {authP['token']['password']}")
+
                             authToken = authP['token']['token']
                             authTokenType = authP['token']['type']
-                            authTokenLocation = authP['token']['location']
 
                             if authTokenType.lower() == 'bearer':
                                 headers['Authorization'] = f"Bearer {authToken}"
+                            elif authTokenType.lower() == 'basic':
+                                authTokenUsername = authP['token']['username']
+                                authTokenPassword = base64.b64decode(authP['token']['password']).decode('utf-8')
+
+                                headers['Authorization'] = f"Basic {base64.b64encode(str.encode(authTokenUsername + ':' + authTokenPassword)).decode('utf-8')}"
                             elif authTokenType.lower() == 'header':
+                                authTokenLocation = authP['token']['location']
+
                                 headers[authTokenLocation] = authToken
 
             status_code, fetchedContent = __fetchfromsourceoftruth__(url = object['content'], headers = headers)

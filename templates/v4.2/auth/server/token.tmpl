@@ -1,7 +1,7 @@
 {% if authprofile.token.type == "bearer" %}
 proxy_set_header Authorization "Bearer {{ authprofile.token.token }}";
-{% elif authprofile.token.type == "header" %}
-# BASIC
+{% elif authprofile.token.type == "basic" %}
+proxy_set_header Authorization "Basic {{ (authprofile.token.username + ':' + (authprofile.token.password | b64decode) ) | b64encode }}";
 {% elif authprofile.token.type == "header" %}
 proxy_set_header {{ authprofile.token.location }} "{{ authprofile.token.token }}";
 {% endif %}
