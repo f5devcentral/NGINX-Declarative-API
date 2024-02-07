@@ -37,11 +37,12 @@ def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authenticat
             headers = {}
 
             # Set server authentication if needed
-            if authProfiles and 'server' in authProfiles:
+            if authProfiles and 'server' in authProfiles and len(object['authentication'])>0:
                 for authP in authProfiles['server']:
                     if object['authentication'][0]['profile'] == authP['name']:
                         # Sets up authentication
                         if authP['type'].lower() == 'token':
+
                             authToken = authP['token']['token']
                             authTokenType = authP['token']['type']
                             authTokenLocation = authP['token']['location']

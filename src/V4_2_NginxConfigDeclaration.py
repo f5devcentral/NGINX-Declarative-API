@@ -272,19 +272,24 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
 class AuthServerToken(BaseModel, extra="forbid"):
     token: str = ""
-    type: Optional[str] = "bearer"
+    type: Optional[str] = ""
     location: Optional[str] = ""
+    username: Optional[str] = ""
+    password: Optional[str] = ""
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthServerToken':
-        location, type = self.location, self.type.lower()
+        tokentype, location, username, password = self.type.lower(), self.location, self.username, self.password
 
-        valid = ['bearer', 'header']
-        if type not in valid:
-            raise ValueError(f"Invalid token type [{type}] must be one of {str(valid)}")
+        valid = ['bearer', 'header', 'basic']
+        if tokentype not in valid:
+            raise ValueError(f"Invalid token type [{tokentype}] must be one of {str(valid)}")
 
-        if type in ['header'] and location == "":
-            raise ValueError(f"Empty location for [{type}] token")
+        if tokentype in ['header'] and location == "":
+            raise ValueError(f"Empty location for [{tokentype}] token")
+
+        if tokentype in ['basic'] and (username == "" or password == ""):
+            raise ValueError(f"Missing username/password for [{tokentype}] token")
 
         return self
 
