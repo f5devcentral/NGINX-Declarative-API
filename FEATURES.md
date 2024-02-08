@@ -33,7 +33,7 @@
 |-------------------------------------------------|----------|----------|----------|---------------------------|
 | Developer Portal generation from OpenAPI schema | X        | X        | X        | <li>Based on Redocly</li> |
 
-### Client authentication profiles
+### Client authentication
 
 | Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                               |
 |------|----------------------|----------|---------|----------|-------------------------------------|
@@ -71,7 +71,7 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 }
 ```
 
-### Upstream and Source of truth authentication profiles
+### Upstream and Source of truth authentication
 
 | Type         | Description                                  | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                  |
 |--------------|----------------------------------------------|----------|----------|----------|----------------------------------------------------------------------------------------|
@@ -120,6 +120,55 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
         "type": "header",
         "token": "<AUTHENTICATION_TOKEN>",
         "location": "<HTTP_HEADER_NAME>"
+    }
+}
+```
+
+### HTTP Headers manipulation
+
+| Type                        | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                        |
+|-----------------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| Request (client to server)  |          |          | X        | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
+| Response (server to client) |          |          | X        | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
+
+#### Examples
+
+To be defined under `.declaration.http.servers[].headers` and/or `.declaration.http.servers[].location[]`
+
+```json
+ "headers": {
+    "to_server": {
+        "set": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            },
+            ...
+        ],
+        "delete": [
+          "<HTTP_HEADER_NAME>",
+          ...
+        ]
+    },
+    "to_client": {
+        "add": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            },
+            ...
+        ],
+        "delete": [
+            "<HTTP_HEADER_NAME>",
+            ...
+        ],
+        "replace": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            },
+            ...
+        ]
     }
 }
 ```

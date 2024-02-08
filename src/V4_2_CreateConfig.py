@@ -270,7 +270,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         if status != 200:
                             return {"status_code": 400,
                                     "message": {"status_code": status, "message":
-                                        {"code": status, "content": f"Developer Portal creation failed for {loc['apigateway']['openapi_schema']['content']}"}}}
+                                        {"code": status, "content": f"Developer Portal creation failed for {loc['uri']}"}}}
 
                         ### Add optional API Developer portal HTML files
                         # devPortalHTML

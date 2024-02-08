@@ -182,10 +182,9 @@ server {
     proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
     {% endfor -%}
     {%- endif %}
-
     {% if s.headers.to_server.delete -%}
     {% for hDel in s.headers.to_server.delete -%}
-    proxy_set_header {{ hDel.name }} "";
+    proxy_set_header {{ hDel }} "";
     {% endfor -%}
     {% endif -%}
 
@@ -269,7 +268,7 @@ server {
 
         {% if loc.headers.to_server.delete -%}
         {% for hDel in loc.headers.to_server.delete -%}
-        proxy_set_header {{ hDel.name }} "";
+        proxy_set_header {{ hDel }} "";
         {% endfor %}
         {% endif %}
 
