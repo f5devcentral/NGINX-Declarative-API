@@ -12,7 +12,7 @@ upstream {{ u.name }} {
     server {{ o.server }}{% if o.weight %} weight={{ o.weight }}{% endif %}{% if o.max_fails %} max_fails={{ o.max_fails }}{% endif %}{% if o.fail_timeout %} fail_timeout={{ o.fail_timeout }}{% endif %}{% if o.max_conns %} max_conns={{ o.max_conns }}{% endif %}{% if o.slow_start %} slow_start={{ o.slow_start }}{% endif %}{% if o.backup and o.backup == True %} backup{% endif %};
     {% endfor %}
 
-    {% if u.snippet %}{{ u.snippet }}{% endif %}
+    {% if u.snippet and u.snippet.content %}{{ u.snippet.content }}{% endif %}
 
 }
 {% endif %}
@@ -54,7 +54,7 @@ server {
     proxy_pass {{ s.upstream }};
     {% endif %}
 
-    {% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
+    {% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
 
     {%- if s.listen %}
     {%- if s.listen.address %}

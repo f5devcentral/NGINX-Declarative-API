@@ -140,9 +140,9 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v4.1](/USAGE-v4.1.md) - latest
+- [API v4.2](/USAGE-v4.2.md) - latest
+- [API v4.1](/USAGE-v4.1.md)
 - [API v4.0](/USAGE-v4.0.md)
-- [API v3.1](/USAGE-v3.1.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

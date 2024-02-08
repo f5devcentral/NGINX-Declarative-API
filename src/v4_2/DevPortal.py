@@ -8,9 +8,11 @@ import base64
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
-import v3_1.GitOps
-import v3_1.MiscUtils
+import v4_2.GitOps
+import v4_2.MiscUtils
 
+# pydantic models
+from V4_2_NginxConfigDeclaration import *
 
 def buildDevPortal(openapischema):
     try:
@@ -25,16 +27,17 @@ def buildDevPortal(openapischema):
 
 # Builds the declarative JSON for the API Gateway configuration
 # Return a tuple: status, description. If status = 200 things were successful
-def createDevPortal(locationDeclaration: dict):
+def createDevPortal(locationDeclaration: dict, authProfiles: Authentication={}):
     if locationDeclaration['apigateway']['openapi_schema']:
-        status, apiSchemaString = v3_1.GitOps.getObjectFromRepo(
-            content=locationDeclaration['apigateway']['openapi_schema'], base64Encode=False)
+        status, apiSchemaString = v4_2.GitOps.getObjectFromRepo(
+            object = locationDeclaration['apigateway']['openapi_schema'], authProfiles = authProfiles['server'] if 'server' in authProfiles else {}, base64Encode = False)
 
-        if v3_1.MiscUtils.yaml_or_json(apiSchemaString) == 'yaml':
+        if v4_2.MiscUtils.yaml_or_json(apiSchemaString['content']) == 'yaml':
             # YAML to JSON conversion
-            apiSchemaString = v3_1.MiscUtils.yaml_to_json(apiSchemaString)
+            status, devportalJSON = buildDevPortal(openapischema = v4_2.MiscUtils.yaml_to_json(apiSchemaString['content']))
+        else:
+            status, devportalJSON = buildDevPortal(openapischema = apiSchemaString['content'])
 
-        status, devportalJSON = buildDevPortal(openapischema=apiSchemaString)
         if status == 200:
             devportalHTML = base64.b64encode(bytes(devportalJSON['devportal'], 'utf-8')).decode('utf-8')
         else:

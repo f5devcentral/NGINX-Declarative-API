@@ -18,7 +18,7 @@ map {{ m.match }} {{ m.variable }} {
 {% endif %}
 
 {# --- Snippets section --- #}
-{% if declaration.snippet %}{{ declaration.snippet | b64decode }}{% endif %}
+{% if declaration.snippet and declaration.snippet.content %}{{ declaration.snippet.content | b64decode }}{% endif %}
 
 
 {# --- Upstreams section --- #}
@@ -36,7 +36,7 @@ upstream {{ u.name }} {
     sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
     {% endif -%}
 
-    {% if u.snippet %}{{ u.snippet | b64decode }}{% endif %}
+    {% if u.snippet and u.snippet.content %}{{ u.snippet.content | b64decode }}{% endif %}
 
 }
 {% endif %}
@@ -112,13 +112,8 @@ server {
     {% endif %}
 
     {# --- mTLS section --- #}
-    {%- if s.listen.tls.mtls -%}
-    {%- if s.listen.tls.mtls.enabled|lower != "off" -%}
-    ssl_verify_client {{ s.listen.tls.mtls.enabled }};
-    {% endif %}
-    {% if s.listen.tls.mtls.client_certificates -%}
-    ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.mtls.client_certificates }}.crt;
-    {% endif %}
+    {% if s.listen.tls and s.listen.tls.authentication and s.listen.tls.authentication.client[0] and s.listen.tls.authentication.client[0].profile -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/{{ s.listen.tls.authentication.client[0].profile | replace(" ", "_") }}.conf";
     {% endif %}
 
     {# --- OCSP section start --- #}
@@ -150,7 +145,6 @@ server {
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
-    proxy_set_header Host $host;
     proxy_ssl_server_name on;
     {% endif -%}
 
@@ -178,13 +172,57 @@ server {
     {% endif %}
     {# --- Server NGINX App Protect WAF section end --- #}
 
+    {# --- HTTP headers manipulation section start --- #}
+    {%- if s.headers -%}
+    {%- if s.headers.to_server -%}
+
+    {%- if s.headers.to_server.set -%}
+
+    {%- for hSet in s.headers.to_server.set -%}
+    proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
+    {% endfor -%}
+    {%- endif %}
+    {% if s.headers.to_server.delete -%}
+    {% for hDel in s.headers.to_server.delete -%}
+    proxy_set_header {{ hDel }} "";
+    {% endfor -%}
+    {% endif -%}
+
+    {% endif %}
+
+    {% if s.headers.to_client -%}
+
+    {% if s.headers.to_client.add -%}
+    {% for hAdd in s.headers.to_client.add -%}
+    add_header {{ hAdd.name }} "{{ hAdd.value }}";
+    {% endfor %}
+    {% endif %}
+
+    {% if s.headers.to_client.delete -%}
+    {% for hDel in s.headers.to_client.delete -%}
+    proxy_hide_header {{ hDel }};
+    {% endfor %}
+    {% endif %}
+
+    {% if s.headers.to_client.replace -%}
+    {% for hDel in s.headers.to_client.replace -%}
+    proxy_hide_header {{ hDel.name }};
+    add_header {{ hDel.name }} "{{ hDel.value }}";
+    {% endfor %}
+    {% endif %}
+
+    {% endif %}
+    {% endif %}
+
+    {# --- HTTP headers manipulation section end --- #}
+
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
 
     {% if s.log.error %}error_log {{ s.log.error }};{% endif %}
 
 
     {% filter indent(width=4) %}
-{% if s.snippet %}{{ s.snippet | b64decode }}{% endif %}
+{% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
     {% endfilter %}
 
     {# --- Server location section start --- #}
@@ -200,6 +238,10 @@ server {
     {%- if loc.urimatch|lower == "best" %} ^~ {% endif %}
     {%- endif -%}
     {{ loc.uri }} {
+        {% if loc.authentication and loc.authentication.server and loc.authentication.server[0].profile -%}
+        include "{{ ncgconfig.nms.auth_server_dir }}/{{ loc.authentication.server[0].profile | replace(" ", "_") }}.conf";
+        {% endif %}
+
         {% if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif %}
 
         {% if loc.log.access %}access_log {{ loc.log.access }} main;{% endif %}
@@ -214,6 +256,49 @@ server {
             {% endif %}
         {% endif %}
 
+        {# --- HTTP headers manipulation section @ location start --- #}
+        {%- if loc.headers -%}
+        {% if loc.headers.to_server -%}
+
+        {% if loc.headers.to_server.set -%}
+        {% for hSet in loc.headers.to_server.set -%}
+        proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_server.delete -%}
+        {% for hDel in loc.headers.to_server.delete -%}
+        proxy_set_header {{ hDel }} "";
+        {% endfor %}
+        {% endif %}
+
+        {% endif %}
+
+        {% if loc.headers.to_client -%}
+
+        {% if loc.headers.to_client.add -%}
+        {% for hAdd in loc.headers.to_client.add -%}
+        add_header {{ hAdd.name }} "{{ hAdd.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_client.delete -%}
+        {% for hDel in loc.headers.to_client.delete -%}
+        proxy_hide_header {{ hDel }};
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_client.replace -%}
+        {% for hDel in loc.headers.to_client.replace -%}
+        proxy_hide_header {{ hDel.name }};
+        add_header {{ hDel.name }} "{{ hDel.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% endif %}
+        {% endif %}
+        {# --- HTTP headers manipulation section @ location end --- #}
+
         {# --- Rate limiting --- #}
 
         {% if loc.rate_limit -%}
@@ -221,6 +306,13 @@ server {
 
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
         {% endif %}
+
+        {# --- Client authentication --- #}
+        {%- if loc.authentication and loc.authentication.client -%}
+        {%- for clientAuthProfile in loc.authentication.client -%}
+        include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+        {% endfor -%}
+        {%- endif -%}
 
         {# --- Location NGINX App Protect WAF --- #}
 
@@ -243,12 +335,19 @@ server {
 
         {# --- Location snipptes --- #}
 
-        {% if loc.snippet %}{{ loc.snippet | b64decode }}{% endif %}
+        {% if loc.snippet and loc.snippet.content %}{{ loc.snippet.content | b64decode }}{% endif %}
 
     }
     {% endfor %}
 
-{% if s.listen.address %}
-{%- endif -%}
+    {# --- JWT authentication JWKS endpoints --- #}
+    {%- if declaration.authentication and declaration.authentication.client -%}
+    {%- for clientAuthProfile in declaration.authentication.client -%}
+    {%- if clientAuthProfile.type == "jwt" -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/jwks_{{ clientAuthProfile.name | replace(" ", "_") }}.conf";
+    {% endif -%}
+    {%- endfor -%}
+    {%- endif %}
+
 }
-{%- endfor %}
+{% endfor -%}
