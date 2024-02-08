@@ -7562,7 +7562,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Coffee v1\",\n                    \"names\": [\n                        \"coffee-v1.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/coffee-v1-access_log\",\n                        \"error\": \"/var/log/nginx/coffee-v1-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"coffee-v1.k8s.f5.ff.lan\"\n                                }\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"Date\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Hidden Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://coffee-v1\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"coffee-v1\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.47\"\n                        },\n                        {\n                            \"server\": \"192.168.2.48\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Coffee App\",\n                    \"names\": [\n                        \"coffee.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/coffee-v1-access_log\",\n                        \"error\": \"/var/log/nginx/coffee-v1-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Coffee-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"coffee-v1.k8s.f5.ff.lan\"\n                                }\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"Expires\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Coffee v1 Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://coffee-v1-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"coffee-v1-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.47\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -7579,6 +7579,96 @@
 											"path": [
 												"{{ngc_api_version}}",
 												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Add Tea App",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Tea App\",\n                    \"names\": [\n                        \"tea.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/tea-access_log\",\n                        \"error\": \"/var/log/nginx/tea-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Tea-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"tea.k8s.f5.ff.lan\"\n                                }\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"Expires\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Tea Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://tea-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"tea-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.48\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Upgrade to Coffee App v2",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Coffee App\",\n                    \"names\": [\n                        \"coffee.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/coffee-v2-access_log\",\n                        \"error\": \"/var/log/nginx/coffee-v2-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Coffee-Version\",\n                                    \"value\": \"v2\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"coffee-v2.k8s.f5.ff.lan\"\n                                }\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"Expires\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Coffee v2 Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://coffee-v2-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"coffee-v2-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.47\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
 											]
 										}
 									},

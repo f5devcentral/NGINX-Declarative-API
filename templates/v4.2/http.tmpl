@@ -174,21 +174,20 @@ server {
 
     {# --- HTTP headers manipulation section start --- #}
     {%- if s.headers -%}
-    {% if s.headers.to_server -%}
+    {%- if s.headers.to_server -%}
 
-    {% if s.headers.to_server.set -%}
-    {% for hSet in s.headers.to_server.set -%}
-    proxy_set_header {{ hSet.name }} {{ hSet.value }};
-    {% endfor %}
-    {% else %}
-    proxy_set_header Host $host;
-    {% endif %}
+    {%- if s.headers.to_server.set -%}
+
+    {%- for hSet in s.headers.to_server.set -%}
+    proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
+    {% endfor -%}
+    {%- endif %}
 
     {% if s.headers.to_server.delete -%}
     {% for hDel in s.headers.to_server.delete -%}
     proxy_set_header {{ hDel.name }} "";
-    {% endfor %}
-    {% endif %}
+    {% endfor -%}
+    {% endif -%}
 
     {% endif %}
 
@@ -215,6 +214,7 @@ server {
 
     {% endif %}
     {% endif %}
+
     {# --- HTTP headers manipulation section end --- #}
 
     {% if s.log.access %}access_log {{ s.log.access }} main;{% endif %}
@@ -256,6 +256,49 @@ server {
             health_check{% if loc.health_check.uri %} uri={{ loc.health_check.uri }}{% endif %}{% if loc.health_check.interval %} interval={{ loc.health_check.interval }}{% endif %}{% if loc.health_check.fails %} fails={{ loc.health_check.fails }}{% endif %}{% if loc.health_check.passes %} passes={{ loc.health_check.passes }}{% endif %};
             {% endif %}
         {% endif %}
+
+        {# --- HTTP headers manipulation section @ location start --- #}
+        {%- if loc.headers -%}
+        {% if loc.headers.to_server -%}
+
+        {% if loc.headers.to_server.set -%}
+        {% for hSet in loc.headers.to_server.set -%}
+        proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_server.delete -%}
+        {% for hDel in loc.headers.to_server.delete -%}
+        proxy_set_header {{ hDel.name }} "";
+        {% endfor %}
+        {% endif %}
+
+        {% endif %}
+
+        {% if loc.headers.to_client -%}
+
+        {% if loc.headers.to_client.add -%}
+        {% for hAdd in loc.headers.to_client.add -%}
+        add_header {{ hAdd.name }} "{{ hAdd.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_client.delete -%}
+        {% for hDel in loc.headers.to_client.delete -%}
+        proxy_hide_header {{ hDel }};
+        {% endfor %}
+        {% endif %}
+
+        {% if loc.headers.to_client.replace -%}
+        {% for hDel in loc.headers.to_client.replace -%}
+        proxy_hide_header {{ hDel.name }};
+        add_header {{ hDel.name }} "{{ hDel.value }}";
+        {% endfor %}
+        {% endif %}
+
+        {% endif %}
+        {% endif %}
+        {# --- HTTP headers manipulation section @ location end --- #}
 
         {# --- Rate limiting --- #}
 
@@ -305,7 +348,7 @@ server {
     include "{{ ncgconfig.nms.auth_client_dir }}/jwks_{{ clientAuthProfile.name | replace(" ", "_") }}.conf";
     {% endif -%}
     {%- endfor -%}
-    {%- endif -%}
+    {%- endif %}
 
 }
 {% endfor -%}
