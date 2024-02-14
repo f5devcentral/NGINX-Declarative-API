@@ -520,6 +520,11 @@ class Authentication(BaseModel, extra="forbid"):
     server: Optional[List[Authentication_Server]] = []
 
 
+class NjsFile(BaseModel, extra="forbid"):
+    name: str
+    file: ObjectFromSourceOfTruth
+
+
 class Http(BaseModel, extra="forbid"):
     servers: Optional[List[Server]] = []
     upstreams: Optional[List[Upstream]] = []
@@ -529,6 +534,7 @@ class Http(BaseModel, extra="forbid"):
     maps: Optional[List[Map]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[Authentication] = {}
+    njs: Optional[List[NjsFile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):

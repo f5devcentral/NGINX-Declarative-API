@@ -43,6 +43,7 @@ certs_dir = '/etc/nginx/ssl'
 devportal_dir = '/etc/nginx/devportal'
 auth_client_dir = '/etc/nginx/auth/client'
 auth_server_dir = '/etc/nginx/auth/server'
+njs_dir = '/etc/nginx/njs'
 
 
 # Time to wait to get status after committing a staged config

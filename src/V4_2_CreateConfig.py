@@ -198,6 +198,24 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             all_auth_server_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
+            # NGINX Javascript files
+            d_njs_files = v4_2.MiscUtils.getDictKey(d, 'declaration.http.njs')
+            if d_njs_files is not None:
+                for i in range(len(d_njs_files)):
+                    njs_file = d_njs_files[i]
+                    njs_filename = njs_file['name'].replace(' ','_')
+
+                    status, content = v4_2.GitOps.getObjectFromRepo(object=njs_file['file'],
+                                                                    authProfiles=d['declaration']['http'][
+                                                                        'authentication'])
+
+                    if status != 200:
+                        return {"status_code": 422, "message": {"status_code": status, "message": content}}
+
+                    njsAuxFile = {'contents': content['content'],
+                                  'name': NcgConfig.config['nms']['njs_dir'] + '/' + njs_filename}
+                    auxFiles['files'].append(njsAuxFile)
+
         # Parse HTTP servers
         d_servers = v4_2.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
