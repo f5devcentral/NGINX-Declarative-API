@@ -198,23 +198,35 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             all_auth_server_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
-            # NGINX Javascript files
-            d_njs_files = v4_2.MiscUtils.getDictKey(d, 'declaration.http.njs')
-            if d_njs_files is not None:
-                for i in range(len(d_njs_files)):
-                    njs_file = d_njs_files[i]
-                    njs_filename = njs_file['name'].replace(' ','_')
+        # NGINX Javascript profiles
+        all_njs_profiles = []
+        d_njs_files = v4_2.MiscUtils.getDictKey(d, 'declaration.http.njs_profiles')
+        if d_njs_files is not None:
+            for i in range(len(d_njs_files)):
+                njs_file = d_njs_files[i]
+                njs_filename = njs_file['name'].replace(' ','_')
 
-                    status, content = v4_2.GitOps.getObjectFromRepo(object=njs_file['file'],
-                                                                    authProfiles=d['declaration']['http'][
-                                                                        'authentication'])
+                status, content = v4_2.GitOps.getObjectFromRepo(object=njs_file['file'],
+                                                                authProfiles=d['declaration']['http'][
+                                                                    'authentication'])
 
-                    if status != 200:
-                        return {"status_code": 422, "message": {"status_code": status, "message": content}}
+                if status != 200:
+                    return {"status_code": 422, "message": {"status_code": status, "message": content}}
 
-                    njsAuxFile = {'contents': content['content'],
-                                  'name': NcgConfig.config['nms']['njs_dir'] + '/' + njs_filename}
-                    auxFiles['files'].append(njsAuxFile)
+                njsAuxFile = {'contents': content['content'],
+                              'name': NcgConfig.config['nms']['njs_dir'] + '/' + njs_filename + '.js'}
+                auxFiles['files'].append(njsAuxFile)
+                all_njs_profiles.append(njs_filename)
+
+        # HTTP level Javascript hooks
+        d_http_njs_hooks = v4_2.MiscUtils.getDictKey(d, 'declaration.http.njs')
+        if d_http_njs_hooks is not None:
+            for i in range(len(d_http_njs_hooks)):
+                if d_http_njs_hooks[i]['profile'] not in all_njs_profiles:
+                    return {"status_code": 422,
+                            "message": {"status_code": status, "message":
+                                {"code": status,
+                                 "content": f"invalid njs profile [{d_http_njs_hooks[i]['profile']}] in HTTP declaration, must be one of {all_njs_profiles}"}}}
 
         # Parse HTTP servers
         d_servers = v4_2.MiscUtils.getDictKey(d, 'declaration.http.servers')
@@ -223,6 +235,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             for server in d_servers:
                 serverSnippet = ''
+
+                # Server level Javascript hooks
+                if server['njs']:
+                    for i in range(len(server['njs'])):
+                        if server['njs'][i]['profile'] not in all_njs_profiles:
+                            return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid njs profile [{server['njs'][i]['profile']}] in server [{server['name']}], must be one of {all_njs_profiles}"}}}
 
                 if server['snippet']:
                     status, serverSnippet = v4_2.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
@@ -233,6 +254,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     serverSnippet = serverSnippet['content']
 
                 for loc in server['locations']:
+
+                    # Location level Javascript hooks
+                    if loc['njs']:
+                        for i in range(len(loc['njs'])):
+                            if loc['njs'][i]['profile'] not in all_njs_profiles:
+                                return {"status_code": 422,
+                                        "message": {"status_code": status, "message":
+                                            {"code": status,
+                                             "content": f"invalid njs profile [{loc['njs'][i]['profile']}] in location [{loc['uri']}], must be one of {all_njs_profiles}"}}}
+
                     if loc['snippet']:
                         status, snippet = v4_2.GitOps.getObjectFromRepo(object = loc['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
