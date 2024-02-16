@@ -172,3 +172,17 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
     }
 }
 ```
+
+### NGINX Javascript
+
+| Type              | API v4.0 | API v4.1 | API v4.2 | Notes |
+|-------------------|----------|----------|----------|-------|
+| js_body_filter    |          |          | X        |       |
+| js_content        |          |          | X        |       |
+| js_header_filter  |          |          | X        |       |
+| js_periodic       |          |          | X        |       |
+| js_preload_object |          |          | X        |       |
+| js_set            |          |          | X        |       |
+
+Note: `njs` profiles can be included in base64-encoded format under `.declaration.http.njs[]` of fetched from an external source of truth
+For detailed examples see the [Postman collection](/contrib/postman)
