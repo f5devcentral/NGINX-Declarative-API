@@ -9,21 +9,13 @@ js_import {{ njsp.name | replace(" ", "_") }} from {{ njsp.name | replace(" ", "
 {% endfor %}
 {% endif %}
 
-{# --- njs functions section --- #}
+{# --- njs functions section - HTTP level --- #}
 {% if declaration.njs %}
 {% for njshook in declaration.njs %}
 {% if njshook.hook.type|lower == "js_set" %}
 {{ njshook.hook.type }} {{ njshook.hook.js_set.variable }} {{ njshook.profile }}.{{ njshook.function }};
 {% elif njshook.hook.type|lower == "js_preload_object" %}
 {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_preload_object.file %}from {{ njshook.hook.js_preload_object.file }}{% endif%};
-{% elif njshook.hook.type|lower == "js_periodic" %}
-{{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_periodic.interval %}interval={{ njshook.hook.js_periodic.interval }}{% endif%} {% if njshook.hook.js_periodic.jitter %}interval={{ njshook.hook.js_periodic.jitter }}{% endif%} {% if njshook.hook.js_periodic.worker_affinity %}interval={{ njshook.hook.js_periodic.worker_affinity }}{% endif%};
-{% elif njshook.hook.type|lower == "js_body_filter" %}
-{{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_body_filter.buffer_type %}{{ njshook.hook.js_body_filter.buffer_type }}{% endif%};
-{% elif njshook.hook.type|lower == "js_header_filter" %}
-{{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
-{% elif njshook.hook.type|lower == "js_content" %}
-{{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
 {% endif %}
 {% endfor %}
 {% endif %}
@@ -167,8 +159,29 @@ server {
     {%- endif %}
     {# --- TLS section end --- #}
 
-    {%- endif %}
+    {%- endif -%}
     {# --- Listen section end --- #}
+
+    {# --- njs functions section start - server level --- #}
+    {%- if s.njs -%}
+    {%- for njshook in s.njs -%}
+    {% if njshook.hook.type|lower == "js_set" %}
+    {{ njshook.hook.type }} {{ njshook.hook.js_set.variable }} {{ njshook.profile }}.{{ njshook.function }};
+    {% elif njshook.hook.type|lower == "js_preload_object" %}
+    {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_preload_object.file %}from {{ njshook.hook.js_preload_object.file }}{% endif%};
+    {% elif njshook.hook.type|lower == "js_periodic" %}
+    {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_periodic.interval %}interval={{ njshook.hook.js_periodic.interval }}{% endif%} {% if njshook.hook.js_periodic.jitter %}interval={{ njshook.hook.js_periodic.jitter }}{% endif%} {% if njshook.hook.js_periodic.worker_affinity %}interval={{ njshook.hook.js_periodic.worker_affinity }}{% endif%};
+    {% elif njshook.hook.type|lower == "js_body_filter" %}
+    {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_body_filter.buffer_type %}{{ njshook.hook.js_body_filter.buffer_type }}{% endif%};
+    {% elif njshook.hook.type|lower == "js_header_filter" %}
+    {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
+    {% elif njshook.hook.type|lower == "js_content" %}
+    {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
+    {% endif %}
+    {%- endfor -%}
+    {%- endif -%}
+
+    {# --- njs functions section end - server level --- #}
 
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
@@ -283,6 +296,27 @@ server {
             health_check{% if loc.health_check.uri %} uri={{ loc.health_check.uri }}{% endif %}{% if loc.health_check.interval %} interval={{ loc.health_check.interval }}{% endif %}{% if loc.health_check.fails %} fails={{ loc.health_check.fails }}{% endif %}{% if loc.health_check.passes %} passes={{ loc.health_check.passes }}{% endif %};
             {% endif %}
         {% endif %}
+
+        {# --- njs functions section start - location level --- #}
+        {%- if loc.njs -%}
+        {%- for njshook in loc.njs -%}
+        {% if njshook.hook.type|lower == "js_set" %}
+        {{ njshook.hook.type }} {{ njshook.hook.js_set.variable }} {{ njshook.profile }}.{{ njshook.function }};
+        {% elif njshook.hook.type|lower == "js_preload_object" %}
+        {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_preload_object.file %}from {{ njshook.hook.js_preload_object.file }}{% endif%};
+        {% elif njshook.hook.type|lower == "js_periodic" %}
+        {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_periodic.interval %}interval={{ njshook.hook.js_periodic.interval }}{% endif%} {% if njshook.hook.js_periodic.jitter %}interval={{ njshook.hook.js_periodic.jitter }}{% endif%} {% if njshook.hook.js_periodic.worker_affinity %}interval={{ njshook.hook.js_periodic.worker_affinity }}{% endif%};
+        {% elif njshook.hook.type|lower == "js_body_filter" %}
+        {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }} {% if njshook.hook.js_body_filter.buffer_type %}{{ njshook.hook.js_body_filter.buffer_type }}{% endif%};
+        {% elif njshook.hook.type|lower == "js_header_filter" %}
+        {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
+        {% elif njshook.hook.type|lower == "js_content" %}
+        {{ njshook.hook.type }} {{ njshook.profile }}.{{ njshook.function }};
+        {% endif %}
+        {%- endfor -%}
+        {%- endif -%}
+
+        {# --- njs functions section end - server level --- #}
 
         {# --- HTTP headers manipulation section @ location start --- #}
         {%- if loc.headers -%}
