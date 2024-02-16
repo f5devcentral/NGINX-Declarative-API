@@ -52,6 +52,57 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 - *iregex* - case insensitive regex matching
 - *best* - case sensitive regex matching that halts any other location matching once a match is made
 
+### Javascript profiles ###
+
+NGINX Javascript profiles are defined in `.declaration.http.njs[]`:
+
+- `name` - the NJS profile name
+- `file.content` - the base64-encoded njs source code or the `http(s)://` URL of the file
+- `file.authentication.server[0].profile` - authentication profile name if `file.content` is a URL and the request must be authenticated
+
+### Javascript hooks ###
+
+NGINX Javascript hooks can be used in:
+
+- `.declaration.http.njs`
+  - Supported hooks:
+    - `js_preload_object'
+    - 'js_set`
+- `.declaration.http.server[].njs`
+  - Supported hooks:
+    - `js_preload_object'
+    - 'js_set`
+- `.declaration.http.server[].location[].njs`
+  - Supported hooks:
+    - `js_body_filter'
+    - 'js_content'
+    - 'js_header_filter'
+    - 'js_periodic'
+    - 'js_preload_object'
+    - 'js_set`
+
+Hooks invocation is:
+
+```
+"njs": [
+  {
+    "hook": {
+      "name": "<HOOK_NAME>",
+      "parameters": [
+        {
+          "name": "<HOOK_PARAMETER_NAME>",
+          "value": "<HOOK_PARAMETER_VALUE>"
+        }
+      ]
+    },
+    "profile": "<NGINX_JAVASCRIPT_PROFILE>",
+    "function": "<JAVASCRIPT_FUNCTION_NAME>"
+  }
+]
+```
+
+For detailed examples see the [Postman collection](/contrib/postman)
+
 ### API Gateway ###
 
 Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway. Developer portal creation is supported through [Redocly](https://redocly.com/)
@@ -88,11 +139,7 @@ is:
             "username": "{{nim_username}}",
             "password": "{{nim_password}}",
             "instancegroup": "{{nim_instancegroup}}",
-            "synctime": 0,
-            "modules": [
-                "ngx_http_js_module",
-                "ngx_stream_js_module"
-            ]
+            "synctime": 0
         }
     },
     "declaration": {

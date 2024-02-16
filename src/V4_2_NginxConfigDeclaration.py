@@ -347,6 +347,7 @@ class Location(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
     headers: Optional[LocationHeaders]= {}
+    njs: Optional[List[NjsHookLocation]] = []
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -369,6 +370,70 @@ class ObjectFromSourceOfTruth(BaseModel, extra="forbid"):
     authentication: Optional[List[LocationAuthServer]] = []
 
 
+class NjsHook_js_body_filter(BaseModel, extra="forbid"):
+    buffer_type: Optional[str] = ""
+
+
+class NjsHook_js_periodic(BaseModel, extra="forbid"):
+    interval: Optional[str] = ""
+    jitter: Optional[int] = 0
+    worker_affinity: Optional[str] = ""
+
+
+class NjsHook_js_preload_object(BaseModel, extra="forbid"):
+    file: str
+
+
+class NjsHook_js_set(BaseModel, extra="forbid"):
+    variable: str
+
+
+class NjsHookHttpServerDetails(BaseModel, extra="forbid"):
+    type: str
+    js_preload_object: Optional[NjsHook_js_preload_object] = {}
+    js_set: Optional[NjsHook_js_set] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsHookHttpServerDetails':
+        _type = self.type
+
+        valid = ['js_preload_object', 'js_set']
+        if _type not in valid:
+            raise ValueError(f"Invalid hook [{_type}] must be one of {str(valid)}")
+
+        return self
+
+
+class NjsHookLocationDetails(BaseModel, extra="forbid"):
+    type: str
+    js_preload_object: Optional[NjsHook_js_preload_object] = {}
+    js_set: Optional[NjsHook_js_set] = {}
+    js_body_filter: Optional[NjsHook_js_body_filter] = {}
+    js_periodic: Optional[NjsHook_js_periodic] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsHookLocationDetails':
+        _type = self.type
+
+        valid = ['js_body_filter', 'js_content', 'js_header_filter', 'js_periodic', 'js_preload_object', 'js_set']
+        if _type not in valid:
+            raise ValueError(f"Invalid hook [{_type}] must be one of {str(valid)}")
+
+        return self
+
+class NjsHookHttpServer(BaseModel, extra="forbid"):
+    hook: NjsHookHttpServerDetails
+    profile: str
+    function: str
+
+
+
+class NjsHookLocation(BaseModel, extra="forbid"):
+    hook: NjsHookLocationDetails
+    profile: str
+    function: str
+
+
 class Server(BaseModel, extra="forbid"):
     name: str
     names: Optional[List[str]] = []
@@ -379,6 +444,7 @@ class Server(BaseModel, extra="forbid"):
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     headers: Optional[LocationHeaders] = {}
+    njs: Optional[List[NjsHookHttpServer]] = []
 
 
 class L4Server(BaseModel, extra="forbid"):
@@ -520,6 +586,11 @@ class Authentication(BaseModel, extra="forbid"):
     server: Optional[List[Authentication_Server]] = []
 
 
+class NjsFile(BaseModel, extra="forbid"):
+    name: str
+    file: ObjectFromSourceOfTruth
+
+
 class Http(BaseModel, extra="forbid"):
     servers: Optional[List[Server]] = []
     upstreams: Optional[List[Upstream]] = []
@@ -529,6 +600,8 @@ class Http(BaseModel, extra="forbid"):
     maps: Optional[List[Map]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[Authentication] = {}
+    njs: Optional[List[NjsHookHttpServer]] = []
+    njs_profiles: Optional[List[NjsFile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):
