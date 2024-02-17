@@ -175,14 +175,153 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
 
 ### NGINX Javascript
 
-| Type              | API v4.0 | API v4.1 | API v4.2 | Notes |
-|-------------------|----------|----------|----------|-------|
-| js_body_filter    |          |          | X        |       |
-| js_content        |          |          | X        |       |
-| js_header_filter  |          |          | X        |       |
-| js_periodic       |          |          | X        |       |
-| js_preload_object |          |          | X        |       |
-| js_set            |          |          | X        |       |
+| Hook type         | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                        |
+|-------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| js_body_filter    |          |          | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_content        |          |          | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_header_filter  |          |          | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_periodic       |          |          | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_preload_object |          |          | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
+| js_set            |          |          | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
 
 Note: `njs` profiles can be included in base64-encoded format under `.declaration.http.njs[]` of fetched from an external source of truth
 For detailed examples see the [Postman collection](/contrib/postman)
+
+### Examples
+
+`njs` profile example:
+
+```json
+{
+  ...
+  "declaration": {
+    "http": {
+      ...
+      "njs_profiles": [
+        {
+          "name": "<NJS_PROFILE_NAME>",
+          "file": {
+            "content": "<BASE64_ENCODED_JAVASCRIPT_CODE>",
+            "authentication": [
+              {
+                "profile": "<OPTIONAL_SERVER_AUTHENTICATION_PROFILE>"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
+```
+
+`njs` hook examples (under `.declaration.http`, `.declaration.http.server[]`, `.declaration.http.server[].location[]`):
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "<HOOK_TYPE>"
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+Example hooks:
+
+- `js_body_filter` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_body_filter
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_body_filter",
+            "js_body_filter": {
+              "buffer_type": "<STRING_OR_BUFFER>"
+            }
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+- `js_content` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_content
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_content"
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+- `js_header_filter` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_header_filter
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_header_filter"
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+- `js_periodic` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_periodic
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_periodic",
+            "js_periodic": {
+                "interval": "<INTERVAL_TIME>",
+                "jitter": "<NUMBER>",
+                "worker_affinity": "<MASK>"
+            }       
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+- `js_preload_object` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_preload_object
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_preload_object"
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+- `js_set` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_set
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_set",
+            "js_set": {
+              "variable": "<VARIABLE_NAME>"
+            }
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
