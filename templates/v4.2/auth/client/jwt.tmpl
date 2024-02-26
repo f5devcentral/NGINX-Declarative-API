@@ -1,4 +1,4 @@
-auth_jwt "{{ authprofile.jwt.realm }}" {% if authprofile.jwt.query_string_parameter %}token=$arg_{{ authprofile.jwt.query_string_parameter }}{% endif %};
+auth_jwt "{{ authprofile.jwt.realm }}"{% if authprofile.jwt.query_string_parameter %} token=$arg_{{ authprofile.jwt.query_string_parameter }}{% endif %};
 auth_jwt_type {{ authprofile.jwt.jwt_type }};
 auth_jwt_key_request /_auth/jwt/{{ authprofile.name | replace(" ", "_") }}/_jwks_uri;
 {% if authprofile.jwt.cachetime != 0 %}
