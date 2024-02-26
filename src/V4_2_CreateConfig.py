@@ -198,6 +198,34 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             all_auth_server_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
+
+        # Check authorization profiles validity and creates authorization config files
+
+        # List of all authorization client profile names
+        all_authz_client_profiles = []
+
+        d_authz_profiles = v4_2.MiscUtils.getDictKey(d, 'declaration.http.authorization')
+        if d_authz_profiles is not None:
+            # Render all client authorization profiles
+
+            for i in range(len(d_authz_profiles)):
+                auth_profile = d_authz_profiles[i]
+
+                match auth_profile['type']:
+                    case 'jwt':
+                        # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
+                        templateName = NcgConfig.config['templates']['authz_client_root']+"/jwt.tmpl"
+                        renderedClientAuthZProfile = j2_env.get_template(templateName).render(
+                            authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                        b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthZProfile, 'utf-8')).decode('utf-8')
+                        configFileName = NcgConfig.config['nms']['authz_client_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
+                        authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                          'name': configFileName }
+
+                        all_authz_client_profiles.append(auth_profile['name'])
+                        auxFiles['files'].append(authProfileConfigFile)
+
         # NGINX Javascript profiles
         all_njs_profiles = []
         d_njs_files = v4_2.MiscUtils.getDictKey(d, 'declaration.http.njs_profiles')

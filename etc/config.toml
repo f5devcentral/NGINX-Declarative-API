@@ -17,8 +17,10 @@ apigwconf = "apigateway.tmpl"
 streamconf = "stream.tmpl"
 configmap = "configmap.tmpl"
 
-auth_client_root = "auth/client"
-auth_server_root = "auth/server"
+auth_client_root = "authn/client"
+auth_server_root = "authn/server"
+
+authz_client_root = "authz/client"
 
 # NGINX Declarative API Server
 [apiserver]
@@ -41,10 +43,10 @@ uri = "/v1/devportal"
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 devportal_dir = '/etc/nginx/devportal'
-auth_client_dir = '/etc/nginx/auth/client'
-auth_server_dir = '/etc/nginx/auth/server'
+auth_client_dir = '/etc/nginx/authn/client'
+auth_server_dir = '/etc/nginx/authn/server'
+authz_client_dir = '/etc/nginx/authz/client'
 njs_dir = '/etc/nginx/njs'
-
 
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
