@@ -315,6 +315,18 @@ class AuthServerToken(BaseModel, extra="forbid"):
         return self
 
 
+class KeyValue(BaseModel, extra="forbid"):
+    key: str
+    value: str
+
+
+class AuthorizationJWT(BaseModel, extra="forbid"):
+    audience: Optional[List[str]] = []
+    issuer: Optional[List[str]] = []
+    scope: Optional[List[str]] = []
+    claims: Optional[List[KeyValue]] = []
+
+
 class HealthCheck(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     uri: Optional[str] = "/"
@@ -587,6 +599,22 @@ class Authentication(BaseModel, extra="forbid"):
     server: Optional[List[Authentication_Server]] = []
 
 
+class Authorization(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthorizationJWT] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authorization':
+        _type, name = self.type, self.name
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError(f"Invalid authorization type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        return self
+
 class NjsFile(BaseModel, extra="forbid"):
     name: str
     file: ObjectFromSourceOfTruth
@@ -601,6 +629,7 @@ class Http(BaseModel, extra="forbid"):
     maps: Optional[List[Map]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[Authentication] = {}
+    authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
 

@@ -53,7 +53,7 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
     "jwt": {
         "realm": "<JWT_AUTHENTICATION_REALM>",
         "key": "<JWT_KEY>|<JWT_KEY_URL>",
-        "cachetime": <JWT_KEY_CACHETIME_IN_SECONDS>,
+        "cachetime": <OPTIONAL_JWT_KEY_CACHETIME_IN_SECONDS>,
         "query_string_parameter": "<OPTIONAL_QUERY_STRING_PARAMETER_FOR_JWT_TOKEN>"
     }
 }
@@ -68,6 +68,46 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
     "mtls": {
         "enabled": "<on|off|optional|optional_no_ca>",
         "client_certificates": "<CLIENT_CERTIFICATES_OBJECT_NAME>"
+    }
+}
+```
+
+### Client authorization
+
+| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                   |
+|------|----------------------|---------|---------|----------|-------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) |         |        | X        | Based on:<li>audience</li><li>issuer</li><li>scope</li><li>claims</li> |
+
+#### Examples
+
+Client-side authentication profiles to be defined under `.declaration.http.authentication.client[]`
+
+- jwt client authorization profile
+
+ ```json
+{
+    "name": "<PROFILE_NAME>",
+    "type": "jwt",
+    "jwt": {
+        "audience": [
+            "<ALLOWED_AUDIENCE_REGEXP>",
+            ...
+        ],
+        "issuer": [
+            "<ALLOWED_ISSUER_REGEXP>",
+            ...
+        ],
+        "scope": [
+            "<ALLOWED_SCOPE_REGEXP>",
+            ...
+        ],
+        "claims": [
+            {
+                "key": "<CLAIM_NAME>",
+                "value": "<ALLOWED_CLAIM_VALUE_REGEXP>"
+            },
+            ...
+        ]
     }
 }
 ```
