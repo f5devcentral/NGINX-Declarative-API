@@ -276,6 +276,7 @@ class AuthClientJWT(BaseModel, extra="forbid"):
     key: str = ""
     cachetime: Optional[int] = 0
     jwt_type: str = "signed"
+    query_string_parameter: Optional[str] = ""
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthClientJWT':
