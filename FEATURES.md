@@ -54,7 +54,7 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
         "realm": "<JWT_AUTHENTICATION_REALM>",
         "key": "<JWT_KEY>|<JWT_KEY_URL>",
         "cachetime": <JWT_KEY_CACHETIME_IN_SECONDS>,
-        "query_string_parameter": "<OPTIONAL_QUERY_STRING_PARAMETER_FOR_JWT_TOKEN>"
+        "token_location": "<OPTIONAL_TOKEN_LOCATION_AS_NGINX_VARIABLE>"
     }
 }
 ```
