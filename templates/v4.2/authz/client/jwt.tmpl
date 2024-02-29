@@ -1,6 +1,3 @@
-# Authorization client profile
-# Name: {{ authprofile.name }}
-# Audience: {{ authprofile.jwt.audience }}
-# Issuer: {{ authprofile.jwt.issuer }}
-# Scope: {{ authprofile.jwt.scope }}
-# Claims: {{ authprofile.jwt.claims }}
+{% for claim in authprofile.jwt.claims %}
+auth_jwt_require $jwt_authz_claim_{{ claim.name }}_{{ authprofile.name | replace(" ", "_") }} error={{ claim.errorcode }};
+{% endfor %}

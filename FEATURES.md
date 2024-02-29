@@ -74,41 +74,31 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Client authorization
 
-| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                   |
-|------|----------------------|---------|---------|----------|-------------------------------------------------------------------------|
-| jwt  | Java Web Token (JWT) |         |        | X        | Based on:<li>audience</li><li>issuer</li><li>scope</li><li>claims</li> |
+| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                  |
+|------|----------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) |          |          | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li> |
 
 #### Examples
 
-Client-side authentication profiles to be defined under `.declaration.http.authentication.client[]`
+Client-side authorization profiles to be defined under `.declaration.http.authorization`
 
 - jwt client authorization profile
 
  ```json
 {
-    "name": "<PROFILE_NAME>",
-    "type": "jwt",
-    "jwt": {
-        "audience": [
-            "<ALLOWED_AUDIENCE_REGEXP>",
-            ...
+  "name": "<PROFILE_NAME>",
+  "type": "jwt",
+  "jwt": {
+    "claims": [
+      {
+        "name": "<CLAIM_NAME>",
+        "value": [
+          "<AUTHORIZED_VALUE>"
         ],
-        "issuer": [
-            "<ALLOWED_ISSUER_REGEXP>",
-            ...
-        ],
-        "scope": [
-            "<ALLOWED_SCOPE_REGEXP>",
-            ...
-        ],
-        "claims": [
-            {
-                "key": "<CLAIM_NAME>",
-                "value": "<ALLOWED_CLAIM_VALUE_REGEXP>"
-            },
-            ...
-        ]
-    }
+        "errorcode": <OPTIONAL_ERROR_CODE_401_OR_403>
+      }
+    ]
+  }
 }
 ```
 

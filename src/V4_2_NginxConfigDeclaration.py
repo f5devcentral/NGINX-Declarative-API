@@ -253,6 +253,9 @@ class LocationAuth(BaseModel, extra="forbid"):
     server: Optional[List[LocationAuthServer]] = []
 
 
+class AuthorizationProfileReference(BaseModel, extra="forbid"):
+    profile: str
+
 class LocationHeaders(BaseModel, extra="forbid"):
     to_server: Optional[LocationHeaderToServer] = {}
     to_client: Optional[LocationHeaderToClient] = {}
@@ -315,16 +318,24 @@ class AuthServerToken(BaseModel, extra="forbid"):
         return self
 
 
-class KeyValue(BaseModel, extra="forbid"):
-    key: str
-    value: str
+class JwtAuthZNameValue(BaseModel, extra="forbid"):
+    name: str
+    value: List[str]
+    errorcode: Optional[int] = 401
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'JwtAuthZNameValue':
+        errorcode = self.errorcode
+
+        valid = [401, 403]
+        if errorcode not in valid:
+            raise ValueError(f"Invalid errorcode [{errorcode}] must be one of {str(valid)}")
+
+        return self
 
 
 class AuthorizationJWT(BaseModel, extra="forbid"):
-    audience: Optional[List[str]] = []
-    issuer: Optional[List[str]] = []
-    scope: Optional[List[str]] = []
-    claims: Optional[List[KeyValue]] = []
+    claims: List[JwtAuthZNameValue]
 
 
 class HealthCheck(BaseModel, extra="forbid"):
@@ -359,6 +370,7 @@ class Location(BaseModel, extra="forbid"):
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
     headers: Optional[LocationHeaders]= {}
     njs: Optional[List[NjsHookLocation]] = []
 
@@ -458,6 +470,8 @@ class Server(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     headers: Optional[LocationHeaders] = {}
     njs: Optional[List[NjsHookHttpServer]] = []
+    authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
 
 
 class L4Server(BaseModel, extra="forbid"):

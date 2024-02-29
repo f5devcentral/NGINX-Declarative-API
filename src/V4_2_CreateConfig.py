@@ -209,21 +209,36 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             # Render all client authorization profiles
 
             for i in range(len(d_authz_profiles)):
-                auth_profile = d_authz_profiles[i]
+                authz_profile = d_authz_profiles[i]
 
-                match auth_profile['type']:
+                match authz_profile['type']:
                     case 'jwt':
-                        # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
-                        templateName = NcgConfig.config['templates']['authz_client_root']+"/jwt.tmpl"
+                        # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt authZ maps template
+                        templateName = NcgConfig.config['templates']['authz_client_root']+"/jwt-authz-map.tmpl"
                         renderedClientAuthZProfile = j2_env.get_template(templateName).render(
-                            authprofile=auth_profile, ncgconfig=NcgConfig.config)
+                            authprofile=authz_profile, ncgconfig=NcgConfig.config)
 
                         b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthZProfile, 'utf-8')).decode('utf-8')
-                        configFileName = NcgConfig.config['nms']['authz_client_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
+                        configFileName = NcgConfig.config['nms']['authz_client_dir'] + '/'+authz_profile['name'].replace(' ','_')+".maps.conf"
                         authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                           'name': configFileName }
 
-                        all_authz_client_profiles.append(auth_profile['name'])
+                        all_authz_client_profiles.append(authz_profile['name'])
+                        auxFiles['files'].append(authProfileConfigFile)
+
+                      # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
+                        templateName = NcgConfig.config['templates']['authz_client_root'] + "/jwt.tmpl"
+                        renderedClientAuthZProfile = j2_env.get_template(templateName).render(
+                            authprofile=authz_profile, ncgconfig=NcgConfig.config)
+
+                        b64renderedClientAuthProfile = base64.b64encode(bytes(renderedClientAuthZProfile, 'utf-8')).decode(
+                            'utf-8')
+                        configFileName = NcgConfig.config['nms']['authz_client_dir'] + '/' + authz_profile['name'].replace(' ',
+                                                                                                                           '_') + ".conf"
+                        authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                                 'name': configFileName}
+
+                        all_authz_client_profiles.append(authz_profile['name'])
                         auxFiles['files'].append(authProfileConfigFile)
 
         # NGINX Javascript profiles
@@ -273,6 +288,25 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         {"code": status,
                                          "content": f"invalid njs profile [{server['njs'][i]['profile']}] in server [{server['name']}], must be one of {all_njs_profiles}"}}}
 
+                # Server client authentication name validity check
+                if 'authentication' in server and server['authentication']:
+                    serverAuthClientProfiles = server['authentication']['client']
+
+                    for authClientProfile in serverAuthClientProfiles:
+                        if authClientProfile['profile'] not in all_auth_client_profiles:
+                            return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid client authentication profile [{authClientProfile['profile']}] in server [{server['name']}] must be one of {all_auth_client_profiles}"}}}
+
+                # Location client authorization name validity check
+                if 'authorization' in server and server['authorization']:
+                    if server['authorization']['profile'] not in all_authz_client_profiles:
+                        return {"status_code": 422,
+                                "message": {"status_code": status, "message":
+                                    {"code": status,
+                                     "content": f"invalid client authorization profile [{server['authorization']['profile']}] in server [{server['name']}] must be one of {all_authz_client_profiles}"}}}
+
                 if server['snippet']:
                     status, serverSnippet = v4_2.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
 
@@ -314,7 +348,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             if authClientProfile['profile'] not in all_auth_client_profiles:
                                 return {"status_code": 422,
                                         "message": {"status_code": status, "message":
-                                            {"code": status, "content": f"invalid client authentication profile [{authClientProfile['profile']}] in location [{loc['uri']}]"}}}
+                                            {"code": status, "content": f"invalid client authentication profile [{authClientProfile['profile']}] in location [{loc['uri']}] must be one of {all_auth_client_profiles}"}}}
+
+                    # Location client authorization name validity check
+                    if 'authorization' in loc and loc['authorization']:
+                        if loc['authorization']['profile'] not in all_authz_client_profiles:
+                            return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status, "content": f"invalid client authorization profile [{loc['authorization']['profile']}] in location [{loc['uri']}] must be one of {all_authz_client_profiles}"}}}
 
                     # Location server authentication name validity check
                     if 'authentication' in loc and loc['authentication']:
