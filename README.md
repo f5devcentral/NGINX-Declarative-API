@@ -20,6 +20,7 @@ Use cases include:
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
   - Swagger / OpenAPI schemas
+  - NGINX Javascript files
 
 ## Requirements
 
