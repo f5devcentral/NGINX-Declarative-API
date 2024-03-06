@@ -115,9 +115,14 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
 - `developer_portal.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
-- `authentication` - optional, used to enforce JWT authentication at the API Gateway level
-- `authentication.client` - JWT authentication profile name
-- `authentication.enforceOnPaths` - if set to `true` JWT authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` JWT authentication is enforced on all API endpoints but those listed under `authentication.paths`
+- `authentication` - optional, used to enforce authentication at the API Gateway level
+- `authentication.client[]` - authentication profile names
+- `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
+- `authentication.paths` - paths to enforce authentication
+- `authorization[]` - optional, used to enforce authorization
+- `authorization[].profile` - authorization profile name
+- `authorization[].enforceOnPaths` - if set to `true` authorizaion is enforced on all API endpoints listed under `authorization.paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
+- `authorization[].paths` - paths to enforce authorization
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
 
@@ -192,6 +197,16 @@ is:
                                         "/user/logout"
                                     ]
                                 },
+                                "authorization": [
+                                    {
+                                        "profile": "JWT role based authorization",
+                                        "enforceOnPaths": true,
+                                        "paths": [
+                                            "/user/login",
+                                            "/user/logout"
+                                        ]
+                                    }
+                                ],
                                 "rate_limit": [
                                     {
                                         "profile": "petstore_ratelimit",
@@ -245,7 +260,23 @@ is:
                         }
                     }
                 ]
-            }
+            },
+            "authorization": [
+                {
+                    "name": "JWT role based authorization",
+                    "type": "jwt",
+                    "jwt": {
+                        "claims": [
+                            {
+                                "name": "roles",
+                                "value": [
+                                    "~(devops)"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     }
 }
