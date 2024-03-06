@@ -38,6 +38,7 @@ map {{ m.match }} {{ m.variable }} {
 
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
+variables_hash_bucket_size 512;
 {%- for authzprofile in declaration.authorization -%}
 include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" ", "_") }}.maps.conf";
 {% endfor -%}

@@ -93,7 +93,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
       {
         "name": "<CLAIM_NAME>",
         "value": [
-          "<AUTHORIZED_VALUE>"
+          "<AUTHORIZED_VALUE_OR_REGEXP>"
         ],
         "errorcode": <OPTIONAL_ERROR_CODE_401_OR_403>
       }
