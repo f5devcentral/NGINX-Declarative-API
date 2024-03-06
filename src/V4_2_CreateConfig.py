@@ -226,7 +226,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         all_authz_client_profiles.append(authz_profile['name'])
                         auxFiles['files'].append(authProfileConfigFile)
 
-                      # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
+                        # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
                         templateName = NcgConfig.config['templates']['authz_client_root'] + "/jwt.tmpl"
                         renderedClientAuthZProfile = j2_env.get_template(templateName).render(
                             authprofile=authz_profile, ncgconfig=NcgConfig.config)

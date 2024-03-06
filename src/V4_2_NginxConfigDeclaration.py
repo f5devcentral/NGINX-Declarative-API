@@ -274,6 +274,11 @@ class APIGatewayAuthentication(BaseModel, extra="forbid"):
     paths: Optional[List[str]] = []
 
 
+class APIGatewayAuthorization(BaseModel, extra="forbid"):
+    profile: str
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
 class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
     key: str = ""
@@ -668,6 +673,7 @@ class APIGateway(BaseModel, extra="forbid"):
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
+    authorization: Optional[List[APIGatewayAuthorization]] = []
     log: Optional[Log] = {}
 
 
