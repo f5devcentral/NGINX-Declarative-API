@@ -39,7 +39,7 @@ map {{ m.match }} {{ m.variable }} {
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
 variables_hash_bucket_size 512;
-{%- for authzprofile in declaration.authorization -%}
+{% for authzprofile in declaration.authorization -%}
 include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" ", "_") }}.maps.conf";
 {% endfor -%}
 {%- endif -%}
@@ -387,14 +387,14 @@ server {
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
         {% endif %}
 
-        {# --- Client authentication --- #}
+        {# --- Client authentication at location level --- #}
         {%- if loc.authentication and loc.authentication.client -%}
         {%- for clientAuthProfile in loc.authentication.client -%}
         include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
         {% endfor -%}
         {%- endif -%}
 
-        {# --- Client authorization --- #}
+        {# --- Client authorization at location level --- #}
         {%- if loc.authorization and loc.authorization.profile -%}
         include "{{ ncgconfig.nms.authz_client_dir }}/{{ loc.authorization.profile | replace(" ", "_") }}.conf";
         {%- endif -%}

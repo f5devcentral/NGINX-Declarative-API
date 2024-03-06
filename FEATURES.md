@@ -74,9 +74,9 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Client authorization
 
-| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                  |
-|------|----------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------|
-| jwt  | Java Web Token (JWT) |          |          | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li> |
+| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                                                                           |
+|------|----------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) |          |          | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li><li>.declaration.http.server[].location[].apigateway</li> |
 
 #### Examples
 
