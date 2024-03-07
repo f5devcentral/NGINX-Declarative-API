@@ -253,6 +253,9 @@ class LocationAuth(BaseModel, extra="forbid"):
     server: Optional[List[LocationAuthServer]] = []
 
 
+class AuthorizationProfileReference(BaseModel, extra="forbid"):
+    profile: str
+
 class LocationHeaders(BaseModel, extra="forbid"):
     to_server: Optional[LocationHeaderToServer] = {}
     to_client: Optional[LocationHeaderToClient] = {}
@@ -270,6 +273,11 @@ class APIGatewayAuthentication(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
+
+class APIGatewayAuthorization(BaseModel, extra="forbid"):
+    profile: str
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
 
 class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
@@ -315,6 +323,26 @@ class AuthServerToken(BaseModel, extra="forbid"):
         return self
 
 
+class JwtAuthZNameValue(BaseModel, extra="forbid"):
+    name: str
+    value: List[str]
+    errorcode: Optional[int] = 401
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'JwtAuthZNameValue':
+        errorcode = self.errorcode
+
+        valid = [401, 403]
+        if errorcode not in valid:
+            raise ValueError(f"Invalid errorcode [{errorcode}] must be one of {str(valid)}")
+
+        return self
+
+
+class AuthorizationJWT(BaseModel, extra="forbid"):
+    claims: List[JwtAuthZNameValue]
+
+
 class HealthCheck(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     uri: Optional[str] = "/"
@@ -347,6 +375,7 @@ class Location(BaseModel, extra="forbid"):
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
     headers: Optional[LocationHeaders]= {}
     njs: Optional[List[NjsHookLocation]] = []
 
@@ -446,6 +475,8 @@ class Server(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     headers: Optional[LocationHeaders] = {}
     njs: Optional[List[NjsHookHttpServer]] = []
+    authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
 
 
 class L4Server(BaseModel, extra="forbid"):
@@ -587,6 +618,22 @@ class Authentication(BaseModel, extra="forbid"):
     server: Optional[List[Authentication_Server]] = []
 
 
+class Authorization(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthorizationJWT] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authorization':
+        _type, name = self.type, self.name
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError(f"Invalid authorization type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        return self
+
 class NjsFile(BaseModel, extra="forbid"):
     name: str
     file: ObjectFromSourceOfTruth
@@ -601,6 +648,7 @@ class Http(BaseModel, extra="forbid"):
     maps: Optional[List[Map]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[Authentication] = {}
+    authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
 
@@ -625,6 +673,7 @@ class APIGateway(BaseModel, extra="forbid"):
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
+    authorization: Optional[List[APIGatewayAuthorization]] = []
     log: Optional[Log] = {}
 
 

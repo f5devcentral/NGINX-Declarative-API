@@ -70,7 +70,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     {%- if declaration.location.apigateway.authentication.enforceOnPaths == True -%}
     {%- set enforceAuth.toBeEnforced = True -%}
     {%- else -%}
-    {%- set enforceRL.toBeEnforced = False -%}
+    {%- set enforceAuth.toBeEnforced = False -%}
     {%- endif -%}
     {%- endif -%}
     {%- endfor -%}
@@ -87,6 +87,34 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     {%- endif %}
 
     {# --- Authentication end --- #}
+
+
+    {# --- Authorization start --- #}
+    {%- if declaration.location.apigateway.authorization -%}
+    {%- for authZentry in declaration.location.apigateway.authorization %}
+    {%- set enforceAuthZ = namespace(toBeEnforced = False) -%}
+    {%- if authZentry.enforceOnPaths == False -%}
+    {%- set enforceAuthZ.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for authPath in authZentry.paths -%}
+    {%- if path.path == authPath -%}
+    {%- if authZentry.enforceOnPaths == True -%}
+    {%- set enforceAuthZ.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceAuthZ.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Client authorization --- #}
+    {%- if enforceAuthZ.toBeEnforced == True -%}
+    include "{{ ncgconfig.nms.authz_client_dir }}/{{ authZentry.profile | replace(" ", "_") }}.conf";
+    {%- endif -%}
+
+    {%- endfor -%}
+    {%- endif %}
+
+    {# --- Authorization end --- #}
 
     {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;

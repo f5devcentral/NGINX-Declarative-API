@@ -36,6 +36,14 @@ map {{ m.match }} {{ m.variable }} {
 {% endfor %}
 {% endif %}
 
+{# --- Maps section for authorization --- #}
+{%- if declaration.authorization -%}
+variables_hash_bucket_size 512;
+{% for authzprofile in declaration.authorization -%}
+include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" ", "_") }}.maps.conf";
+{% endfor -%}
+{%- endif -%}
+
 {# --- Snippets section --- #}
 {% if declaration.snippet and declaration.snippet.content %}{{ declaration.snippet.content | b64decode }}{% endif %}
 
@@ -260,6 +268,17 @@ server {
 
     {% if s.log.error %}error_log {{ s.log.error }};{% endif %}
 
+    {# --- Client authentication at server {} level --- #}
+    {%- if s.authentication and s.authentication.client -%}
+    {%- for clientAuthProfile in s.authentication.client -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+    {% endfor -%}
+    {%- endif -%}
+
+    {# --- Client authorization at server {} level --- #}
+    {%- if s.authorization and s.authorization.profile -%}
+    include "{{ ncgconfig.nms.authz_client_dir }}/{{ s.authorization.profile | replace(" ", "_") }}.conf";
+    {%- endif -%}
 
     {% filter indent(width=4) %}
 {% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
@@ -368,11 +387,16 @@ server {
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
         {% endif %}
 
-        {# --- Client authentication --- #}
+        {# --- Client authentication at location level --- #}
         {%- if loc.authentication and loc.authentication.client -%}
         {%- for clientAuthProfile in loc.authentication.client -%}
         include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
         {% endfor -%}
+        {%- endif -%}
+
+        {# --- Client authorization at location level --- #}
+        {%- if loc.authorization and loc.authorization.profile -%}
+        include "{{ ncgconfig.nms.authz_client_dir }}/{{ loc.authorization.profile | replace(" ", "_") }}.conf";
         {%- endif -%}
 
         {# --- Location NGINX App Protect WAF --- #}

@@ -53,7 +53,7 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
     "jwt": {
         "realm": "<JWT_AUTHENTICATION_REALM>",
         "key": "<JWT_KEY>|<JWT_KEY_URL>",
-        "cachetime": <JWT_KEY_CACHETIME_IN_SECONDS>,
+        "cachetime": <OPTIONAL_JWT_KEY_CACHETIME_IN_SECONDS>,
         "token_location": "<OPTIONAL_TOKEN_LOCATION_AS_NGINX_VARIABLE>"
     }
 }
@@ -69,6 +69,36 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
         "enabled": "<on|off|optional|optional_no_ca>",
         "client_certificates": "<CLIENT_CERTIFICATES_OBJECT_NAME>"
     }
+}
+```
+
+### Client authorization
+
+| Type | Description          | API v4.0 | API v4.1 | API v4.2 | Notes                                                                                                                                                                           |
+|------|----------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) |          |          | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li><li>.declaration.http.server[].location[].apigateway</li> |
+
+#### Examples
+
+Client-side authorization profiles to be defined under `.declaration.http.authorization`
+
+- jwt client authorization profile
+
+ ```json
+{
+  "name": "<PROFILE_NAME>",
+  "type": "jwt",
+  "jwt": {
+    "claims": [
+      {
+        "name": "<CLAIM_NAME>",
+        "value": [
+          "<AUTHORIZED_VALUE_OR_REGEXP>"
+        ],
+        "errorcode": <OPTIONAL_ERROR_CODE_401_OR_403>
+      }
+    ]
+  }
 }
 ```
 
