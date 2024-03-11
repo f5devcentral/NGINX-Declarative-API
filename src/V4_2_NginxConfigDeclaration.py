@@ -1,5 +1,5 @@
 """
-JSON declaration format
+JSON declaration structure
 """
 
 from __future__ import annotations
