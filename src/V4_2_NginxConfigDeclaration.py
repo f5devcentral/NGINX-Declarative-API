@@ -3,11 +3,13 @@ JSON declaration format
 """
 
 from __future__ import annotations
-
 from typing import List, Optional
-
 from pydantic import BaseModel, Extra, model_validator
 
+import re
+
+# Regexp to check names
+alphanumRegexp = '^[a-zA-Z0-9\ \-\_]+$'
 
 class OutputConfigMap(BaseModel, extra="forbid"):
     name: str = "nginx-config"
@@ -290,7 +292,7 @@ class AuthClientJWT(BaseModel, extra="forbid"):
     def check_type(self) -> 'AuthClientJWT':
         jwt_type, key = self.jwt_type, self.key
 
-        if not key.strip() :
+        if not key.strip():
             raise ValueError(f"Invalid: JWT key must not be empty")
 
         valid = ['signed', 'encrypted', 'nested']
@@ -478,12 +480,30 @@ class Server(BaseModel, extra="forbid"):
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Server':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'L4Server':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Sticky(BaseModel, extra="forbid"):
@@ -519,11 +539,29 @@ class Upstream(BaseModel, extra="forbid"):
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Upstream':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'L4Upstream':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class ValidItem(BaseModel, extra="forbid"):
@@ -537,12 +575,30 @@ class CachingItem(BaseModel, extra="forbid"):
     size: Optional[str] = "10m"
     valid: Optional[List[ValidItem]] = []
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'CachingItem':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
 
 class RateLimitItem(BaseModel, extra="forbid"):
     name: str
     key: str
     size: Optional[str] = ""
     rate: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'RateLimitItem':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class NginxPlusApi(BaseModel, extra="forbid"):
@@ -593,6 +649,9 @@ class Authentication_Client(BaseModel, extra="forbid"):
         if _type not in valid:
             raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
 
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
         return self
 
 
@@ -609,6 +668,9 @@ class Authentication_Server(BaseModel, extra="forbid"):
         valid = ['token']
         if _type not in valid:
             raise ValueError(f"Invalid server authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
 
         return self
 
@@ -632,11 +694,23 @@ class Authorization(BaseModel, extra="forbid"):
         if _type not in valid:
             raise ValueError(f"Invalid authorization type [{_type}] for profile [{name}] must be one of {str(valid)}")
 
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
         return self
 
 class NjsFile(BaseModel, extra="forbid"):
     name: str
     file: ObjectFromSourceOfTruth
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsFile':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Http(BaseModel, extra="forbid"):
