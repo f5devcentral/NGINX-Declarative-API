@@ -209,10 +209,10 @@ server {
     {% if s.app_protect.policy -%}
     app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ s.app_protect.policy }}.tgz;
     {% endif -%}
-    {% if s.app_protect.log -%}
-    {% if s.app_protect.log.enabled == True -%}
+    {%- if s.app_protect.log -%}
+    {%- if s.app_protect.log.enabled == True -%}
     app_protect_security_log_enable on;
-    {% if s.app_protect.log.profile_name -%}
+    {%- if s.app_protect.log.profile_name -%}
     app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ s.app_protect.log.profile_name }}.tgz" syslog:server={{ s.app_protect.log.destination }};
     {% endif -%}
     {% endif %}
@@ -409,7 +409,7 @@ server {
         app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ loc.app_protect.policy }}.tgz;
         {% endif %}
         {% if loc.app_protect.log -%}
-        {% if loc.app_protect.log.enabled == True -%}
+        {%- if loc.app_protect.log.enabled == True -%}
         app_protect_security_log_enable on;
         {% if loc.app_protect.log.profile_name -%}
         app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ loc.app_protect.log.profile_name }}.tgz" syslog:server={{ loc.app_protect.log.destination }};
@@ -418,7 +418,11 @@ server {
         {% endif %}
         {% endif %}
 
-        {# --- Location snipptes --- #}
+        {# --- Location snippets --- #}
+
+        {% if loc.apigateway.api_gateway.enabled == True %}
+        include "{{ ncgconfig.nms.apigw_dir }}{{ loc.uri }}.conf";
+        {% endif %}
 
         {% if loc.snippet and loc.snippet.content %}{{ loc.snippet.content | b64decode }}{% endif %}
 

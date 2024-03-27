@@ -42,6 +42,7 @@ uri = "/v1/devportal"
 [nms]
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
+apigw_dir = '/etc/nginx/apigateway'
 devportal_dir = '/etc/nginx/devportal'
 auth_client_dir = '/etc/nginx/authn/client'
 auth_server_dir = '/etc/nginx/authn/server'
