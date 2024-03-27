@@ -7,6 +7,7 @@ import json
 import pickle
 import time
 import uuid
+import hashlib
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -274,8 +275,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Parse HTTP servers
         d_servers = v4_2.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
-            apiGatewaySnippet = ''
-
             for server in d_servers:
                 serverSnippet = ''
 
@@ -377,8 +376,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                          "content": f"invalid server authentication profile [{openApiAuthProfile[0]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}]"}}}
 
                         status, apiGatewayConfigDeclaration = v4_2.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
-                    else:
-                        apiGatewayConfigDeclaration = ''
+
+                        # API Gateway configuration template rendering
+                        if apiGatewayConfigDeclaration:
+                            apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
+                                declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+
+                            newAuxFile = {'contents': apiGatewaySnippet, 'name': NcgConfig.config['nms']['apigw_dir'] +
+                                                                            loc['ur'] +
+                                                                            loc['apigateway']['api_gateway']['name'] }
+                            auxFiles['files'].append(newAuxFile)
 
                     # API Gateway Developer portal provisioning
                     if loc['apigateway'] and loc['apigateway']['developer_portal'] and 'enabled' in loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] == True:
@@ -409,12 +416,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              "content":
                                                  f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
 
-                    # API Gateway configuration template rendering
-                    apiGatewaySnippet += j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
-                        declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)\
-                            if apiGatewayConfigDeclaration else ''
-
-            server['snippet']['content'] = base64.b64encode(bytes(serverSnippet + apiGatewaySnippet, 'utf-8')).decode('utf-8')
+            server['snippet']['content'] = base64.b64encode(bytes(serverSnippet, 'utf-8')).decode('utf-8')
 
     if 'layer4' in d['declaration']:
         # Check Layer4/stream upstreams validity
