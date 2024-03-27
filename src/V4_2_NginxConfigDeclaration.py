@@ -742,7 +742,6 @@ class DeveloperPortal(BaseModel, extra="forbid"):
     uri: Optional[str] = "/devportal.html"
 
 class APIGateway(BaseModel, extra="forbid"):
-    name: str = "default"
     openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}

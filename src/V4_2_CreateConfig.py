@@ -381,10 +381,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         if apiGatewayConfigDeclaration:
                             apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
                                 declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+                            apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
-                            newAuxFile = {'contents': apiGatewaySnippet, 'name': NcgConfig.config['nms']['apigw_dir'] +
-                                                                            loc['ur'] +
-                                                                            loc['apigateway']['api_gateway']['name'] }
+                            newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
+                                                                            loc['uri'] + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
                     # API Gateway Developer portal provisioning
