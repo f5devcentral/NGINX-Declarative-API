@@ -393,7 +393,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         status, devPortalHTML = v4_2.DevPortal.createDevPortal(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
 
                         if status != 200:
-                            return {"status_code": 400,
+                            return {"status_code": 412,
                                     "message": {"status_code": status, "message":
                                         {"code": status, "content": f"Developer Portal creation failed for {loc['uri']}"}}}
 
