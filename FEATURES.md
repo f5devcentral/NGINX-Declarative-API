@@ -67,7 +67,16 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
     "type": "mtls",
     "mtls": {
         "enabled": "<on|off|optional|optional_no_ca>",
-        "client_certificates": "<CLIENT_CERTIFICATES_OBJECT_NAME>"
+        "client_certificates": "<CLIENT_CERTIFICATES_OBJECT_NAME>",
+        "ocsp": {
+            "enabled": "on",
+            "responder": "<OCSP_RESPONDER_URL>"
+        },
+        "stapling": {
+            "enabled": true,
+            "verify": true,
+            "responder": "<OCSP_RESPONDER_URL>"
+        }
     }
 }
 ```
