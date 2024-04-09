@@ -143,26 +143,6 @@ server {
     include "{{ ncgconfig.nms.auth_client_dir }}/{{ s.listen.tls.authentication.client[0].profile | replace(" ", "_") }}.conf";
     {% endif %}
 
-    {# --- OCSP section start --- #}
-    {%- if s.listen.tls.ocsp and s.listen.tls.ocsp.enabled|lower != "off" -%}
-    ssl_ocsp {{ s.listen.tls.ocsp.enabled }};
-    {% if s.listen.tls.ocsp.responder -%}
-    ssl_ocsp_responder {{ s.listen.tls.ocsp.responder }};
-    {% endif %}
-    {% endif %}
-    {# --- OCSP section end --- #}
-
-    {# --- TLS stapling section start --- #}
-    {%- if s.listen.tls.stapling and s.listen.tls.stapling.enabled == True -%}
-    ssl_stapling on;
-    ssl_stapling_verify {% if s.listen.tls.stapling.verify == True %}on{% else %}off{% endif %};
-    {% if s.listen.tls.stapling.responder -%}
-    ssl_stapling_responder {{ s.listen.tls.stapling.responder }};
-
-    {% endif -%}
-    {%- endif %}
-    {# --- TLS stapling section end --- #}
-
     {%- endif %}
     {# --- TLS section end --- #}
 
@@ -418,12 +398,11 @@ server {
         {% endif %}
         {% endif %}
 
-        {# --- Location snippets --- #}
-
-        {% if loc.apigateway.api_gateway.enabled == True %}
+        {% if loc.apigateway and loc.apigateway.api_gateway.enabled == True %}
         include "{{ ncgconfig.nms.apigw_dir }}{{ loc.uri }}.conf";
         {% endif %}
 
+        {# --- Location snippets --- #}
         {% if loc.snippet and loc.snippet.content %}{{ loc.snippet.content | b64decode }}{% endif %}
 
     }

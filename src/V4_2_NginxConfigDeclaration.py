@@ -166,6 +166,8 @@ class Ocsp(BaseModel, extra="forbid"):
 class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
+    ocsp: Optional[Ocsp] = {}
+    stapling: Optional[OcspStapling] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthClientMtls':
@@ -184,8 +186,6 @@ class Tls(BaseModel, extra="forbid"):
     trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    ocsp: Optional[Ocsp] = {}
-    stapling: Optional[OcspStapling] = {}
     authentication: Optional[LocationAuth] = {}
 
 
@@ -453,11 +453,11 @@ class NjsHookLocationDetails(BaseModel, extra="forbid"):
 
         return self
 
+
 class NjsHookHttpServer(BaseModel, extra="forbid"):
     hook: NjsHookHttpServerDetails
     profile: str
     function: str
-
 
 
 class NjsHookLocation(BaseModel, extra="forbid"):
