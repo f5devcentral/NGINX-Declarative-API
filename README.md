@@ -1,5 +1,7 @@
 # NGINX-Declarative-API
 
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+
 This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/).
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
