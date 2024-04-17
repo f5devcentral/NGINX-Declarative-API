@@ -134,12 +134,9 @@ server {
     {% if s.listen.tls.protocols -%}
     ssl_protocols{% for p in s.listen.tls.protocols %} {{ p }}{% endfor %};
     {% endif -%}
-    {% if s.listen.tls.trusted_ca_certificates -%}
-    ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ s.listen.tls.trusted_ca_certificates }}.crt;
-    {% endif %}
 
-    {# --- mTLS section --- #}
-    {% if s.listen.tls and s.listen.tls.authentication and s.listen.tls.authentication.client[0] and s.listen.tls.authentication.client[0].profile -%}
+    {# --- client authentication section --- #}
+    {%- if s.listen.tls and s.listen.tls.authentication and s.listen.tls.authentication.client[0] and s.listen.tls.authentication.client[0].profile -%}
     include "{{ ncgconfig.nms.auth_client_dir }}/{{ s.listen.tls.authentication.client[0].profile | replace(" ", "_") }}.conf";
     {% endif %}
 

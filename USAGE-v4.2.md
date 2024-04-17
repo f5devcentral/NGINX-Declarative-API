@@ -121,7 +121,7 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `authentication.paths` - paths to enforce authentication
 - `authorization[]` - optional, used to enforce authorization
 - `authorization[].profile` - authorization profile name
-- `authorization[].enforceOnPaths` - if set to `true` authorizaion is enforced on all API endpoints listed under `authorization.paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
+- `authorization[].enforceOnPaths` - if set to `true` authorization is enforced on all API endpoints listed under `authorization.paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
 - `authorization[].paths` - paths to enforce authorization
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
