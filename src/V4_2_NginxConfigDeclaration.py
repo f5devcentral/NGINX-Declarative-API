@@ -166,6 +166,7 @@ class Ocsp(BaseModel, extra="forbid"):
 class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
+    trusted_ca_certificates: str = ""
     ocsp: Optional[Ocsp] = {}
     stapling: Optional[OcspStapling] = {}
 
@@ -183,7 +184,6 @@ class AuthClientMtls(BaseModel, extra="forbid"):
 class Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
-    trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
     authentication: Optional[LocationAuth] = {}
