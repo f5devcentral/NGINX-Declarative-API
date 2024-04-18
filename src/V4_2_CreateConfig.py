@@ -300,7 +300,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 # Location client authorization name validity check
                 if 'authorization' in server and server['authorization']:
-                    if server['authorization']['profile'] not in all_authz_client_profiles:
+                    if server['authorization']['profile'] and server['authorization']['profile'] not in all_authz_client_profiles:
                         return {"status_code": 422,
                                 "message": {"status_code": status, "message":
                                     {"code": status,
@@ -351,7 +351,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # Location client authorization name validity check
                     if 'authorization' in loc and loc['authorization']:
-                        if loc['authorization']['profile'] not in all_authz_client_profiles:
+                        if loc['authorization']['profile'] and loc['authorization']['profile'] not in all_authz_client_profiles:
                             return {"status_code": 422,
                                     "message": {"status_code": status, "message":
                                         {"code": status, "content": f"invalid client authorization profile [{loc['authorization']['profile']}] in location [{loc['uri']}] must be one of {all_authz_client_profiles}"}}}
@@ -719,7 +719,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             status, description = v4_2.NAPUtils.checkDeclarationPolicies(d)
 
             if status != 200:
-                return {"status_code": 422, "message": {"status_code": status, "message": description}}
+                return {"status_code": 422, "message": {"status_code": status, "message": {"code": status,"content": description}},
+                        "headers": {'Content-Type': 'application/json'}}
 
             # Provision NGINX App Protect WAF policies to NGINX Instance Manager
             provisionedNapPolicies, activePolicyUids = v4_2.NAPUtils.provisionPolicies(
