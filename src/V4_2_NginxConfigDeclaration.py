@@ -266,7 +266,7 @@ class LocationAuth(BaseModel, extra="forbid"):
 
 
 class AuthorizationProfileReference(BaseModel, extra="forbid"):
-    profile: str
+    profile: Optional[str] = ""
 
 class LocationHeaders(BaseModel, extra="forbid"):
     to_server: Optional[LocationHeaderToServer] = {}
