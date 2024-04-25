@@ -4,6 +4,10 @@ ssl_verify_client {{ authprofile.mtls.enabled }};
 ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.mtls.client_certificates }}.crt;
 {% endif %}
 
+{% if authprofile.mtls.trusted_ca_certificates -%}
+ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.mtls.trusted_ca_certificates }}.crt;
+{% endif %}
+
 {# --- OCSP section start --- #}
 {%- if authprofile.mtls.ocsp and authprofile.mtls.ocsp.enabled|lower != "off" -%}
 ssl_ocsp {{ authprofile.mtls.ocsp.enabled }};

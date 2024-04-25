@@ -162,10 +162,21 @@ class Ocsp(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     responder: Optional[str] = ""
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Ocsp':
+        _enabled = self.enabled
+
+        valid = ['on', 'off', 'leaf']
+        if _enabled not in valid:
+            raise ValueError(f"Invalid OCSP validation type type [{_enabled}] must be one of {str(valid)}")
+
+        return self
+
 
 class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
+    trusted_ca_certificates: Optional[str] = ""
     ocsp: Optional[Ocsp] = {}
     stapling: Optional[OcspStapling] = {}
 
@@ -183,7 +194,6 @@ class AuthClientMtls(BaseModel, extra="forbid"):
 class Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
-    trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
     authentication: Optional[LocationAuth] = {}
@@ -256,7 +266,7 @@ class LocationAuth(BaseModel, extra="forbid"):
 
 
 class AuthorizationProfileReference(BaseModel, extra="forbid"):
-    profile: str
+    profile: Optional[str] = ""
 
 class LocationHeaders(BaseModel, extra="forbid"):
     to_server: Optional[LocationHeaderToServer] = {}

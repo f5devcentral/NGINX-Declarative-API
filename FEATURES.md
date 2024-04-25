@@ -68,13 +68,14 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
     "mtls": {
         "enabled": "<on|off|optional|optional_no_ca>",
         "client_certificates": "<CLIENT_CERTIFICATES_OBJECT_NAME>",
+        "trusted_ca_certificates": "<TRUSTED_CERTIFICATES_OBJECT_NAME>",
         "ocsp": {
-            "enabled": "on",
+            "enabled": "<on|off|leaf>",
             "responder": "<OCSP_RESPONDER_URL>"
         },
         "stapling": {
-            "enabled": true,
-            "verify": true,
+            "enabled": <true|false>,
+            "verify": <true|false>,
             "responder": "<OCSP_RESPONDER_URL>"
         }
     }
@@ -241,10 +242,10 @@ For detailed examples see the [Postman collection](/contrib/postman)
         {
           "name": "<NJS_PROFILE_NAME>",
           "file": {
-            "content": "<BASE64_ENCODED_JAVASCRIPT_CODE>",
+            "content": "<BASE64_ENCODED_JAVASCRIPT_CODE|JAVASCRIPT_FILE_URL>",
             "authentication": [
               {
-                "profile": "<OPTIONAL_SERVER_AUTHENTICATION_PROFILE>"
+                "profile": "<SERVER_AUTHENTICATION_PROFILE>"
               }
             ]
           }
