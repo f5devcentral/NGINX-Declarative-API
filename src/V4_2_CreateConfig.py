@@ -681,7 +681,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
         else:
             # Configuration objects have changed, publish to NIM needed
-            print(f'Declaration [{configUid}] changed, publishing to NMS')
+            print(f'Declaration [{configUid}] changed, publishing to NIM' if configUid else f'New declaration created, publishing to NIM')
 
             # Retrieve instance group uid
             try:

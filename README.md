@@ -24,10 +24,11 @@ Use cases include:
   - Swagger / OpenAPI schemas
   - NGINX Javascript files
 
-## Requirements
+## Supported releases
 
 - NGINX Instance Manager 2.14+
-- NGINX Plus R30 or newer
+- NGINX Plus R30+
+- NGINX App Protect WAF 4.8+
 
 ## Architecture
 
@@ -145,7 +146,6 @@ Usage details and JSON schema are available here:
 
 - [API v4.2](/USAGE-v4.2.md) - latest
 - [API v4.1](/USAGE-v4.1.md)
-- [API v4.0](/USAGE-v4.0.md)
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
