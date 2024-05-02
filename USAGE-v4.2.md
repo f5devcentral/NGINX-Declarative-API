@@ -130,8 +130,9 @@ A sample API Gateway declaration to publish the `https://petstore.swagger.io` RE
 
 - REST API endpoint URIs
 - HTTP Methods
-- Rate limiting on `/user/login` and `/user/logout`
-- JWT authentication on `/user/login` and `/usr/logout`
+- Rate limiting on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
+- JWT authentication on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
+- JWT claim-based authorization on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 
 is:
 
@@ -144,7 +145,51 @@ is:
             "username": "{{nim_username}}",
             "password": "{{nim_password}}",
             "instancegroup": "{{nim_instancegroup}}",
-            "synctime": 0
+            "synctime": 0,
+            "modules": [
+                "ngx_http_app_protect_module"
+            ],
+            "certificates": [
+                {
+                    "type": "certificate",
+                    "name": "test_cert",
+                    "contents": {
+                        "content": "{{github_gitops_root}}/v4.2/testcert.crt"
+                    }
+                },
+                {
+                    "type": "key",
+                    "name": "test_key",
+                    "contents": {
+                        "content": "{{github_gitops_root}}/v4.2/testcert.key"
+                    }
+                }
+            ],
+            "policies": [
+                {
+                    "type": "app_protect",
+                    "name": "production-policy",
+                    "active_tag": "xss-blocked",
+                    "versions": [
+                        {
+                            "tag": "xss-blocked",
+                            "displayName": "Production Policy - XSS blocked",
+                            "description": "This is a production-ready policy - XSS blocked",
+                            "contents": {
+                                "content": "{{github_gitops_root}}/v4.2/nap-policy-xss-blocked-bot-allowed.json"
+                            }
+                        },
+                        {
+                            "tag": "xss-allowed",
+                            "displayName": "Production Policy - XSS allowed",
+                            "description": "This is a production-ready policy - XSS allowed",
+                            "contents": {
+                                "content": "{{github_gitops_root}}/v4.2/nap-policy-xss-allowed.json"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     },
     "declaration": {
@@ -157,7 +202,17 @@ is:
                     ],
                     "resolver": "8.8.8.8",
                     "listen": {
-                        "address": "80"
+                        "address": "0.0.0.0:443",
+                        "http2": true,
+                        "tls": {
+                            "certificate": "test_cert",
+                            "key": "test_key",
+                            "ciphers": "DEFAULT",
+                            "protocols": [
+                                "TLSv1.2",
+                                "TLSv1.3"
+                            ]
+                        }
                     },
                     "log": {
                         "access": "/var/log/nginx/apigw.nginx.lab-access_log",
@@ -166,15 +221,10 @@ is:
                     "locations": [
                         {
                             "uri": "/petstore",
-                            "urimatch": "prefix",                       
+                            "urimatch": "prefix",
                             "apigateway": {
-                                 "openapi_schema": {
-                                    "content": "http://petstore.swagger.io/v2/swagger.json",
-                                    "authentication": [
-                                        {
-                                            "profile": "Source of truth authentication profile using HTTP header token authentication"
-                                        }
-                                    ]
+                                "openapi_schema": {
+                                    "content": "http://petstore.swagger.io/v2/swagger.json"
                                 },
                                 "api_gateway": {
                                     "enabled": true,
@@ -182,7 +232,7 @@ is:
                                     "server_url": "https://petstore.swagger.io/v2"
                                 },
                                 "developer_portal": {
-                                    "enabled": false,
+                                    "enabled": true,
                                     "uri": "/petstore-devportal.html"
                                 },
                                 "authentication": {
@@ -194,7 +244,8 @@ is:
                                     "enforceOnPaths": true,
                                     "paths": [
                                         "/user/login",
-                                        "/user/logout"
+                                        "/user/logout",
+                                        "/pet/{petId}/uploadImage"
                                     ]
                                 },
                                 "authorization": [
@@ -203,7 +254,8 @@ is:
                                         "enforceOnPaths": true,
                                         "paths": [
                                             "/user/login",
-                                            "/user/logout"
+                                            "/user/logout",
+                                            "/pet/{petId}/uploadImage"
                                         ]
                                     }
                                 ],
@@ -216,7 +268,8 @@ is:
                                         "enforceOnPaths": true,
                                         "paths": [
                                             "/user/login",
-                                            "/user/logout"
+                                            "/user/logout",
+                                            "/pet/{petId}/uploadImage"
                                         ]
                                     }
                                 ]
@@ -224,6 +277,15 @@ is:
                             "log": {
                                 "access": "/var/log/nginx/petstore-access_log",
                                 "error": "/var/log/nginx/petstore-error_log"
+                            },
+                            "app_protect": {
+                                "enabled": true,
+                                "policy": "production-policy",
+                                "log": {
+                                    "profile_name": "secops_dashboard",
+                                    "enabled": true,
+                                    "destination": "127.0.0.1:514"
+                                }
                             }
                         }
                     ]
@@ -248,17 +310,6 @@ is:
                             "cachetime": 5
                         }
                     }
-                ],
-                "server": [
-                    {
-                        "name": "Source of truth authentication profile using HTTP header token authentication",
-                        "type": "token",
-                        "token": {
-                            "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
-                            "type": "header",
-                            "location": "X-AUTH-TOKEN"
-                        }
-                    }
                 ]
             },
             "authorization": [
@@ -271,7 +322,8 @@ is:
                                 "name": "roles",
                                 "value": [
                                     "~(devops)"
-                                ]
+                                ],
+                                "errorcode": 403
                             }
                         ]
                     }
@@ -294,10 +346,22 @@ Authentication failed:
 curl -i http://apigw.nginx.lab/petstore/user/login 
 ```
 
-Authentication Succeeded:
+Authentication successful:
 
 ```
 curl -i http://apigw.nginx.lab/petstore/user/login -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU"
+```
+
+Authorization failed (based on JWT `role` claim):
+
+```
+curl -w '\n' -ki https://apigw.nginx.lab/petstore/user/login -H "Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQWxpY2UgR3Vlc3QiLCJzdWIiOiJKV1Qgc3ViIGNsYWltIiwiaXNzIjoiSldUIGlzcyBjbGFpbSIsInJvbGVzIjpbImd1ZXN0Il19.jFJDq-33irz7uFxdI8c8fIb5TwTAU5BlemmIFVALUAE"```
+```
+
+Authorization successful (based on JWT `role` claim):
+
+```json
+curl -w '\n' -ki https://apigw.nginx.lab/petstore/user/login -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU"
 ```
 
 The API Developer portal can be accessed at:

@@ -24,10 +24,11 @@ Use cases include:
   - Swagger / OpenAPI schemas
   - NGINX Javascript files
 
-## Requirements
+## Supported releases
 
 - NGINX Instance Manager 2.14+
-- NGINX Plus R30 or newer
+- NGINX Plus R30+
+- NGINX App Protect WAF 4.8+
 
 ## Architecture
 
