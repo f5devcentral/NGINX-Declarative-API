@@ -335,6 +335,22 @@ class AuthServerToken(BaseModel, extra="forbid"):
         return self
 
 
+class AuthServerMtls(BaseModel, extra="forbid"):
+    enabled: Optional[bool] = True
+    certificate: Optional[ObjectFromSourceOfTruth] = {}
+    key: Optional[ObjectFromSourceOfTruth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthServerMtls':
+        _enabled = self.enabled
+
+        valid = ['on', 'off', 'optional', 'optional_no_ca']
+        if _enabled not in valid:
+            raise ValueError(f"Invalid mTLS type [{_enabled}] must be one of {str(valid)}")
+
+        return self
+
+
 class JwtAuthZNameValue(BaseModel, extra="forbid"):
     name: str
     value: List[str]
@@ -670,12 +686,13 @@ class Authentication_Server(BaseModel, extra="forbid"):
     type: str
 
     token: Optional[AuthServerToken] = {}
+    mtls: Optional[AuthServerMtls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Server':
         _type, name = self.type, self.name
 
-        valid = ['token']
+        valid = ['token', 'mtls']
         if _type not in valid:
             raise ValueError(f"Invalid server authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
 

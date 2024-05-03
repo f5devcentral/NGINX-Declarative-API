@@ -9,9 +9,13 @@ API v4.2 - Latest
   - `CRUD automation` - Sample requests for CRUD-based automation
   - `GitOps autosync` - GitOps automation demo
   - `Housekeeping - common endpoints` - Miscellaneous general purpose requests
+  - `HTTP Headers Manipulation` - `server` and `location` level HTTP headers management
+  - `HTTP Server` - TLS offload with NGINX App Protect WAF
   - `JWT Client Authentication` - JWT-based client authentication for HTTP
+  - `JWT Client Authentication and Authorization` - JWT-based client authentication and authorization for HTTP
   - `mTLS Client Authentication` - mTLS client authentication for HTTP
   - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
+  - `NGINX Javascript` - NGINX configuration with `njs` javascript
   - `Server-side and source of truth authentication` - Requests for authentication towards upstreams and source of truth
 
 API v4.1
