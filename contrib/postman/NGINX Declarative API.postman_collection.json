@@ -1,11 +1,10 @@
 {
 	"info": {
-		"_postman_id": "f786ef84-f8bf-4f38-a297-e6f3d3953c84",
+		"_postman_id": "c804b39d-558a-42f6-88fe-4a926653bf1e",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-f786ef84-f8bf-4f38-a297-e6f3d3953c84?action=share&source=collection_link&creator=1667416"
+		"_exporter_id": "30973250"
 	},
 	"item": [
 		{
@@ -3170,6 +3169,229 @@
 							]
 						},
 						{
+							"name": "GitOps autosync",
+							"item": [
+								{
+									"name": "NGINX Plus and GitOps",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 5,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v4.1/www.online-boutique.local.crt\"\n                    }\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v4.1/www.online-boutique.local.key\"\n                    }\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "NGINX App Protect WAF and GitOps",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 5,\n            \"modules\": [\n                \"ngx_http_app_protect_module\",\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v2/www.online-boutique.local.crt\"\n                    }\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v2/www.online-boutique.local.key\"\n                    }\n                }\n            ],\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"gitops\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"gitops\",\n                            \"displayName\": \"Production Policy - GitOps\",\n                            \"description\": \"This is a production-ready policy - Managed by GitOps\",\n                            \"contents\": {\n                                \"content\": \"{{github_gitops_root}}/v2/nap-policy-gitops.json\"\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"production-policy\",\n                        \"log\": {\n                            \"profile_name\": \"secops_dashboard\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get declaration status",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}/status",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}",
+												"status"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get  declaration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete  declaration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
 							"name": "Housekeeping - common endpoints",
 							"item": [
 								{
@@ -3348,6 +3570,146 @@
 									"response": []
 								}
 							]
+						},
+						{
+							"name": "HTTP Headers Manipulation",
+							"item": [
+								{
+									"name": "Create test echo service",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Manipulate headers - server level",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Injected-Echo-Test-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"User-Agent\"\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Injected-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"vary\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Echo Test Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Manipulate headers - location level",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Injected-Echo-Test-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"User-Agent\"\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Injected-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"vary\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Echo Test Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"description": "Test using:\n\n`curl -i echo.vm-test.ie.ff.lan`\n\nThe actual FQDN can be modified in the request JSON body"
 						},
 						{
 							"name": "HTTPS server",
@@ -3678,146 +4040,6 @@
 							]
 						},
 						{
-							"name": "HTTP Headers Manipulation",
-							"item": [
-								{
-									"name": "Create test echo service",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
-											"protocol": "http",
-											"host": [
-												"{{ncg_host}}"
-											],
-											"port": "{{ncg_port}}",
-											"path": [
-												"{{ngc_api_version}}",
-												"config"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "Manipulate headers - server level",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "PATCH",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Injected-Echo-Test-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"User-Agent\"\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Injected-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"vary\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Echo Test Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
-											"protocol": "http",
-											"host": [
-												"{{ncg_host}}"
-											],
-											"port": "{{ncg_port}}",
-											"path": [
-												"{{ngc_api_version}}",
-												"config",
-												"{{configUid}}"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "Manipulate headers - location level",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "PATCH",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"resolver\": \"8.8.8.8\",\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"X-Injected-Echo-Test-Version\",\n                                    \"value\": \"v1\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"User-Agent\"\n                            ]\n                        },\n                        \"to_client\": {\n                            \"add\": [\n                                {\n                                    \"name\": \"X-Injected-Response-Status\",\n                                    \"value\": \"$status\"\n                                }\n                            ],\n                            \"delete\": [\n                                \"vary\"\n                            ],\n                            \"replace\": [\n                                {\n                                    \"name\": \"Server\",\n                                    \"value\": \"Echo Test Server\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
-											"protocol": "http",
-											"host": [
-												"{{ncg_host}}"
-											],
-											"port": "{{ncg_port}}",
-											"path": [
-												"{{ngc_api_version}}",
-												"config",
-												"{{configUid}}"
-											]
-										}
-									},
-									"response": []
-								}
-							],
-							"description": "Test using:\n\n`curl -i echo.vm-test.ie.ff.lan`\n\nThe actual FQDN can be modified in the request JSON body"
-						},
-						{
 							"name": "mTLS Client Authentication",
 							"item": [
 								{
@@ -4108,7 +4330,51 @@
 							"name": "Server-side and source of truth authentication",
 							"item": [
 								{
-									"name": "Server-side and source of truth authentication",
+									"name": "Bearer Token, Basic and HTTP header upstream authentication",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ],\n            \"certificates\": [\n                {\n                    \"type\": \"certificate\",\n                    \"name\": \"test_cert\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v2/www.online-boutique.local.crt\",\n                        \"authentication\": [\n                            {\n                                \"profile\": \"Basic authentication profile\"\n                            }\n                        ]\n                    }\n                },\n                {\n                    \"type\": \"key\",\n                    \"name\": \"test_key\",\n                    \"contents\": {\n                        \"content\": \"{{github_gitops_root}}/v2/www.online-boutique.local.key\"\n                    }\n                }\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/online_boutique_https_access_log\",\n                        \"error\": \"/var/log/nginx/online_boutique_https_error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\",\n                            \"authentication\": {\n                                \"server\": [\n                                    {\n                                        \"profile\": \"Bearer token-based authentication profile\"\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.2.200:80\"\n                        }\n                    ]\n                }\n            ],\n            \"authentication\": {\n                \"server\": [\n                    {\n                        \"name\": \"Bearer token-based authentication profile\",\n                        \"type\": \"token\",\n                        \"token\": {\n                            \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU\",\n                            \"type\": \"bearer\"\n                        }\n                    },\n                    {\n                        \"name\": \"Header-based authentication profile\",\n                        \"type\": \"token\",\n                        \"token\": {\n                            \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU\",\n                            \"type\": \"header\",\n                            \"location\": \"X-AUTH-TOKEN\"\n                        }\n                    },\n                    {\n                        \"name\": \"Basic authentication profile\",\n                        \"type\": \"token\",\n                        \"token\": {\n                            \"type\": \"basic\",\n                            \"username\": \"authusername\",\n                            \"password\": \"YXV0aHBhc3N3b3Jk\"\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "mTLS upstream authentication",
 									"event": [
 										{
 											"listen": "test",
