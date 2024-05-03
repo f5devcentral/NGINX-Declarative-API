@@ -81,7 +81,7 @@ curl -w '\n' -ki https://apigw.nginx.lab/petstore/pet/1/uploadImage -X POST \
 
 The API Developer portal can be accessed at:
 
-    http://<NGINX_INSTANCE_IP_ADDRESS>/petstore/petstore-devportal.html
+    https://apigw.nginx.lab/petstore/petstore-devportal.html
 
 ### Ergast ###
 
