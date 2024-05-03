@@ -120,6 +120,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 | Bearer token | Authentication token as Authorization Bearer | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
 | Basic Auth   | Authentication token as Authorization Basic  |          | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
 | HTTP header  | Authentication token in custom HTTP header   | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
+| mTLS         | Mutual TLS                                   | X        | X        | Client certificate is sent to upstream / source of truth                               |
 
 #### Examples
 
@@ -164,6 +165,20 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
         "location": "<HTTP_HEADER_NAME>"
     }
 }
+```
+
+- mTLS authentication profile
+
+```json
+"server": [
+    {
+        "name": "<PROFILE_NAME>",
+        "type": "mtls",
+        "mtls": {
+            "certificate": "<CLIENT_CERTIFICATE>",
+            "key": "<CLIENT_KEY>"
+        }
+    }
 ```
 
 ### HTTP Headers manipulation
