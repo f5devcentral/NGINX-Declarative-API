@@ -186,7 +186,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     match auth_profile['type']:
                         case 'token':
-                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - jwt template
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - token template
                             templateName = NcgConfig.config['templates']['auth_server_root']+"/token.tmpl"
                             renderedServerAuthProfile = j2_env.get_template(templateName).render(
                                 authprofile=auth_profile, ncgconfig=NcgConfig.config)
@@ -195,6 +195,22 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             configFileName = NcgConfig.config['nms']['auth_server_dir'] + '/'+auth_profile['name'].replace(' ','_')+".conf"
                             authProfileConfigFile = {'contents': b64renderedServerAuthProfile,
                                               'name': configFileName }
+
+                            all_auth_server_profiles.append(auth_profile['name'])
+                            auxFiles['files'].append(authProfileConfigFile)
+
+                        case 'mtls':
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - mTLS template
+                            templateName = NcgConfig.config['templates']['auth_server_root'] + "/mtls.tmpl"
+                            renderedServerAuthProfile = j2_env.get_template(templateName).render(
+                                authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                            b64renderedServerAuthProfile = base64.b64encode(
+                                bytes(renderedServerAuthProfile, 'utf-8')).decode('utf-8')
+                            configFileName = NcgConfig.config['nms']['auth_server_dir'] + '/' + auth_profile[
+                                'name'].replace(' ', '_') + ".conf"
+                            authProfileConfigFile = {'contents': b64renderedServerAuthProfile,
+                                                     'name': configFileName}
 
                             all_auth_server_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
