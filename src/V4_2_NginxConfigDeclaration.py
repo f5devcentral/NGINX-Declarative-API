@@ -322,7 +322,7 @@ class AuthServerToken(BaseModel, extra="forbid"):
     def check_type(self) -> 'AuthServerToken':
         tokentype, location, username, password = self.type.lower(), self.location, self.username, self.password
 
-        valid = ['bearer', 'header', 'basic']
+        valid = ['bearer', 'header', 'basic', '']
         if tokentype not in valid:
             raise ValueError(f"Invalid token type [{tokentype}] must be one of {str(valid)}")
 
@@ -333,6 +333,11 @@ class AuthServerToken(BaseModel, extra="forbid"):
             raise ValueError(f"Missing username/password for [{tokentype}] token")
 
         return self
+
+
+class AuthServerMtls(BaseModel, extra="forbid"):
+    certificate: str = ""
+    key: str = ""
 
 
 class JwtAuthZNameValue(BaseModel, extra="forbid"):
@@ -670,12 +675,13 @@ class Authentication_Server(BaseModel, extra="forbid"):
     type: str
 
     token: Optional[AuthServerToken] = {}
+    mtls: Optional[AuthServerMtls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Server':
         _type, name = self.type, self.name
 
-        valid = ['token']
+        valid = ['token', 'mtls']
         if _type not in valid:
             raise ValueError(f"Invalid server authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
 

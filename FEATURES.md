@@ -2,21 +2,21 @@
 
 ### NGINX `http` and `stream` servers
 
-| Feature                     | API v4.1  | API v4.2 | Notes                                                                                                                                                                          |
-|-----------------------------|-----------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                   | CRUD      | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                   |
-| HTTP servers                | CRUD      | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                  |
-| TCP/UDP servers             | CRUD      | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                            |
-| TLS                         | CRUD      | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                 |
-| Client authentication       | X         | X        | See [client authentication profiles](#Client-authentication-profiles)                                                                                                          |
-| Server authentication       | X         | X        | See [server authentication profiles](#Upstream-and-Source-of-truth-authentication-profiles)                                                                                    |
-| Rate limiting               | X         | X        |                                                                                                                                                                                |
-| Active healthchecks         | X         | X        |                                                                                                                                                                                |
-| Cookie-based stickiness     | X         | X        |                                                                                                                                                                                |
-| HTTP headers manipulation   |           | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                        |
-| Maps                        | X         | X        |                                                                                                                                                                                |
-| NGINX Plus REST API access  | X         | X        |                                                                                                                                                                                |
-| NGINX App Protect WAF       | X         | X        | <li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Feature                    | API v4.1  | API v4.2 | Notes                                                                                                                                                                         |
+|----------------------------|-----------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD      | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                  |
+| HTTP servers               | CRUD      | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                 |
+| TCP/UDP servers            | CRUD      | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                           |
+| TLS                        | CRUD      | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                |
+| Client authentication      | X         | X        | See [client authentication](#Client-authentication)                                                                                                                           |
+| Upstream authentication    | X         | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                       |
+| Rate limiting              | X         | X        |                                                                                                                                                                               |
+| Active healthchecks        | X         | X        |                                                                                                                                                                               |
+| Cookie-based stickiness    | X         | X        |                                                                                                                                                                               |
+| HTTP headers manipulation  |           | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                       |
+| Maps                       | X         | X        |                                                                                                                                                                               |
+| NGINX Plus REST API access | X         | X        |                                                                                                                                                                               |
+| NGINX App Protect WAF      | X         | X        | <li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### API Gateway
 
@@ -120,6 +120,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 | Bearer token | Authentication token as Authorization Bearer | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
 | Basic Auth   | Authentication token as Authorization Basic  |          | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
 | HTTP header  | Authentication token in custom HTTP header   | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
+| mTLS         | Mutual TLS                                   | X        | X        | Client certificate is sent to upstream / source of truth                               |
 
 #### Examples
 
@@ -164,6 +165,20 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
         "location": "<HTTP_HEADER_NAME>"
     }
 }
+```
+
+- mTLS authentication profile
+
+```json
+"server": [
+    {
+        "name": "<PROFILE_NAME>",
+        "type": "mtls",
+        "mtls": {
+            "certificate": "<CLIENT_CERTIFICATE>",
+            "key": "<CLIENT_KEY>"
+        }
+    }
 ```
 
 ### HTTP Headers manipulation
