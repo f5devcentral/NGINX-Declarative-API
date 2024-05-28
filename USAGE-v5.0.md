@@ -111,7 +111,8 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
-- `developer_portal.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
+- `developer_portal.type` - developer portal type. Currently supported are: `redocly`
+- `developer_portal.redocly.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
 - `authentication` - optional, used to enforce authentication at the API Gateway level
 - `authentication.client[]` - authentication profile names
 - `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`

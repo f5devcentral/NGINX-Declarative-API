@@ -9,7 +9,7 @@ from pydantic import BaseModel, Extra, model_validator
 import re
 
 # Regexp to check names
-alphanumRegexp = '^[a-zA-Z0-9\ \-\_]+$'
+alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
 class OutputConfigMap(BaseModel, extra="forbid"):
     name: str = "nginx-config"

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Extra, model_validator
 import re
 
 # Regexp to check names
-alphanumRegexp = '^[a-zA-Z0-9\ \-\_]+$'
+alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
 class OutputConfigMap(BaseModel, extra="forbid"):
     name: str = "nginx-config"
@@ -164,7 +164,6 @@ class Output(BaseModel, extra="forbid"):
             raise ValueError(f"Invalid output data for type [{_type}]")
 
         return self
-
 
 
 class OcspStapling(BaseModel, extra="forbid"):
@@ -768,9 +767,34 @@ class API_Gateway(BaseModel, extra="forbid"):
     strip_uri: Optional[bool] = False
     server_url: Optional[str] = ""
 
+
+class DevPortal_Redocly(BaseModel, extra="forbid"):
+    uri: Optional[str] = "/devportal.html"
+
+
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
-    uri: Optional[str] = "/devportal.html"
+    type: str
+    redocly: Optional[DevPortal_Redocly] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'DeveloperPortal':
+        _type, _redocly = self.type, self.redocly
+
+        valid = ['redocly']
+        if _type not in valid:
+            raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
+
+        isError = False
+
+        if _type == 'redocly' and not _redocly:
+            isError = True
+
+        if isError:
+            raise ValueError(f"Missing developer portal data for type [{_type}]")
+
+        return self
+
 
 class APIGateway(BaseModel, extra="forbid"):
     openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
