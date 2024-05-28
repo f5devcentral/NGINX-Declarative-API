@@ -424,9 +424,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         ### Add optional API Developer portal HTML files
                         # devPortalHTML
-                        newAuxFile = {'contents': devPortalHTML, 'name': NcgConfig.config['nms']['devportal_dir'] +
-                                                                           loc['apigateway']['developer_portal']['uri']}
-                        auxFiles['files'].append(newAuxFile)
+                        if loc['apigateway']['developer_portal']['type'].lower() == "redocly":
+                            newAuxFile = {'contents': devPortalHTML, 'name': NcgConfig.config['nms']['devportal_dir'] +
+                                                                               loc['apigateway']['developer_portal']['redocly']['uri']}
+                            auxFiles['files'].append(newAuxFile)
 
                         ### / Add optional API Developer portal HTML files
 
