@@ -2,7 +2,7 @@
 
 This collection contains:
 
-API v4.2 - Latest
+API v5.0 - Latest
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
 - `Declarative automation examples` - Several examples and use cases
   - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
@@ -18,16 +18,20 @@ API v4.2 - Latest
   - `NGINX Javascript` - NGINX configuration with `njs` javascript
   - `Server-side and source of truth authentication` - Requests for authentication towards upstreams and source of truth
 
-API v4.1
+API v4.2
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
 - `Declarative automation examples` - Several examples and use cases
   - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
   - `CRUD automation` - Sample requests for CRUD-based automation
   - `GitOps autosync` - GitOps automation demo
   - `Housekeeping - common endpoints` - Miscellaneous general purpose requests
+  - `HTTP Headers Manipulation` - `server` and `location` level HTTP headers management
+  - `HTTP Server` - TLS offload with NGINX App Protect WAF
   - `JWT Client Authentication` - JWT-based client authentication for HTTP
+  - `JWT Client Authentication and Authorization` - JWT-based client authentication and authorization for HTTP
   - `mTLS Client Authentication` - mTLS client authentication for HTTP
   - `NGINX App Protect WAF` - Sample requests for declarative configuration lifecycle management
+  - `NGINX Javascript` - NGINX configuration with `njs` javascript
   - `Server-side and source of truth authentication` - Requests for authentication towards upstreams and source of truth
 
 ---

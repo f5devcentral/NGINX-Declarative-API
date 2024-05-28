@@ -1,13 +1,15 @@
 """
-JSON declaration format
+JSON declaration structure
 """
 
 from __future__ import annotations
-
 from typing import List, Optional
-
 from pydantic import BaseModel, Extra, model_validator
 
+import re
+
+# Regexp to check names
+alphanumRegexp = '^[a-zA-Z0-9\ \-\_]+$'
 
 class OutputConfigMap(BaseModel, extra="forbid"):
     name: str = "nginx-config"
@@ -120,17 +122,30 @@ class OutputNMS(BaseModel, extra="forbid"):
     log_profiles: Optional[List[LogProfile]] = []
 
 
+class OutputNGINXOne(BaseModel, extra="forbid"):
+    url: str = ""
+    namespace: str = ""
+    token: str = ""
+    cluster: str = ""
+    synctime: Optional[int] = 0
+    modules: Optional[List[str]] = []
+    certificates: Optional[List[NmsCertificate]] = []
+    policies: Optional[List[NmsPolicy]] = []
+    log_profiles: Optional[List[LogProfile]] = []
+
+
 class Output(BaseModel, extra="forbid"):
     type: str
     configmap: Optional[OutputConfigMap] = {}
     http: Optional[OutputHttp] = {}
     nms: Optional[OutputNMS] = {}
+    nginxone: Optional[OutputNGINXOne] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Output':
-        _type, configmap, http, nms = self.type, self.configmap, self.http, self.nms
+        _type, configmap, http, nms, nginxone = self.type, self.configmap, self.http, self.nms, self.nginxone
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
+        valid = ['plaintext', 'json', 'configmap', 'http', 'nms', 'nginxone']
         if _type not in valid:
             raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
@@ -141,6 +156,8 @@ class Output(BaseModel, extra="forbid"):
         elif _type == 'http' and not http:
             isError = True
         elif _type == 'nms' and not nms:
+            isError = True
+        elif _type == 'nginxone' and not nginxone:
             isError = True
 
         if isError:
@@ -160,13 +177,26 @@ class Ocsp(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     responder: Optional[str] = ""
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Ocsp':
+        _enabled = self.enabled
 
-class Mtls(BaseModel, extra="forbid"):
+        valid = ['on', 'off', 'leaf']
+        if _enabled not in valid:
+            raise ValueError(f"Invalid OCSP validation type type [{_enabled}] must be one of {str(valid)}")
+
+        return self
+
+
+class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
+    trusted_ca_certificates: Optional[str] = ""
+    ocsp: Optional[Ocsp] = {}
+    stapling: Optional[OcspStapling] = {}
 
     @model_validator(mode='after')
-    def check_type(self) -> 'Mtls':
+    def check_type(self) -> 'AuthClientMtls':
         _enabled = self.enabled
 
         valid = ['on', 'off', 'optional', 'optional_no_ca']
@@ -179,12 +209,9 @@ class Mtls(BaseModel, extra="forbid"):
 class Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
-    trusted_ca_certificates: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    mtls: Optional[Mtls] = {}
-    ocsp: Optional[Ocsp] = {}
-    stapling: Optional[OcspStapling] = {}
+    authentication: Optional[LocationAuth] = {}
 
 
 class Listen(BaseModel, extra="forbid"):
@@ -232,10 +259,33 @@ class LocationAuthServer(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
 
 
+class LocationHeaderToClient(BaseModel, extra="forbid"):
+    add: Optional[List[HTTPHeader]] = []
+    delete: Optional[List[str]] = []
+    replace: Optional[List[HTTPHeader]] = []
+
+
+class LocationHeaderToServer(BaseModel, extra="forbid"):
+    set: Optional[List[HTTPHeader]] = []
+    delete: Optional[List[str]] = []
+
+
+class HTTPHeader(BaseModel, extra="forbid"):
+    name: str = ""
+    value: str = ""
+
+
 class LocationAuth(BaseModel, extra="forbid"):
     client: Optional[List[LocationAuthClient]] = []
     server: Optional[List[LocationAuthServer]] = []
 
+
+class AuthorizationProfileReference(BaseModel, extra="forbid"):
+    profile: Optional[str] = ""
+
+class LocationHeaders(BaseModel, extra="forbid"):
+    to_server: Optional[LocationHeaderToServer] = {}
+    to_client: Optional[LocationHeaderToClient] = {}
 
 class RateLimitApiGw(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -251,18 +301,24 @@ class APIGatewayAuthentication(BaseModel, extra="forbid"):
     paths: Optional[List[str]] = []
 
 
+class APIGatewayAuthorization(BaseModel, extra="forbid"):
+    profile: str
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
 class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
     key: str = ""
     cachetime: Optional[int] = 0
     jwt_type: str = "signed"
+    token_location: Optional[str] = ""
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthClientJWT':
         jwt_type, key = self.jwt_type, self.key
 
-        if not key.strip() :
-            raise ValueError(f"Invalid: JWT key must not be empty")
+        #if not key.strip():
+        #    raise ValueError(f"Invalid: JWT key must not be empty")
 
         valid = ['signed', 'encrypted', 'nested']
         if jwt_type not in valid:
@@ -272,21 +328,51 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
 class AuthServerToken(BaseModel, extra="forbid"):
     token: str = ""
-    type: Optional[str] = "bearer"
+    type: Optional[str] = ""
     location: Optional[str] = ""
+    username: Optional[str] = ""
+    password: Optional[str] = ""
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthServerToken':
-        location, type = self.location, self.type.lower()
+        tokentype, location, username, password = self.type.lower(), self.location, self.username, self.password
 
-        valid = ['bearer', 'header']
-        if type not in valid:
-            raise ValueError(f"Invalid token type [{type}] must be one of {str(valid)}")
+        valid = ['bearer', 'header', 'basic', '']
+        if tokentype not in valid:
+            raise ValueError(f"Invalid token type [{tokentype}] must be one of {str(valid)}")
 
-        if type in ['header'] and location == "":
-            raise ValueError(f"Empty location for [{type}] token")
+        if tokentype in ['header'] and location == "":
+            raise ValueError(f"Empty location for [{tokentype}] token")
+
+        if tokentype in ['basic'] and (username == "" or password == ""):
+            raise ValueError(f"Missing username/password for [{tokentype}] token")
 
         return self
+
+
+class AuthServerMtls(BaseModel, extra="forbid"):
+    certificate: str = ""
+    key: str = ""
+
+
+class JwtAuthZNameValue(BaseModel, extra="forbid"):
+    name: str
+    value: List[str]
+    errorcode: Optional[int] = 401
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'JwtAuthZNameValue':
+        errorcode = self.errorcode
+
+        valid = [401, 403]
+        if errorcode not in valid:
+            raise ValueError(f"Invalid errorcode [{errorcode}] must be one of {str(valid)}")
+
+        return self
+
+
+class AuthorizationJWT(BaseModel, extra="forbid"):
+    claims: List[JwtAuthZNameValue]
 
 
 class HealthCheck(BaseModel, extra="forbid"):
@@ -321,6 +407,9 @@ class Location(BaseModel, extra="forbid"):
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
+    headers: Optional[LocationHeaders]= {}
+    njs: Optional[List[NjsHookLocation]] = []
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -342,6 +431,71 @@ class ObjectFromSourceOfTruth(BaseModel, extra="forbid"):
     content: str = ""
     authentication: Optional[List[LocationAuthServer]] = []
 
+
+class NjsHook_js_body_filter(BaseModel, extra="forbid"):
+    buffer_type: Optional[str] = ""
+
+
+class NjsHook_js_periodic(BaseModel, extra="forbid"):
+    interval: Optional[str] = ""
+    jitter: Optional[int] = 0
+    worker_affinity: Optional[str] = ""
+
+
+class NjsHook_js_preload_object(BaseModel, extra="forbid"):
+    file: str
+
+
+class NjsHook_js_set(BaseModel, extra="forbid"):
+    variable: str
+
+
+class NjsHookHttpServerDetails(BaseModel, extra="forbid"):
+    type: str
+    js_preload_object: Optional[NjsHook_js_preload_object] = {}
+    js_set: Optional[NjsHook_js_set] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsHookHttpServerDetails':
+        _type = self.type
+
+        valid = ['js_preload_object', 'js_set']
+        if _type not in valid:
+            raise ValueError(f"Invalid hook [{_type}] must be one of {str(valid)}")
+
+        return self
+
+
+class NjsHookLocationDetails(BaseModel, extra="forbid"):
+    type: str
+    js_preload_object: Optional[NjsHook_js_preload_object] = {}
+    js_set: Optional[NjsHook_js_set] = {}
+    js_body_filter: Optional[NjsHook_js_body_filter] = {}
+    js_periodic: Optional[NjsHook_js_periodic] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsHookLocationDetails':
+        _type = self.type
+
+        valid = ['js_body_filter', 'js_content', 'js_header_filter', 'js_periodic', 'js_preload_object', 'js_set']
+        if _type not in valid:
+            raise ValueError(f"Invalid hook [{_type}] must be one of {str(valid)}")
+
+        return self
+
+
+class NjsHookHttpServer(BaseModel, extra="forbid"):
+    hook: NjsHookHttpServerDetails
+    profile: str
+    function: str
+
+
+class NjsHookLocation(BaseModel, extra="forbid"):
+    hook: NjsHookLocationDetails
+    profile: str
+    function: str
+
+
 class Server(BaseModel, extra="forbid"):
     name: str
     names: Optional[List[str]] = []
@@ -351,6 +505,19 @@ class Server(BaseModel, extra="forbid"):
     locations: Optional[List[Location]] = []
     app_protect: Optional[AppProtect] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+    headers: Optional[LocationHeaders] = {}
+    njs: Optional[List[NjsHookHttpServer]] = []
+    authentication: Optional[LocationAuth] = {}
+    authorization: Optional[AuthorizationProfileReference] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Server':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class L4Server(BaseModel, extra="forbid"):
@@ -358,6 +525,15 @@ class L4Server(BaseModel, extra="forbid"):
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'L4Server':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Sticky(BaseModel, extra="forbid"):
@@ -393,11 +569,29 @@ class Upstream(BaseModel, extra="forbid"):
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Upstream':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'L4Upstream':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class ValidItem(BaseModel, extra="forbid"):
@@ -411,12 +605,30 @@ class CachingItem(BaseModel, extra="forbid"):
     size: Optional[str] = "10m"
     valid: Optional[List[ValidItem]] = []
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'CachingItem':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
 
 class RateLimitItem(BaseModel, extra="forbid"):
     name: str
     key: str
     size: Optional[str] = ""
     rate: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'RateLimitItem':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class NginxPlusApi(BaseModel, extra="forbid"):
@@ -457,14 +669,18 @@ class Authentication_Client(BaseModel, extra="forbid"):
     type: str
 
     jwt: Optional[AuthClientJWT] = {}
+    mtls: Optional[AuthClientMtls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Client':
         _type, name = self.type, self.name
 
-        valid = ['jwt']
+        valid = ['jwt', 'mtls']
         if _type not in valid:
             raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
 
         return self
 
@@ -474,14 +690,18 @@ class Authentication_Server(BaseModel, extra="forbid"):
     type: str
 
     token: Optional[AuthServerToken] = {}
+    mtls: Optional[AuthServerMtls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Server':
         _type, name = self.type, self.name
 
-        valid = ['token']
+        valid = ['token', 'mtls']
         if _type not in valid:
             raise ValueError(f"Invalid server authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
 
         return self
 
@@ -489,6 +709,39 @@ class Authentication_Server(BaseModel, extra="forbid"):
 class Authentication(BaseModel, extra="forbid"):
     client: Optional[List[Authentication_Client]] = []
     server: Optional[List[Authentication_Server]] = []
+
+
+class Authorization(BaseModel, extra="forbid"):
+    name: str
+    type: str
+
+    jwt: Optional[AuthorizationJWT] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Authorization':
+        _type, name = self.type, self.name
+
+        valid = ['jwt']
+        if _type not in valid:
+            raise ValueError(f"Invalid authorization type [{_type}] for profile [{name}] must be one of {str(valid)}")
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
+class NjsFile(BaseModel, extra="forbid"):
+    name: str
+    file: ObjectFromSourceOfTruth
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'NjsFile':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Http(BaseModel, extra="forbid"):
@@ -500,6 +753,9 @@ class Http(BaseModel, extra="forbid"):
     maps: Optional[List[Map]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[Authentication] = {}
+    authorization: Optional[List[Authorization]] = []
+    njs: Optional[List[NjsHookHttpServer]] = []
+    njs_profiles: Optional[List[NjsFile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):
@@ -522,6 +778,7 @@ class APIGateway(BaseModel, extra="forbid"):
     developer_portal: Optional[DeveloperPortal] = {}
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
+    authorization: Optional[List[APIGatewayAuthorization]] = []
     log: Optional[Log] = {}
 
 

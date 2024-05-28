@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "4.2"
+version = "5.0"
 url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
@@ -40,6 +40,7 @@ uri = "/v1/devportal"
 
 # Staged configuration for NGINX Instance Manager
 [nms]
+nginx_conf = '/etc/nginx/nginx.conf'
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 apigw_dir = '/etc/nginx/apigateway'
