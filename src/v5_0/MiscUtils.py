@@ -5,6 +5,8 @@ Support functions
 import re
 import json
 import yaml
+import uuid
+
 
 def getDictKey(_dict: dict, key_lookup: str, separator='.'):
     """
@@ -42,3 +44,10 @@ YAML to JSON conversion
 """
 def yaml_to_json(document: str):
     return json.dumps(yaml.safe_load(document))
+
+
+"""
+Returns a unique ID
+"""
+def getuniqueid():
+    return uuid.uuid4()
