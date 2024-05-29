@@ -131,6 +131,7 @@ A sample API Gateway declaration to publish the `https://petstore.swagger.io` RE
 - Rate limiting on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT authentication on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT claim-based authorization on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
+- NGINX App Protect WAF security
 
 can be found in the [Postman collection](/contrib/)
 

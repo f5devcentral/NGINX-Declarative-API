@@ -47,6 +47,13 @@ def yaml_to_json(document: str):
 
 
 """
+JSON TO YAML conversion
+"""
+def json_to_yaml(document: str):
+    return yaml.dump(json.loads(document))
+
+
+"""
 Returns a unique ID
 """
 def getuniqueid():

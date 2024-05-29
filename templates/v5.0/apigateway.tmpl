@@ -134,7 +134,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 location = {{ declaration.location.uri }}{{ declaration.location.apigateway.developer_portal.redocly.uri }} {
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
     root {{ ncgconfig.nms.devportal_dir }};
-    {% endif %}
 }
+    {% endif %}
 {% endif %}
 {% endif %}

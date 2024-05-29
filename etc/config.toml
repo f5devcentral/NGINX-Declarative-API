@@ -22,6 +22,8 @@ auth_server_root = "authn/server"
 
 authz_client_root = "authz/client"
 
+devportal_root = "devportal"
+
 # NGINX Declarative API Server
 [apiserver]
 host = "0.0.0.0"
@@ -34,8 +36,10 @@ port = 6379
 
 # Devportal helper
 [devportal]
-host = "devportal"
-port = 5000
+#host = "devportal"
+#port = 5000
+host = "ubuntu.ie.ff.lan"
+port = 5001
 uri = "/v1/devportal"
 
 # Staged configuration for NGINX Instance Manager

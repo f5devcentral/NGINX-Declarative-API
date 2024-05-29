@@ -772,22 +772,42 @@ class DevPortal_Redocly(BaseModel, extra="forbid"):
     uri: Optional[str] = "/devportal.html"
 
 
+class DevPortal_Backstage(BaseModel, extra="forbid"):
+    name: str
+    lifecycle: Optional[str] = "production"
+    owner: str = ""
+    system: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'DevPortal_Backstage':
+        _lifecycle = self.lifecycle
+
+        valid = ['experimental', 'production', 'deprecated']
+        if _lifecycle not in valid:
+            raise ValueError(f"Invalid developer portal type [{_lifecycle}] must be one of {str(valid)}")
+
+        return self
+
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     type: str
     redocly: Optional[DevPortal_Redocly] = {}
+    backstage: Optional[DevPortal_Backstage] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'DeveloperPortal':
-        _type, _redocly = self.type, self.redocly
+        _type, _redocly, _backstage = self.type, self.redocly, self.backstage
 
-        valid = ['redocly']
+        valid = ['redocly', 'backstage']
         if _type not in valid:
             raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
         if _type == 'redocly' and not _redocly:
+            isError = True
+
+        if _type == 'backstage' and not _backstage:
             isError = True
 
         if isError:
