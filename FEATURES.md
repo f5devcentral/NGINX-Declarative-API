@@ -30,9 +30,10 @@
 
 ### API Gateway - Developer Portal
 
-| Feature                                         | API v4.2 | API v5.0 | Notes                     |
-|-------------------------------------------------|----------|----------|---------------------------|
-| Developer Portal generation from OpenAPI schema | X        | X        | <li>Based on Redocly</li> |
+| Feature                             | API v4.2 | API v5.0  | Notes |
+|-------------------------------------|----------|-----------|-------|
+| Redocly-based developer portal      | X        | X         |       |
+| Backstage.io-based developer portal |          | X         |       |
 
 ### Client authentication
 
