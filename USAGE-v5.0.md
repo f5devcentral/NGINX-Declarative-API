@@ -111,8 +111,9 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
-- `developer_portal.type` - developer portal type. Currently supported are: `redocly`
-- `developer_portal.redocly.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
+- `developer_portal.type` - developer portal type. Currently supported are: `redocly`, `backstage`
+- `developer_portal.redocly.*` - Redocly-based developer portal parameters. See the [Postman collection](/contrib/postman)
+- `developer_portal.backstage.*` - Backstage-based developer portal parameters. See the [Postman collection](/contrib/postman)
 - `authentication` - optional, used to enforce authentication at the API Gateway level
 - `authentication.client[]` - authentication profile names
 - `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
@@ -124,13 +125,14 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
 
-A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API using:
 
 - REST API endpoint URIs
 - HTTP Methods
 - Rate limiting on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT authentication on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT claim-based authorization on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
+- Redocly-based developer portal
 - NGINX App Protect WAF security
 
 can be found in the [Postman collection](/contrib/)
