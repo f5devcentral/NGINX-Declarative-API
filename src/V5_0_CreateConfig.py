@@ -403,7 +403,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         {"code": status,
                                          "content": f"invalid server authentication profile [{openApiAuthProfile[0]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}]"}}}
 
-                        status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_0.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
+                        status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_0.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
 
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
