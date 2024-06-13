@@ -194,7 +194,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                                 "content": f"cluster {nOneCluster} not found"}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        ## TODO: NGINX App Protect unsupported on NGINX One
+        ## TODO: NGINX App Protect not supported with NGINX One
         #### NGINX App Protect policies support - commits policies to control plane
         #
         ## Check NGINX App Protect WAF policies configuration sanity

@@ -578,20 +578,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Output to NGINX One SaaS Console
 
         # NGINX configuration files for staged config
-        #configFiles['name'] = NcgConfig.config['nms']['config_dir']
+        configFiles['name'] = NcgConfig.config['nms']['config_dir']
 
         # NGINX auxiliary files for staged config
-        # TODO
-        # auxFiles['name'] = NcgConfig.config['nms']['config_dir']
+        auxFiles['name'] = NcgConfig.config['nms']['config_dir']
 
-        #return v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
-        #                         b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
-        #                         configFiles = configFiles,
-        #                         auxFiles = auxFiles,
-        #                         runfromautosync = runfromautosync, configUid = configUid )
-
-        return {"status_code": 501, "message": {"code": 501, "content": "NGINX One support not yet available"}}
-
+        return v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
+                                 b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
+                                 configFiles = configFiles,
+                                 auxFiles = auxFiles,
+                                 runfromautosync = runfromautosync, configUid = configUid )
     else:
         return {"status_code": 422, "message": {"status_code": 422, "message": f"output type {decltype} unknown"}}
 
