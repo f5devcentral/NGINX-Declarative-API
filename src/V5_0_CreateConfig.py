@@ -66,6 +66,9 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     # NGINX auxiliary files for staged config
     auxFiles = {'files': []}
 
+    # Extra manifests to be returned to the caller
+    extraOutputManifests = []
+
     try:
         # Pydantic JSON validation
         ConfigDeclaration(**declaration.model_dump())
@@ -400,7 +403,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         {"code": status,
                                          "content": f"invalid server authentication profile [{openApiAuthProfile[0]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}]"}}}
 
-                        status, apiGatewayConfigDeclaration = v5_0.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
+                        status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_0.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
 
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
@@ -415,21 +418,35 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     # API Gateway Developer portal provisioning
                     if loc['apigateway'] and loc['apigateway']['developer_portal'] and 'enabled' in loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] == True:
 
-                        status, devPortalHTML = v5_0.DevPortal.createDevPortal(locationDeclaration = loc, authProfiles = d['declaration']['http']['authentication'])
-
-                        if status != 200:
-                            return {"status_code": 412,
-                                    "message": {"status_code": status, "message":
-                                        {"code": status, "content": f"Developer Portal creation failed for {loc['uri']}"}}}
-
-                        ### Add optional API Developer portal HTML files
+                        ### Redocly developer portal - Add optional API Developer portal HTML files
                         # devPortalHTML
-                        if loc['apigateway']['developer_portal']['type'].lower() == "redocly":
+                        if loc['apigateway']['developer_portal']['type'].lower() == 'redocly':
+                            status, devPortalHTML = v5_0.DevPortal.createDevPortal(locationDeclaration=loc,
+                                                                                   authProfiles=
+                                                                                   d['declaration']['http'][
+                                                                                       'authentication'])
+
+                            if status != 200:
+                                return {"status_code": 412,
+                                        "message": {"status_code": status, "message":
+                                            {"code": status,
+                                             "content": f"Developer Portal creation failed for {loc['uri']}"}}}
+
                             newAuxFile = {'contents': devPortalHTML, 'name': NcgConfig.config['nms']['devportal_dir'] +
                                                                                loc['apigateway']['developer_portal']['redocly']['uri']}
                             auxFiles['files'].append(newAuxFile)
 
-                        ### / Add optional API Developer portal HTML files
+                        ### / Redocly developer portal - Add optional API Developer portal HTML files
+
+                        ### Backstage developer portal - Create Kubernetes Backstage manifest
+                        # devPortalHTML
+                        if loc['apigateway']['developer_portal']['type'].lower() == 'backstage':
+                            backstageManifest = j2_env.get_template(f"{NcgConfig.config['templates']['devportal_root']}/backstage.tmpl").render(
+                                declaration=loc['apigateway']['developer_portal']['backstage'], openAPISchema = v5_0.MiscUtils.json_to_yaml(openAPISchemaJSON), ncgconfig=NcgConfig.config)
+
+                            extraOutputManifests.append(backstageManifest)
+
+                        ### / Backstage developer portal - Create Kubernetes Backstage manifest
 
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
@@ -547,11 +564,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # NGINX auxiliary files for staged config
         auxFiles['rootDir'] = NcgConfig.config['nms']['config_dir']
 
-        return v5_0.NMSOutput.NMSOutput(d = d, declaration = declaration, apiversion = apiversion,
+        finalReply = v5_0.NMSOutput.NMSOutput(d = d, declaration = declaration, apiversion = apiversion,
                                  b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
                                  configFiles = configFiles,
                                  auxFiles = auxFiles,
                                  runfromautosync = runfromautosync, configUid = configUid )
+
+        finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+
+        return finalReply
 
     elif decltype.lower() == 'nginxone':
         # Output to NGINX One SaaS Console
@@ -560,17 +581,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         configFiles['name'] = NcgConfig.config['nms']['config_dir']
 
         # NGINX auxiliary files for staged config
-        # TODO
-        # auxFiles['name'] = NcgConfig.config['nms']['config_dir']
+        auxFiles['name'] = NcgConfig.config['nms']['config_dir']
 
-        #return v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
-        #                         b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
-        #                         configFiles = configFiles,
-        #                         auxFiles = auxFiles,
-        #                         runfromautosync = runfromautosync, configUid = configUid )
-
-        return {"status_code": 501, "message": {"code": 501, "content": "NGINX One support not yet available"}}
-
+        return v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
+                                 b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
+                                 configFiles = configFiles,
+                                 auxFiles = auxFiles,
+                                 runfromautosync = runfromautosync, configUid = configUid )
     else:
         return {"status_code": 422, "message": {"status_code": 422, "message": f"output type {decltype} unknown"}}
 

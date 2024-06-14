@@ -16,7 +16,7 @@ def getClusterId(nOneUrl: str, nOneToken: str, nameSpace: str, clusterName: str)
                       verify=False, headers = {"Authorization": f"Bearer {nOneToken}"})
 
     if cluster.status_code != 200:
-        return None
+        return cluster.status_code, "NGINX One authorization failed"
 
     # Get the instance group id
     igUid = None
@@ -25,4 +25,7 @@ def getClusterId(nOneUrl: str, nOneToken: str, nameSpace: str, clusterName: str)
         if i['name'] == clusterName:
             igUid = i['object_id']
 
-    return igUid
+    if igUid is None:
+        return 404, f"cluster {clusterName} not found"
+
+    return 200, igUid

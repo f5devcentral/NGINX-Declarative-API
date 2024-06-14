@@ -34,4 +34,4 @@ def createAPIGateway(locationDeclaration: dict, authProfiles: Authentication={})
         apiGwDeclaration['paths'] = apiSchema.paths()
         apiGwDeclaration['version'] = apiSchema.version()
 
-    return 200, apiGwDeclaration
+    return 200, apiGwDeclaration, apiSchemaString['content']

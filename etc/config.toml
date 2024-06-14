@@ -22,6 +22,8 @@ auth_server_root = "authn/server"
 
 authz_client_root = "authz/client"
 
+devportal_root = "devportal"
+
 # NGINX Declarative API Server
 [apiserver]
 host = "0.0.0.0"

@@ -37,6 +37,13 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nms.policies[].versions[].displayName` the policy version's display name
       - `.output.nms.policies[].versions[].description` the policy version's description
       - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
+  - *nginxone* - NGINX configuration is published to a NGINX One Cloud Console cluster
+    - `.output.nginxone.url` the NGINX One Cloud Console URL
+    - `.output.nginxone.namespace` the NGINX One Cloud Console namespace
+    - `.output.nginxone.token` the authentication token
+    - `.output.nginxone.cluster` the cluster name
+    - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX Instance Manager
+    - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
 - `.declaration` describes the NGINX configuration to be created.
 
 ### Locations ###
@@ -111,8 +118,9 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
 - `api_gateway.server_url` - the base URL of the upstream server
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
-- `developer_portal.type` - developer portal type. Currently supported are: `redocly`
-- `developer_portal.redocly.uri` - the trailing part of the Developer portal URI, this is appended to `.declaration.http.servers[].locations[].uri`. If omitted it defaults to `devportal.html`
+- `developer_portal.type` - developer portal type. Currently supported are: `redocly`, `backstage`
+- `developer_portal.redocly.*` - Redocly-based developer portal parameters. See the [Postman collection](/contrib/postman)
+- `developer_portal.backstage.*` - Backstage-based developer portal parameters. See the [Postman collection](/contrib/postman)
 - `authentication` - optional, used to enforce authentication at the API Gateway level
 - `authentication.client[]` - authentication profile names
 - `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
@@ -124,13 +132,15 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
 
-A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API and enforce:
+A sample API Gateway declaration to publish the `https://petstore.swagger.io` REST API using:
 
 - REST API endpoint URIs
 - HTTP Methods
 - Rate limiting on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT authentication on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
 - JWT claim-based authorization on `/user/login`, `/usr/logout` and `/pet/{petId}/uploadImage`
+- Redocly-based developer portal
+- NGINX App Protect WAF security
 
 can be found in the [Postman collection](/contrib/)
 
