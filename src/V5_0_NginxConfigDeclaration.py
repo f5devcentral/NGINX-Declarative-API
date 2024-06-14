@@ -788,6 +788,7 @@ class DevPortal_Backstage(BaseModel, extra="forbid"):
 
         return self
 
+      
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     type: str
@@ -799,6 +800,7 @@ class DeveloperPortal(BaseModel, extra="forbid"):
         _type, _redocly, _backstage = self.type, self.redocly, self.backstage
 
         valid = ['redocly', 'backstage']
+
         if _type not in valid:
             raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
 
