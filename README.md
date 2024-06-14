@@ -2,22 +2,22 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/).
+This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console - currently in early stage](https://docs.nginx.com/nginx-one/).
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
-GitOps integration is supported when used with NGINX Instance Manager: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions) and NGINX configurations are automatically kept in sync.
+GitOps integration is supported: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions) and NGINX configurations are automatically kept in sync.
 
 Use cases include:
 
 - Rapid configuration generation and templating
-- CI/CD integration with NGINX Instance Manager (instance groups and staged configs)
-- NGINX App Protect DevSecOps integration
+- CI/CD integration with NGINX Instance Manager (instance groups and staged configs) and NGINX One Cloud Console (clusters)
+- NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
 - API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
-  - TLS certificates, keys and chains/bundles
+  - TLS certificates, keys and chains/bundles (NGINX Instance Manager only)
   - mTLS certificates
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
@@ -27,6 +27,7 @@ Use cases include:
 ## Supported releases
 
 - NGINX Instance Manager 2.14+
+- NGINX One Cloud Console
 - NGINX Plus R30+
 - NGINX App Protect WAF 4.8+
 

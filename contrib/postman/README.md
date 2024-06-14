@@ -4,7 +4,7 @@ This collection contains:
 
 API v5.0 - Latest
 - `Configuration generation` - Declaration examples with output to plaintext, JSON, Kubernetes ConfigMap, HTTP POST
-- `Declarative automation examples` - Several examples and use cases
+- `Declarative automation examples` - Several examples and use cases for NGINX Instance Manager and NGINX One Cloud Console
   - `API Gateway` - Sample API gateway requests for Swagger and OpenAPI schemas import
   - `CRUD automation` - Sample requests for CRUD-based automation
   - `GitOps autosync` - GitOps automation demo

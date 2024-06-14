@@ -166,9 +166,11 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
     # Staged config
     baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
+    #stagedConfig = {'conf_path': NcgConfig.config['nms']['nginx_conf'],
+    #                'aux': [ auxFiles ],
+    #                'configs': [ configFiles ]}
     stagedConfig = {'conf_path': NcgConfig.config['nms']['nginx_conf'],
-                    'aux': [ auxFiles ],
-                    'configs': [ configFiles ]}
+                    'configs': [ configFiles, auxFiles ]}
 
     currentBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}').decode(
         'utf-8') if NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}') else None
@@ -184,14 +186,14 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             f'Declaration [{configUid}] changed, publishing' if configUid else f'New declaration created, publishing')
 
         # Get the instance group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
-        igUid = v5_0.NGINXOneUtils.getClusterId(nOneUrl = nOneUrl, nOneToken = nOneToken,
+        returnCode, igUid = v5_0.NGINXOneUtils.getClusterId(nOneUrl = nOneUrl, nOneToken = nOneToken,
                                                 nameSpace = nOneNamespace, clusterName = nOneCluster)
 
         # Invalid instance group
-        if igUid is None:
+        if returnCode != 200:
             return {"status_code": 404,
-                    "message": {"status_code": 404, "message": {"code": 404,
-                                                                "content": f"cluster {nOneCluster} not found"}},
+                    "message": {"status_code": 404, "message": {"code": returnCode,
+                                                                "content": igUid}},
                     "headers": {'Content-Type': 'application/json'}}
 
         ## TODO: NGINX App Protect not supported with NGINX One
