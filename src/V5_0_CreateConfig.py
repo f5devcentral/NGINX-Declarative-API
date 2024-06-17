@@ -570,12 +570,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  auxFiles = auxFiles,
                                  runfromautosync = runfromautosync, configUid = configUid )
 
-        finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+        if finalReply['status_code'] == 200:
+            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
 
     elif decltype.lower() == 'nginxone':
-        # Output to NGINX One SaaS Console
+        # Output to NGINX One Cloud Console
 
         # NGINX configuration files for staged config
         configFiles['name'] = NcgConfig.config['nms']['config_dir']
@@ -583,11 +584,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # NGINX auxiliary files for staged config
         auxFiles['name'] = NcgConfig.config['nms']['config_dir']
 
-        return v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
+        finalReply =  v5_0.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
                                  b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
                                  configFiles = configFiles,
                                  auxFiles = auxFiles,
                                  runfromautosync = runfromautosync, configUid = configUid )
+
+        if finalReply['status_code'] == 200:
+            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+
+        return finalReply
     else:
         return {"status_code": 422, "message": {"status_code": 422, "message": f"output type {decltype} unknown"}}
 
