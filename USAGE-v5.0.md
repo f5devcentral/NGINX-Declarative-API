@@ -42,7 +42,7 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nginxone.namespace` the NGINX One Cloud Console namespace
     - `.output.nginxone.token` the authentication token
     - `.output.nginxone.cluster` the cluster name
-    - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX Instance Manager
+    - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX One Cloud Console
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
 - `.declaration` describes the NGINX configuration to be created.
 
