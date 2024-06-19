@@ -42,8 +42,11 @@ stateDiagram-v2
     Client: REST Client
     Pipeline: CI/CD Pipeline
     NIM: NGINX Instance Manager
-    AGENT: NGINX Agent
-    NGINX: NGINX
+    N1: NGINX One Cloud Console
+    AGENT1: NGINX Agent
+    NGINX1: NGINX
+    AGENT2: NGINX Agent
+    NGINX2: NGINX
     INPUT: Input
     SOT: Source of Truth
     NDAPI: NGINX Declarative API Core
@@ -69,10 +72,13 @@ stateDiagram-v2
     OUTPUT --> CONFIGMAP
     OUTPUT --> PLAINTEXT
     OUTPUT --> NIM
+    OUTPUT --> N1
     NDAPI --> DEVP
     DEVP --> NDAPI
-    NIM --> AGENT
-    AGENT --> NGINX
+    NIM --> AGENT1
+    AGENT1 --> NGINX1
+    N1 --> AGENT2
+    AGENT2 --> NGINX2
 ```
 
 ## GitOps Autosync Mode
@@ -87,7 +93,7 @@ participant Source of Truth
 participant NGINX Declarative API Core
 participant Redis
 participant Developer Portal Service
-participant NGINX Instance Manager
+participant NGINX Instance Manager / NGINX One
 participant NGINX
 
 box NGINX Declarative API
@@ -116,9 +122,9 @@ critical If Developer Portal enabled
 end
 end
 
-NGINX Declarative API Core ->>+ NGINX Instance Manager: Publish staged config to instance group
-NGINX Instance Manager ->> NGINX: Publish config to NGINX instances
-NGINX Instance Manager ->>- NGINX Declarative API Core: Publish outcome
+NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One: Publish staged config to instance group / cluster
+NGINX Instance Manager / NGINX One ->> NGINX: Publish config to NGINX instances
+NGINX Instance Manager / NGINX One ->>- NGINX Declarative API Core: Publish outcome
 
 Note over NGINX Declarative API Core, Redis: data synchronization
 
@@ -135,7 +141,8 @@ end
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [X] Output to NGINX Instance Manager 2.14+ imperative REST API
+- [X] Output to NGINX Instance Manager 2.14+ imperative REST API (NGINX instance groups)
+- [X] Output to NGINX One Cloud Console REST API (NGINX clusters)
   
 ## Supported features
 
