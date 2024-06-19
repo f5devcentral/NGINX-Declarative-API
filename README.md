@@ -2,11 +2,11 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console - currently in early stage](https://docs.nginx.com/nginx-one/).
+This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) (currently in early stage).
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
-GitOps integration is supported: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions) and NGINX configurations are automatically kept in sync.
+GitOps integration is supported: source of truth is checked for updates (NGINX App Protect policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
 
 Use cases include:
 
@@ -22,7 +22,9 @@ Use cases include:
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
   - Swagger / OpenAPI schemas
-  - NGINX Javascript files
+  - NGINX Javascript
+
+A **blog article** to automate NGINX API Gateway management from OpenAPI schemas is available [here](https://www.f5.com/company/blog/nginx/from-openapi-to-nginx-as-an-api-gateway-using-a-declarative-api)
 
 ## Supported releases
 
@@ -133,7 +135,7 @@ end
 
 ## Input formats
 
-- [X] Declarative REST API
+- [X] Declarative JSON
 
 ## Output formats
 
