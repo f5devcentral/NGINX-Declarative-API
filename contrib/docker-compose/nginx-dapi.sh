@@ -10,11 +10,12 @@ This script is used to deploy/undeploy NGINX Declarative API using docker-compos
 $0 [options]\n\n
 === Options:\n\n
 -h\t\t\t\t- This help\n
--c [start|stop|restart]\t- Deployment command\n\n
+-c [start|stop|restart|build]\t- Deployment command\n\n
 === Examples:\n\n
-Deploy NGINX DAPI :\t$0 -c start\n
-Remove NGINX DAPI :\t$0 -c stop\n
-Restart NGINX DAPI:\t$0 -c restart\n
+Deploy NGINX DAPI  :\t$0 -c start\n
+Remove NGINX DAPI  :\t$0 -c stop\n
+Restart NGINX DAPI :\t$0 -c restart\n
+Build docker images:\t$0 -c build\n
 "
 
 echo -e $BANNER 2>&1
@@ -53,6 +54,20 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 }
 
 #
+# NGINX Declarative API removal
+#
+nginx_dapi_build() {
+
+# Docker compose variables
+USERNAME=`whoami`
+export USERID=`id -u $USERNAME`
+export USERGROUP=`id -g $USERNAME`
+
+echo "-> Building NGINX Declarative API Docker images"
+COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML build
+}
+
+#
 # NGINX Declarative API restart
 #
 nginx_dapi_restart() {
@@ -79,7 +94,7 @@ do
         esac
 done
 
-if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|restart) ]] 
+if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|restart|build) ]] 
 then
 	usage
 fi
@@ -93,5 +108,8 @@ case "$ACTION" in
         ;;
     restart)
         nginx_dapi_restart
+        ;;
+    build)
+        nginx_dapi_build
         ;;
 esac

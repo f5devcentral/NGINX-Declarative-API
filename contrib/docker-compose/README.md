@@ -19,13 +19,14 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
  === Options:
 
  -h                             - This help
- -c [start|stop|restart]        - Deployment command
+ -c [start|stop|restart|build]  - Deployment command
 
  === Examples:
 
  Deploy NGINX DAPI :    ./nginx-dapi.sh -c start
  Remove NGINX DAPI :    ./nginx-dapi.sh -c stop
- Restart NGINX DAPI:    ./nginx-dapi.sh -c restart
+ Restart NGINX DAPI :   ./nginx-dapi.sh -c restart
+ Build docker images:   ./nginx-dapi.sh -c build
 ```
 
 ## How to deploy
@@ -88,4 +89,21 @@ $ ./nginx-dapi.sh -c restart
  ✔ Container devportal         Started 
  ✔ Container redis             Started 
  ✔ Container nginx-dapi        Started
+```
+
+Building NGINX Declarative API docker images:
+
+```
+$ ./nginx-dapi.sh -c build
+-> Building NGINX Declarative API Docker images
+[+] Building 3.6s (24/24) FINISHED
+[...]
+ => => exporting layers
+ => => writing image sha256:e1bd3cf9965a015161847038a13e4df319bf5a2771ecfd0d1b5e9a9b3d404053
+ => => naming to docker.io/library/nginx-declarative-api-devportal
+
+$ docker images
+REPOSITORY                        TAG       IMAGE ID       CREATED          SIZE
+nginx-declarative-api             latest    0d76c5a4338b   1 minutes ago    168MB
+nginx-declarative-api-devportal   latest    e1bd3cf9965a   1 minutes ago    669MB
 ```
