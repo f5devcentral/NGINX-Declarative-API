@@ -16,8 +16,6 @@ services:
       - redis_data:/data:rw
 
   devportal:
-    # Pre-built image
-    #image: fiorucci/nginx-declarative-api-devportal:latest
     image: nginx-declarative-api-devportal
     build:
       context: ../devportal/redocly
@@ -31,8 +29,6 @@ services:
       - dapi-network
 
   nginx-dapi:
-    # Pre-built image
-    #image: fiorucci/nginx-declarative-api:latest
     image: nginx-declarative-api
     build:
       context: ../../
