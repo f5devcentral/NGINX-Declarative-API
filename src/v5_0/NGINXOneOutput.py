@@ -247,7 +247,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             jsonResponse = checkJson['status_reasons'][0]
             deploymentCheck.status_code = 422
         else:
-            # Staged config publish to NIM succeeded
+            # Staged config publish to NGINX One succeeded
             jsonResponse = json.loads(deploymentCheck.text)
 
             # if nmsSynctime > 0 and runfromautosync == False:
@@ -309,7 +309,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
         return {"status_code": deploymentCheck.status_code,
-                "message": {"status_code": deploymentCheck.status_code,
-                            "message": responseContent},
-                "headers": {'Content-Type': 'application/json'}
-                }
+            "message": {"status_code": deploymentCheck.status_code,
+                        "message": responseContent},
+            "headers": {'Content-Type': 'application/json'}
+            }

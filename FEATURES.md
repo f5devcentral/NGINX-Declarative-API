@@ -2,21 +2,21 @@
 
 ### NGINX `http` and `stream` servers
 
-| Feature                    | API v4.2 | API v5.0 | Notes                                                                                                                                                                         |
-|----------------------------|----------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                  |
-| HTTP servers               | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                 |
-| TCP/UDP servers            | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                           |
-| TLS                        | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                |
-| Client authentication      | X        | X        | See [client authentication](#Client-authentication)                                                                                                                           |
-| Upstream authentication    | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                       |
-| Rate limiting              | X        | X        |                                                                                                                                                                               |
-| Active healthchecks        | X        | X        |                                                                                                                                                                               |
-| Cookie-based stickiness    | X        | X        |                                                                                                                                                                               |
-| HTTP headers manipulation  | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                       |
-| Maps                       | X        | X        |                                                                                                                                                                               |
-| NGINX Plus REST API access | X        | X        |                                                                                                                                                                               |
-| NGINX App Protect WAF      | X        | X        | <li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Feature                    | API v4.2 | API v5.0 | Notes                                                                                                                                                                                                               |
+|----------------------------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                        |
+| HTTP servers               | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                       |
+| TCP/UDP servers            | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                                 |
+| TLS                        | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                                                      |
+| Client authentication      | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                                 |
+| Upstream authentication    | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
+| Rate limiting              | X        | X        |                                                                                                                                                                                                                     |
+| Active healthchecks        | X        | X        |                                                                                                                                                                                                                     |
+| Cookie-based stickiness    | X        | X        |                                                                                                                                                                                                                     |
+| HTTP headers manipulation  | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
+| Maps                       | X        | X        |                                                                                                                                                                                                                     |
+| NGINX Plus REST API access | X        | X        |                                                                                                                                                                                                                     |
+| NGINX App Protect WAF      | X        | X        | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### API Gateway
 
@@ -30,10 +30,10 @@
 
 ### API Gateway - Developer Portal
 
-| Feature                             | API v4.2 | API v5.0  | Notes |
-|-------------------------------------|----------|-----------|-------|
-| Redocly-based developer portal      | X        | X         |       |
-| Backstage.io-based developer portal |          | X         |       |
+| Feature             | API v4.2 | API v5.0  | Notes |
+|---------------------|----------|-----------|-------|
+| Redocly-based       | X        | X         |       |
+| Backstage.io-based  |          | X         |       |
 
 ### Client authentication
 

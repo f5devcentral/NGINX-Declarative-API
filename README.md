@@ -17,7 +17,7 @@ Use cases include:
 - API Developer portals zero-touch deployment
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
-  - TLS certificates, keys and chains/bundles (NGINX Instance Manager only)
+  - TLS certificates, keys and chains/bundles
   - mTLS certificates
   - `http` snippets, upstreams, servers, locations
   - `stream` snippets, upstreams, servers
