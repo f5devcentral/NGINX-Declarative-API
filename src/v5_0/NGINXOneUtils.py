@@ -10,8 +10,6 @@ import json
 # Return None if not found
 def getClusterId(nOneUrl: str, nOneToken: str, nameSpace: str, clusterName: str):
     # Retrieve instance group uid
-    print(f"URL {nOneUrl} namespace {nameSpace} cluster {clusterName} token {nOneToken}")
-
     cluster = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/clusters',
                       verify=False, headers = {"Authorization": f"Bearer {nOneToken}"})
 
