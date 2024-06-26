@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "5.0"
+version = "5.1"
 url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
@@ -34,13 +34,13 @@ port = 5000
 host = "redis"
 port = 6379
 
-# Devportal helper
+# Redocly devportal helper
 [devportal]
 host = "devportal"
 port = 5000
 uri = "/v1/devportal"
 
-# Staged configuration for NGINX Instance Manager
+# Staged configuration directories
 [nms]
 nginx_conf = '/etc/nginx/nginx.conf'
 config_dir = '/etc/nginx'
@@ -62,9 +62,6 @@ nap_logformats_template = "logformat.tmpl"
 nap_policies_dir_pum = '/etc/nms'
 nap_logformats_dir_pum = '/etc/nms'
 
-# NGINX Instance Manager staged configuration filenames
+# Staged configuration filenames
 staged_config_http_filename = 'conf.d/services.conf'
 staged_config_stream_filename = 'stream-conf.d/services.conf'
-
-# Authentication configuration files root
-auth_config_files = 'conf.d/auth'

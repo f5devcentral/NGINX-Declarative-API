@@ -154,6 +154,7 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
+- [API v5.1](/USAGE-v5.1.md) - development
 - [API v5.0](/USAGE-v5.0.md) - latest
 - [API v4.2](/USAGE-v4.2.md)
 
@@ -165,27 +166,15 @@ Docker-compose is the recommended method to run NGINX Declarative API on a Linux
 
 ## Building Docker images
 
-Docker images can be built and run using:
-
-    git clone https://github.com/f5devcentral/NGINX-Declarative-API
-
-    cd NGINX-Declarative-API
-    docker build --no-cache -t nginx-declarative-api -f ./Dockerfile .
-    docker run --name nginx-declarative-api -d -p 5000:5000 nginx-declarative-api
-
-    cd contrib/redocly/devportal
-    docker build --no-cache -t nginx-declarative-api-devportal .
-    docker run --name devportal -d -p 5001:5000 nginx-declarative-api-devportal
-
-Configuration can be customized mounting `config.toml` as a volume `nginx-declarative-api` docker image as a volume to customize 
+Docker images can be built and run using the Docker compose [script](/contrib/docker-compose) provided
 
 ## REST API documentation
 
 When NGINX Declarative API is running, REST API documentation can be accessed at:
 
-- Documentation and testing: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/docs`
-- Redoc documentation: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/redoc`
-- OpenAPI specification: `http://<NGINX_DECLARATIVE_API_ADDRESS>:5000/openapi.json`
+- Documentation and testing: `/docs`
+- Redoc documentation: `/redoc`
+- OpenAPI specification: `/openapi.json`
 
 ## License
 
@@ -193,7 +182,7 @@ This repository is licensed under the Apache License, Version 2.0. You are free 
 
 ## Support
 
-See [Support](/SUPPORT.md)
+For support, please open a GitHub issue. Note that the code in this repository is community supported.
 
 ## Contributing
 
