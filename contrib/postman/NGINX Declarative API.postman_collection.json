@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b52277b6-16ba-4107-a35c-828e53dc3e5d",
+		"_postman_id": "7ed83a69-51c5-477d-ad85-eb9c22ef6664",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -5323,9 +5323,9 @@
 														"exec": [
 															"var respData = JSON.parse(responseBody);",
 															"",
-															"tests[\"configUid is: \" +respData.details.message.configUid] = respData.details.message.configUid;",
+															"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
 															"",
-															"pm.collectionVariables.set('configUid',respData.details.message.configUid);"
+															"pm.collectionVariables.set('configUid',respData.configUid);"
 														],
 														"type": "text/javascript",
 														"packages": {}
@@ -8623,9 +8623,9 @@
 														"exec": [
 															"var respData = JSON.parse(responseBody);",
 															"",
-															"tests[\"configUid is: \" +respData.details.message.configUid] = respData.details.message.configUid;",
+															"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
 															"",
-															"pm.collectionVariables.set('configUid',respData.details.message.configUid);"
+															"pm.collectionVariables.set('configUid',respData.configUid);"
 														],
 														"type": "text/javascript",
 														"packages": {}
@@ -8939,17 +8939,17 @@
 		},
 		{
 			"key": "ngc_api_version",
-			"value": "v5.1",
+			"value": "v5.0",
 			"type": "string"
 		},
 		{
 			"key": "nginxone_url",
-			"value": "https://TENANT.volterra.us",
+			"value": "https://nginxone-team.staging.volterra.us",
 			"type": "string"
 		},
 		{
 			"key": "nginxone_token",
-			"value": "APIToken AUTH_TOKEN",
+			"value": "APIToken wohrRCROHmXgXyMFG5MHxOGgAhM=",
 			"type": "string"
 		},
 		{

@@ -315,7 +315,7 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
             NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
         return {"status_code": deploymentCheck.status_code,
-                "message": {"status_code": deploymentCheck.status_code,
-                            "message": responseContent},
-                "headers": {'Content-Type': 'application/json'}
-                }
+            "message": {"status_code": deploymentCheck.status_code,
+                        "message": responseContent},
+            "headers": {'Content-Type': 'application/json'}
+            }

@@ -222,7 +222,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         if r.status_code != 202:
             # Configuration push failed
             return {"status_code": r.status_code,
-                    "message": {"status_code": r.status_code, "message": r.text},
+                    "message": {"status_code": r.status_code, "message": json.loads(r.text)},
                     "headers": {'Content-Type': 'application/json'}}
 
         # Fetch the deployment status
