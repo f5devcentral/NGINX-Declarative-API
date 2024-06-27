@@ -88,7 +88,7 @@ def post_config_v5_0(d: V5_0_NginxConfigDeclaration.ConfigDeclaration, response:
 # Submit declaration using v5.1 API
 @app.post("/v5.1/config", status_code=200, response_class=PlainTextResponse)
 def post_config_v5_1(d: V5_1_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    output = V5_1_CreateConfig.createconfig(declaration=d, apiversion='v5.0')
+    output = V5_1_CreateConfig.createconfig(declaration=d, apiversion='v5.1')
 
     if type(output) in [Response, str]:
         # ConfigMap or plaintext response
@@ -122,7 +122,7 @@ def patch_config_v5_0(d: V5_0_NginxConfigDeclaration.ConfigDeclaration, response
 # Modify declaration using v5.1 API
 @app.patch("/v5.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_1(d: V5_1_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    return V5_1_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.0')
+    return V5_1_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.1')
 
 
 # Get declaration - v4.2 API

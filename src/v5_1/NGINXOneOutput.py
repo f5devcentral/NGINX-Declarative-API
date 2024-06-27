@@ -216,7 +216,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         ### Publish staged config to instance group
         r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/clusters/{igUid}/config',
                           data=json.dumps(stagedConfig),
-                          headers={'Content-Type': 'application/json', "Authorization": f"Bearer {nOneToken}"},
+                          headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"},
                           verify=False)
 
         if r.status_code != 202:
@@ -234,7 +234,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         while isPending:
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
             deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/clusters/{igUid}/publications/{publication_id}',
-                                           headers={"Authorization": f"Bearer {nOneToken}"},
+                                           headers={"Authorization": f"Bearer APIToken {nOneToken}"},
                                            verify=False)
 
             checkJson = json.loads(deploymentCheck.text)
