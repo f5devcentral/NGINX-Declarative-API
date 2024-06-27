@@ -22,5 +22,6 @@ Thumbs.db
 /src/__pycache__/
 /src/v4_2/__pycache__/
 /src/v5_0/__pycache__/
+/src/v5_1/__pycache__/
 /contrib/devportal/redocly/src/__pycache__/
 /venv/
