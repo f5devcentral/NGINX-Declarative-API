@@ -591,11 +591,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  runfromautosync = runfromautosync, configUid = configUid )
 
         if finalReply['status_code'] == 200:
-            if 'message' not in finalReply['message']:
-                finalReply['message']['message'] = {}
-            if 'content' not in finalReply['message']['message']:
-                finalReply['message']['message']['content'] = {}
-
             finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
