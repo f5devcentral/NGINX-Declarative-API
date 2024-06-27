@@ -162,7 +162,7 @@ A sample Postman collection and usage instructions can be found [here](/contrib/
 
 ## How to run
 
-Docker-compose is the recommended method to run NGINX Declarative API on a Linux virtual machine. Full details are available [here](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/docker-compose)
+NGINX Declarative API can be deployed on a Linux virtual machine using [docker-compose](/contrib/docker-compose) or on [Kubernetes](/contrib/kubernetes)
 
 ## Building Docker images
 

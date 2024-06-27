@@ -11,7 +11,7 @@ import json
 def getClusterId(nOneUrl: str, nOneToken: str, nameSpace: str, clusterName: str):
     # Retrieve instance group uid
     cluster = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/clusters',
-                      verify=False, headers = {"Authorization": f"Bearer {nOneToken}"})
+                      verify=False, headers = {"Authorization": f"Bearer APIToken {nOneToken}"})
 
     if cluster.status_code != 200:
         return cluster.status_code, "NGINX One authorization failed"
