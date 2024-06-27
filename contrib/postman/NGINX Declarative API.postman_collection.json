@@ -8944,12 +8944,12 @@
 		},
 		{
 			"key": "nginxone_url",
-			"value": "https://nginxone-team.staging.volterra.us",
+			"value": "https://TENANT.volterra.us",
 			"type": "string"
 		},
 		{
 			"key": "nginxone_token",
-			"value": "APIToken wohrRCROHmXgXyMFG5MHxOGgAhM=",
+			"value": "APIToken AUTH_TOKEN",
 			"type": "string"
 		},
 		{

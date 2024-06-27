@@ -229,7 +229,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         publishResponse = json.loads(r.text)
         publication_id = publishResponse['object_id']
 
-        # Wait for either NIM success or failure after pushing a staged config
+        # Wait for either NGINX One Cloud Console success or failure after pushing a staged config
         isPending = True
         while isPending:
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
