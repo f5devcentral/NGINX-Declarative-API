@@ -8629,9 +8629,9 @@
 														"exec": [
 															"var respData = JSON.parse(responseBody);",
 															"",
-															"tests[\"configUid is: \" +respData.details.message.configUid] = respData.details.message.configUid;",
+															"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
 															"",
-															"pm.collectionVariables.set('configUid',respData.details.message.configUid);"
+															"pm.collectionVariables.set('configUid',respData.configUid);"
 														],
 														"type": "text/javascript",
 														"packages": {}
@@ -8675,9 +8675,9 @@
 														"exec": [
 															"var respData = JSON.parse(responseBody);",
 															"",
-															"tests[\"configUid is: \" +respData.details.message.configUid] = respData.details.message.configUid;",
+															"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
 															"",
-															"pm.collectionVariables.set('configUid',respData.details.message.configUid);"
+															"pm.collectionVariables.set('configUid',respData.configUid);"
 														],
 														"type": "text/javascript",
 														"packages": {}
@@ -8945,7 +8945,7 @@
 		},
 		{
 			"key": "ngc_api_version",
-			"value": "v5.0",
+			"value": "v5.1",
 			"type": "string"
 		},
 		{

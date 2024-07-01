@@ -144,7 +144,7 @@ def checkDeclarationPolicies(declaration: dict):
     return 200, ""
 
 
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Management Suite
+# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
 # Returns a tuple with two dictionaries: all_policy_names_and_versions, all_policy_active_names_and_uids
 def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
@@ -240,7 +240,7 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
     return doWeHavePolicies
 
 
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Management Suite
+# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
 # Returns a tuple: status, response payload
 def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict):
@@ -267,3 +267,23 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
 
     return
+
+
+# Compile a NGINX App Protect policy and optional user-defined signatures using NGINX App Protect 5 compiler
+# https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/
+#
+# Global settings:
+# {
+#    "waf-settings": {
+#      "cookie-protection": {
+#         "seed": "80miIOiSeXfvNBiDJV4t"
+#      },
+#      "user-defined-signatures": [
+#        {
+#          "$ref": "file:///policies/uds.json"
+#        }
+#      ]
+#    }
+# }
+def compilePolicy(b64napPolicy: str, b64signatures: str):
+    pass

@@ -40,6 +40,11 @@ host = "devportal"
 port = 5000
 uri = "/v1/devportal"
 
+# NGINX App Protect
+[nap]
+compiler_host = "nap-compiler"
+compiler_port = 5000
+
 # Staged configuration directories
 [nms]
 nginx_conf = '/etc/nginx/nginx.conf'
