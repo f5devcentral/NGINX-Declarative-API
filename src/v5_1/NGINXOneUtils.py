@@ -8,13 +8,16 @@ import json
 
 # Fetch a cluster ID from NGINX One
 # Return None if not found
-def getClusterId(nOneUrl: str, nOneToken: str, nameSpace: str, configSyncGroupName: str):
+def getConfigSyncGroupId(nOneUrl: str, nOneToken: str, nameSpace: str, configSyncGroupName: str):
     # Retrieve instance group uid
     cluster = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/clusters',
                       verify=False, headers = {"Authorization": f"Bearer APIToken {nOneToken}"})
 
     if cluster.status_code != 200:
-        return cluster.status_code, "NGINX One authorization failed"
+        if cluster.status_code == 401:
+            return cluster.status_code, "NGINX One authentication failed"
+        else:
+            return cluster.status_code, cluster.text
 
     # Get the instance group id
     igUid = None

@@ -1,6 +1,6 @@
 # REST API for NGINX App Protect WAF Compiler
 
-This contrib provides a set of REST API to use the NGINX App Protect policy compiler
+This contrib provides a set of REST API to use the NGINX App Protect 5 policy compiler
 
 ## REST API Endpoints
 
@@ -19,7 +19,3 @@ Headers required for all endpoints:
 ```
 Content-Type: application/json
 ```
-
-## Building the Docker image
-
-The docker image can be built using the [docker-compose](/contrib/docker-compose) script

@@ -44,6 +44,7 @@ uri = "/v1/devportal"
 [nap]
 compiler_host = "nap-compiler"
 compiler_port = 5000
+compiler_uri = "/v1/compile/policy"
 
 # Staged configuration directories
 [nms]

@@ -4,8 +4,11 @@ NGINX App Protect support functions
 
 import requests
 import json
+import base64
 
 import v5_1.GitOps
+
+from NcgConfig import NcgConfig
 
 from fastapi.responses import Response, JSONResponse
 
@@ -286,4 +289,26 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
 #    }
 # }
 def compilePolicy(b64napPolicy: str, b64signatures: str):
+    # f{NcgConfig.config['nap']['compiler_host']}:
+    # /v1/compile/policy
+
+    globalSettingsJson = {}
+    globalSettingsJson['waf-settings'] = {}
+    globalSettingsJson['waf-settings']['cookie-protection'] = {}
+    globalSettingsJson['waf-settings']['cookie-protection']['seed'] = "80miIOiSeXfvNBiDJV4t"
+    globalSettingsJson['waf-settings']['user-defined-signatures'] = {}
+    globalSettingsJson['waf-settings']['user-defined-signatures']['$ref'] = b64signatures
+
+    b64GlobalSettings = base64.b64encode(bytes(globalSettingsJson, 'utf-8')).decode('utf-8')
+
+    try:
+        # {"global-settings": "<BASE64_ENCODED_GLOBAL_SETTINGS_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>"}
+        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:"
+                                 f"{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
+                                 headers={'Content-Type': 'application/json'}, data=f'{"global-settings": "{b64GlobalSettings}", "policy": "{b64napPolicy}"}')
+
+        print(f"Response {response.status_code} Output {response.text}")
+    except Exception as e:
+        return 400, ""
+
     pass
