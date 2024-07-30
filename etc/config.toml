@@ -42,6 +42,7 @@ uri = "/v1/devportal"
 
 # NGINX App Protect
 [nap]
+cookie_protection_seed = "tBjtd3WXKqoKp27pfEBc"
 compiler_host = "nap-compiler"
 compiler_port = 5000
 compiler_uri = "/v1/compile/policy"

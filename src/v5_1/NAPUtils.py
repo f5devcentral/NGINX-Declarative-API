@@ -288,14 +288,14 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
 #      ]
 #    }
 # }
-def compilePolicy(b64napPolicy: str, b64signatures: str):
-    # f{NcgConfig.config['nap']['compiler_host']}:
-    # /v1/compile/policy
+def compilePolicy(napPolicy: str, signatures: str):
+    b64napPolicy = base64.b64encode(bytes(napPolicy, 'utf-8')).decode('utf-8')
+    b64signatures = base64.b64encode(bytes(signatures, 'utf-8')).decode('utf-8')
 
     globalSettingsJson = {}
     globalSettingsJson['waf-settings'] = {}
     globalSettingsJson['waf-settings']['cookie-protection'] = {}
-    globalSettingsJson['waf-settings']['cookie-protection']['seed'] = "80miIOiSeXfvNBiDJV4t"
+    globalSettingsJson['waf-settings']['cookie-protection']['seed'] = NcgConfig.config['nap']['cookie_protection_seed']
     globalSettingsJson['waf-settings']['user-defined-signatures'] = {}
     globalSettingsJson['waf-settings']['user-defined-signatures']['$ref'] = b64signatures
 
