@@ -2,45 +2,45 @@
 
 ### NGINX `http` and `stream` servers
 
-| Feature                    | API v4.2 | API v5.0 | Notes                                                                                                                                                                                                               |
-|----------------------------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                        |
-| HTTP servers               | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                       |
-| TCP/UDP servers            | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                                 |
-| TLS                        | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                                                      |
-| Client authentication      | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                                 |
-| Upstream authentication    | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
-| Rate limiting              | X        | X        |                                                                                                                                                                                                                     |
-| Active healthchecks        | X        | X        |                                                                                                                                                                                                                     |
-| Cookie-based stickiness    | X        | X        |                                                                                                                                                                                                                     |
-| HTTP headers manipulation  | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
-| Maps                       | X        | X        |                                                                                                                                                                                                                     |
-| NGINX Plus REST API access | X        | X        |                                                                                                                                                                                                                     |
-| NGINX App Protect WAF      | X        | X        | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Feature                    | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                                                             |
+|----------------------------|----------|----------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD     | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                      |
+| HTTP servers               | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                     |
+| TCP/UDP servers            | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                               |
+| TLS                        | CRUD     | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                                                    |
+| Client authentication      | X        | X        | CRUD     | See [client authentication](#Client-authentication)                                                                                                                                                               |
+| Upstream authentication    | X        | X        | CRUD     | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                   |
+| Rate limiting              | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| Active healthchecks        | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| Cookie-based stickiness    | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| HTTP headers manipulation  | X        | X        | CRUD     | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                           |
+| Maps                       | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| NGINX Plus REST API access | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| NGINX App Protect WAF      | X        | X        | CRUD     | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### API Gateway
 
-| Feature                                      | API v4.2 | API v5.0 | Notes                                                                         |
-|----------------------------------------------|----------|----------|-------------------------------------------------------------------------------|
-| Configuration generation from OpenAPI schema | X        | X        |                                                                               | 
-| HTTP methods enforcement                     | X        | X        |                                                                               |
-| per-URI rate limiting                        | X        | X        |                                                                               |
-| per-URI client authentication                | X        | X        | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |
-| per-URI client authorization                 | X        | X        | <li>JWT claims</li>                                                           |
+| Feature                                      | API v4.2 | API v5.0 | API v5.1                                                                      | Notes                                                                         |
+|----------------------------------------------|----------|----------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Configuration generation from OpenAPI schema | X        | X        | X                                                                             |                                                                               | 
+| HTTP methods enforcement                     | X        | X        | X                                                                             |                                                                               |
+| per-URI rate limiting                        | X        | X        | X                                                                             |                                                                               |
+| per-URI client authentication                | X        | X        | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |
+| per-URI client authorization                 | X        | X        | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           |
 
 ### API Gateway - Developer Portal
 
-| Feature             | API v4.2 | API v5.0  | Notes |
-|---------------------|----------|-----------|-------|
-| Redocly-based       | X        | X         |       |
-| Backstage.io-based  |          | X         |       |
+| Type          | API v4.2 | API v5.0  | API v5.1 | Notes |
+|---------------|----------|-----------|----------|-------|
+| Redocly       | X        | X         | X        |       |
+| Backstage.io  |          | X         | X        |       |
 
 ### Client authentication
 
-| Type | Description          | API v4.2 | API v5.0 | Notes                               |
-|------|----------------------|----------|----------|-------------------------------------|
-| jwt  | Java Web Token (JWT) | X        | X        |                                     |
-| mtls | Mutual TLS           | X        | X        | <li>Supported for HTTP servers</li> |
+| Type | Description          | API v4.2 | API v5.0 | API v5.1                            | Notes                               |
+|------|----------------------|----------|----------|-------------------------------------|-------------------------------------|
+| jwt  | Java Web Token (JWT) | X        | X        | X                                   |                                     |
+| mtls | Mutual TLS           | X        | X        | <li>Supported for HTTP servers</li> | <li>Supported for HTTP servers</li> |
 
 #### Examples
 
@@ -86,9 +86,9 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Client authorization
 
-| Type | Description          | API v4.2 | API v5.0 | Notes                                                                                                                                                                           |
-|------|----------------------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| jwt  | Java Web Token (JWT) | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li><li>.declaration.http.server[].location[].apigateway</li> |
+| Type | Description          | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                           |
+|------|----------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) | X        | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li><li>.declaration.http.server[].location[].apigateway</li> |
 
 #### Examples
 
@@ -116,12 +116,12 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 
 ### Upstream and Source of truth authentication
 
-| Type         | Description                                  | API v4.2 | API v5.0 | Notes                                                                                  |
-|--------------|----------------------------------------------|----------|----------|----------------------------------------------------------------------------------------|
-| Bearer token | Authentication token as Authorization Bearer | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
-| Basic Auth   | Authentication token as Authorization Basic  | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
-| HTTP header  | Authentication token in custom HTTP header   | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
-| mTLS         | Mutual TLS                                   | X        | X        | Client certificate is sent to upstream / source of truth                               |
+| Type         | Description                                  | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                  |
+|--------------|----------------------------------------------|----------|----------|----------|----------------------------------------------------------------------------------------|
+| Bearer token | Authentication token as Authorization Bearer | X        | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
+| Basic Auth   | Authentication token as Authorization Basic  | X        | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
+| HTTP header  | Authentication token in custom HTTP header   | X        | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
+| mTLS         | Mutual TLS                                   | X        | X        | X        | Client certificate is sent to upstream / source of truth                               |
 
 #### Examples
 
@@ -184,10 +184,10 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 
 ### HTTP Headers manipulation
 
-| Type                        | API v4.2 | API v5.0 | Notes                                                                                                                        |
-|-----------------------------|----------|---------|------------------------------------------------------------------------------------------------------------------------------|
-| Request (client to server)  | X        | X       | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
-| Response (server to client) | X        | X       | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
+| Type                        | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                        |
+|-----------------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| Request (client to server)  | X        | X        | X        | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
+| Response (server to client) | X        | X        | X        | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
 
 #### Examples
 
@@ -233,14 +233,14 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
 
 ### NGINX Javascript
 
-| Hook type         | API v4.2 | API v5.0 | Notes                                                                                                                        |
-|-------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
-| js_body_filter    | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_content        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_header_filter  | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_periodic       | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_preload_object | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
-| js_set            | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
+| Hook type         | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                        |
+|-------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| js_body_filter    | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_content        | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_header_filter  | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_periodic       | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
+| js_preload_object | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
+| js_set            | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
 
 Note: `njs` profiles can be included in base64-encoded format under `.declaration.http.njs[]` of fetched from an external source of truth
 For detailed examples see the [Postman collection](/contrib/postman)

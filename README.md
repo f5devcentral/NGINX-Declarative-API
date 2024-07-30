@@ -11,7 +11,7 @@ GitOps integration is supported: source of truth is checked for updates (NGINX A
 Use cases include:
 
 - Rapid configuration generation and templating
-- CI/CD integration with NGINX Instance Manager (instance groups and staged configs) and NGINX One Cloud Console (clusters)
+- CI/CD integration with NGINX Instance Manager (instance group) and NGINX One Cloud Console (config sync group)
 - NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
 - API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment
@@ -124,7 +124,7 @@ critical If Developer Portal enabled
 end
 end
 
-NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One: Publish staged config to instance group / cluster
+NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One: Publish staged config to instance group / config sync group
 NGINX Instance Manager / NGINX One ->> NGINX: Publish config to NGINX instances
 NGINX Instance Manager / NGINX One ->>- NGINX Declarative API Core: Publish outcome
 
@@ -143,8 +143,8 @@ end
 - [X] JSON-wrapped Base64-encoded
 - [X] Kubernetes Configmap
 - [X] POST to Generic REST API endpoint
-- [X] Output to NGINX Instance Manager 2.14+ imperative REST API (NGINX instance groups)
-- [X] Output to NGINX One Cloud Console REST API (NGINX clusters)
+- [X] Output to NGINX Instance Manager 2.14+ imperative REST API (instance group)
+- [X] Output to NGINX One Cloud Console REST API (config sync group)
   
 ## Supported features
 

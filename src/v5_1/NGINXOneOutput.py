@@ -187,7 +187,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
         # Get the instance group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
         returnCode, igUid = v5_1.NGINXOneUtils.getClusterId(nOneUrl = nOneUrl, nOneToken = nOneToken,
-                                                nameSpace = nOneNamespace, clusterName = nOneCluster)
+                                                nameSpace = nOneNamespace, configSyncGroupName = nOneCluster)
 
         # Invalid instance group
         if returnCode != 200:
