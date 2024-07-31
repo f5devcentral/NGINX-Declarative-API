@@ -38,11 +38,11 @@ globalSettings = {
 
 
 #
-# Payload format: {"user-signatures": "<BASE64_ENCODED_USER_SIGNATURES_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>"}
+# Payload format: {"user-signatures": "<BASE64_ENCODED_USER_SIGNATURES_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>", "cookie-protection-seed": "<SEED_VALUE>"}
 #
 @app.post("/v1/compile/policy", status_code=200, response_class=JSONResponse)
 def v1_compile_policy(response: Response, request: JSONStructure = None):
-    if request:
+    if request and 'policy' in request and 'user-signatures' in request and 'cookie-protection-seed' in request:
         try:
             sessionUUID = uuid.uuid4()
             napPolicy = base64.b64decode(request['policy']).decode()
@@ -50,7 +50,7 @@ def v1_compile_policy(response: Response, request: JSONStructure = None):
 
             tmpFileBase = f"/tmp/{sessionUUID}"
 
-            globalSettings['waf-settings']['cookie-protection']['seed'] = str(int(random.random()*100000000000000))
+            globalSettings['waf-settings']['cookie-protection']['seed'] = request['cookie-protection-seed']
             globalSettings['waf-settings']['user-defined-signatures'][0]['$ref'] = f"file://{tmpFileBase}.uds.json"
 
             tmpFileGlobalSettings = f"{tmpFileBase}.globalsettings.json"
@@ -77,7 +77,7 @@ def v1_compile_policy(response: Response, request: JSONStructure = None):
 
             return JSONResponse (content={'status': 'success','message': json.loads(output.decode()), 'policy': json.loads(napPolicy), 'bundle': f'{napBundle.decode()}'}, status_code=200)
         except subprocess.CalledProcessError as e:
-            return JSONResponse (content={'status': str(e), 'message': output}, status_code=400)
+            return JSONResponse (content={'status': 422, 'message': str(e)}, status_code=400)
         finally:
             files = [tmpFileGlobalSettings, tmpFilePolicy, tmpFileBundle, tmpFileUserSigs]
             for f in files:

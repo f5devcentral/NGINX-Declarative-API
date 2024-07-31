@@ -25,6 +25,7 @@ import V5_0_NginxConfigDeclaration
 import V5_1_CreateConfig
 import V5_1_NginxConfigDeclaration
 
+
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 

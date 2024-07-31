@@ -288,27 +288,22 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
 #      ]
 #    }
 # }
-def compilePolicy(napPolicy: str, signatures: str):
+def compilePolicy(napPolicy: str, customSignatures: str):
     b64napPolicy = base64.b64encode(bytes(napPolicy, 'utf-8')).decode('utf-8')
-    b64signatures = base64.b64encode(bytes(signatures, 'utf-8')).decode('utf-8')
+    b64customSignatures = base64.b64encode(bytes(customSignatures, 'utf-8')).decode('utf-8')
+    cookieProtectionSeed = NcgConfig.config['nap']['cookie_protection_seed']
 
-    globalSettingsJson = {}
-    globalSettingsJson['waf-settings'] = {}
-    globalSettingsJson['waf-settings']['cookie-protection'] = {}
-    globalSettingsJson['waf-settings']['cookie-protection']['seed'] = NcgConfig.config['nap']['cookie_protection_seed']
-    globalSettingsJson['waf-settings']['user-defined-signatures'] = {}
-    globalSettingsJson['waf-settings']['user-defined-signatures']['$ref'] = b64signatures
+    payload = {}
+    payload['user-signatures'] = b64customSignatures
+    payload['policy'] = b64napPolicy
+    payload['cookie-protection-seed'] = cookieProtectionSeed
 
-    b64GlobalSettings = base64.b64encode(bytes(globalSettingsJson, 'utf-8')).decode('utf-8')
+    print(f"PAYLOAD {payload}")
 
     try:
-        # {"global-settings": "<BASE64_ENCODED_GLOBAL_SETTINGS_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>"}
-        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:"
-                                 f"{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
-                                 headers={'Content-Type': 'application/json'}, data=f'{"global-settings": "{b64GlobalSettings}", "policy": "{b64napPolicy}"}')
-
-        print(f"Response {response.status_code} Output {response.text}")
+        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
+                                 headers={'Content-Type': 'application/json'}, data=json.dumps(payload))
     except Exception as e:
-        return 400, ""
+        return 400, str(e)
 
-    pass
+    return response

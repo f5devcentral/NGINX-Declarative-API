@@ -6,7 +6,7 @@ This contrib provides a set of REST API to use the NGINX App Protect 5 policy co
 
 - `/v1/compile/policy` - compiles a JSON policy into a bundle
   - Method: `POST`
-  - Payload: `{"global-settings": "<BASE64_ENCODED_GLOBAL_SETTINGS_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>"}`
+  - Payload: `{"global-settings": "<BASE64_ENCODED_GLOBAL_SETTINGS_JSON>", "policy": "<BASE64_ENCODED_POLICY_JSON>", "cookie-protection-seed": "<SEED_VALUE>"}`
 - `/v1/compile/logprofile` - compiles a log profile JSON into a bundle
   - Method: `POST`
   - Payload: `{"logprofile": "<BASE64_ENCODED_LOG_PROFILE_JSON>"}`
