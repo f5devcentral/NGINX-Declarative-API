@@ -9,19 +9,19 @@ import json
 # Fetch a cluster ID from NGINX One
 # Return None if not found
 def getConfigSyncGroupId(nOneUrl: str, nOneToken: str, nameSpace: str, configSyncGroupName: str):
-    # Retrieve instance group uid
-    cluster = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/clusters',
+    # Retrieve config sync group uid
+    cSyncGroup = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/clusters',
                       verify=False, headers = {"Authorization": f"Bearer APIToken {nOneToken}"})
 
-    if cluster.status_code != 200:
-        if cluster.status_code == 401:
-            return cluster.status_code, "NGINX One authentication failed"
+    if cSyncGroup.status_code != 200:
+        if cSyncGroup.status_code == 401:
+            return cSyncGroup.status_code, "NGINX One authentication failed"
         else:
-            return cluster.status_code, cluster.text
+            return cSyncGroup.status_code, f"Error fetching config sync group uid: {cSyncGroup.text}"
 
     # Get the instance group id
     igUid = None
-    igJson = json.loads(cluster.text)
+    igJson = json.loads(cSyncGroup.text)
     for i in igJson['items']:
         if i['name'] == configSyncGroupName:
             igUid = i['object_id']
