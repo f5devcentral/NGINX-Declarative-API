@@ -803,17 +803,17 @@ class DevPortal_Backstage(BaseModel, extra="forbid"):
       
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
-    type: str
+    type: str = ""
     redocly: Optional[DevPortal_Redocly] = {}
     backstage: Optional[DevPortal_Backstage] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'DeveloperPortal':
-        _type, _redocly, _backstage = self.type, self.redocly, self.backstage
+        _enabled, _type, _redocly, _backstage = self.enabled, self.type, self.redocly, self.backstage
 
         valid = ['redocly', 'backstage']
 
-        if _type not in valid:
+        if _enabled == True and _type not in valid:
             raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
 
         isError = False

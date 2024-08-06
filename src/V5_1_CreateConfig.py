@@ -120,8 +120,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
         if 'upstreams' in http:
             for i in range(len(http['upstreams'])):
-
                 upstream = http['upstreams'][i]
+
                 if upstream['resolver'] and upstream['resolver']  not in all_resolver_profiles:
                     return {"status_code": 422,
                             "message": {"status_code": status, "message":
@@ -136,6 +136,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
+                # Add the rendered upstream configuration snippet as a config file in the staged configuration
+                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-http.tmpl"
+                renderedUpstreamProfile = j2_env.get_template(templateName).render(
+                    u=upstream, ncgconfig=NcgConfig.config)
+
+                b64renderedUpstreamProfile = base64.b64encode(bytes(renderedUpstreamProfile, 'utf-8')).decode(
+                    'utf-8')
+                configFileName = NcgConfig.config['nms']['upstream_dir'] + '/' + upstream['name'].replace(' ', '_') + ".conf"
+                upstreamProfileConfigFile = {'contents': b64renderedUpstreamProfile,
+                                         'name': configFileName}
+
+                auxFiles['files'].append(upstreamProfileConfigFile)
                 all_upstreams.append(http['upstreams'][i]['name'])
 
         # Check HTTP rate_limit profiles validity
@@ -454,9 +466,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     # API Gateway Developer portal provisioning
                     if loc['apigateway'] and loc['apigateway']['developer_portal'] and 'enabled' in loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] == True:
 
-                        ### Redocly developer portal - Add optional API Developer portal HTML files
-                        # devPortalHTML
                         if loc['apigateway']['developer_portal']['type'].lower() == 'redocly':
+                            ### Redocly developer portal - Add optional API Developer portal HTML files
                             status, devPortalHTML = v5_1.DevPortal.createDevPortal(locationDeclaration=loc,
                                                                                    authProfiles=
                                                                                    d['declaration']['http'][
@@ -472,11 +483,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                                loc['apigateway']['developer_portal']['redocly']['uri']}
                             auxFiles['files'].append(newAuxFile)
 
-                        ### / Redocly developer portal - Add optional API Developer portal HTML files
-
-                        ### Backstage developer portal - Create Kubernetes Backstage manifest
-                        # devPortalHTML
-                        if loc['apigateway']['developer_portal']['type'].lower() == 'backstage':
+                        elif loc['apigateway']['developer_portal']['type'].lower() == 'backstage':
+                            ### Backstage developer portal - Create Kubernetes Backstage manifest
                             backstageManifest = j2_env.get_template(f"{NcgConfig.config['templates']['devportal_root']}/backstage.tmpl").render(
                                 declaration=loc['apigateway']['developer_portal']['backstage'], openAPISchema = v5_1.MiscUtils.json_to_yaml(openAPISchemaJSON), ncgconfig=NcgConfig.config)
 

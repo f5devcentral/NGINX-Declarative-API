@@ -59,8 +59,8 @@ auth_client_dir = '/etc/nginx/authn/client'
 auth_server_dir = '/etc/nginx/authn/server'
 authz_client_dir = '/etc/nginx/authz/client'
 njs_dir = '/etc/nginx/njs'
-misc_dir = '/etc/nginx/misc'
-resolver_dir = '/etc/nginx/misc/resolvers'
+resolver_dir = '/etc/nginx/resolvers'
+upstream_dir = '/etc/nginx/upstreams'
 
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
