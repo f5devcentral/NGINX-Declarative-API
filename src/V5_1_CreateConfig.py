@@ -91,6 +91,29 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
             d['declaration']['http']['snippet'] = snippet
 
+        # Check resolver profiles validity and creates resolver config files
+        all_resolver_profiles = []
+
+        d_resolver_profiles = v5_1.MiscUtils.getDictKey(d, 'declaration.http.resolvers')
+        if d_resolver_profiles is not None:
+            # Render all resolver profiles
+            for i in range(len(d_resolver_profiles)):
+                resolver_profile = d_resolver_profiles[i]
+
+                # Add the rendered resolver configuration snippet as a config file in the staged configuration
+                templateName = NcgConfig.config['templates']['misc_root'] + "/resolver.tmpl"
+                renderedResolverProfile = j2_env.get_template(templateName).render(
+                    resolverprofile=resolver_profile, ncgconfig=NcgConfig.config)
+
+                b64renderedResolverProfile = base64.b64encode(bytes(renderedResolverProfile, 'utf-8')).decode(
+                    'utf-8')
+                configFileName = NcgConfig.config['nms']['resolver_dir'] + '/' + resolver_profile['name'].replace(' ', '_') + ".conf"
+                resolverProfileConfigFile = {'contents': b64renderedResolverProfile,
+                                         'name': configFileName}
+
+                all_resolver_profiles.append(resolver_profile['name'])
+                auxFiles['files'].append(resolverProfileConfigFile)
+
         # Check HTTP upstreams validity
         all_upstreams = []
         http = d['declaration']['http']
@@ -99,6 +122,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             for i in range(len(http['upstreams'])):
 
                 upstream = http['upstreams'][i]
+                if upstream['resolver'] and upstream['resolver']  not in all_resolver_profiles:
+                    return {"status_code": 422,
+                            "message": {"status_code": status, "message":
+                                {"code": status,
+                                 "content": f"invalid resolver profile [{upstream['resolver']}] in upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if upstream['snippet']:
                     status, snippet = v5_1.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
@@ -295,6 +323,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
             for server in d_servers:
                 serverSnippet = ''
 
+                # Server level resolver name validity check
+                if server['resolver']:
+                    if server['resolver'] not in all_resolver_profiles:
+                        return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid resolver profile [{server['resolver'] }] in server [{server['name']}], must be one of {all_resolver_profiles}"}}}
+
                 # Server level Javascript hooks
                 if server['njs']:
                     for i in range(len(server['njs'])):
@@ -448,6 +484,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         ### / Backstage developer portal - Create Kubernetes Backstage manifest
 
+                    # Check rate limit profile name validity
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
                             'profile'] not in all_ratelimits:

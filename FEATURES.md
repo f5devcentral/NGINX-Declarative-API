@@ -2,20 +2,20 @@
 
 ### NGINX `http` and `stream` servers
 
-| Feature                    | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                                                             |
-|----------------------------|----------|----------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD     | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                      |
-| HTTP servers               | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                     |
-| TCP/UDP servers            | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                               |
-| TLS                        | CRUD     | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                                                    |
-| Client authentication      | X        | X        | CRUD     | See [client authentication](#Client-authentication)                                                                                                                                                               |
-| Upstream authentication    | X        | X        | CRUD     | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                   |
-| Rate limiting              | X        | X        | CRUD     |                                                                                                                                                                                                                   |
-| Active healthchecks        | X        | X        | CRUD     |                                                                                                                                                                                                                   |
-| Cookie-based stickiness    | X        | X        | CRUD     |                                                                                                                                                                                                                   |
-| HTTP headers manipulation  | X        | X        | CRUD     | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                           |
-| Maps                       | X        | X        | CRUD     |                                                                                                                                                                                                                   |
-| NGINX Plus REST API access | X        | X        | CRUD     |                                                                                                                                                                                                                   |
+| Feature                    | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                                                               |
+|----------------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | CRUD     | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                        |
+| HTTP servers               | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                       |
+| TCP/UDP servers            | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                                 |
+| TLS                        | CRUD     | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                                     |
+| Client authentication      | X        | X        | CRUD     | See [client authentication](#Client-authentication)                                                                                                                                                                 |
+| Upstream authentication    | X        | X        | CRUD     | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
+| Rate limiting              | X        | X        | CRUD     |                                                                                                                                                                                                                     |
+| Active healthchecks        | X        | X        | CRUD     |                                                                                                                                                                                                                     |
+| Cookie-based stickiness    | X        | X        | CRUD     |                                                                                                                                                                                                                     |
+| HTTP headers manipulation  | X        | X        | CRUD     | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
+| Maps                       | X        | X        | CRUD     |                                                                                                                                                                                                                     |
+| NGINX Plus REST API access | X        | X        | CRUD     |                                                                                                                                                                                                                     |
 | NGINX App Protect WAF      | X        | X        | CRUD     | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### API Gateway
@@ -86,9 +86,9 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Client authorization
 
-| Type | Description          | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                           |
-|------|----------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| jwt  | Java Web Token (JWT) | X        | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.server[]</li><li>.declaration.http.server[].location[]</li><li>.declaration.http.server[].location[].apigateway</li> |
+| Type | Description          | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                              |
+|------|----------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| jwt  | Java Web Token (JWT) | X        | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
 
 #### Examples
 
@@ -235,12 +235,12 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
 
 | Hook type         | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                        |
 |-------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
-| js_body_filter    | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_content        | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_header_filter  | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_periodic       | X        | X        | X        | Available in <li>`declaration.http.server[].location[]`</li>                                                                 |
-| js_preload_object | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
-| js_set            | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.server[]`</li><li>`declaration.http.server[].location[]`</li> |
+| js_body_filter    | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
+| js_content        | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
+| js_header_filter  | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
+| js_periodic       | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
+| js_preload_object | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.servers[]`</li><li>`declaration.http.servers[].location[]`</li> |
+| js_set            | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.servers[]`</li><li>`declaration.http.servers[].location[]`</li> |
 
 Note: `njs` profiles can be included in base64-encoded format under `.declaration.http.njs[]` of fetched from an external source of truth
 For detailed examples see the [Postman collection](/contrib/postman)
@@ -274,7 +274,7 @@ For detailed examples see the [Postman collection](/contrib/postman)
 
 ```
 
-`njs` hook examples (under `.declaration.http`, `.declaration.http.server[]`, `.declaration.http.server[].location[]`):
+`njs` hook examples (under `.declaration.http`, `.declaration.http.servers[]`, `.declaration.http.servers[].location[]`):
 
 ```json
 "njs": [
@@ -382,4 +382,27 @@ Example hooks:
         "function": "<JAVASCRIPT_FUNCTION>"
     }
 ]
+```
+
+### DNS resolvers
+
+|                       | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                     |
+|-----------------------|----------|----------|----------|-------------------------------------------------------------------------------------------|
+| DNS resolver profiles |          |          | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreamw[]`</li> |
+
+#### Examples
+
+DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
+
+- DNS resolver profile:
+
+ ```json
+{
+    "name": "Google",
+    "address": "8.8.8.8",
+    "valid": "5s",
+    "ipv4": true,
+    "ipv6": false,
+    "timeout": "30s"
+}
 ```

@@ -564,6 +564,8 @@ class L4Origin(BaseModel, extra="forbid"):
 
 class Upstream(BaseModel, extra="forbid"):
     name: str
+    upstream: Optional[str] = ""
+    resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -663,6 +665,15 @@ class Layer4(BaseModel, extra="forbid"):
     upstreams: Optional[List[L4Upstream]] = []
 
 
+class Resolver(BaseModel, extra="forbid"):
+    name: str
+    address: str
+    valid: Optional[str] = ""
+    ipv4: bool = True
+    ipv6: bool = True
+    timeout: str = "30s"
+
+
 class Authentication_Client(BaseModel, extra="forbid"):
     name: str
     type: str
@@ -755,6 +766,7 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
+    resolvers: Optional[List[Resolver]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):

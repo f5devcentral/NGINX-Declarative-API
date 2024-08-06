@@ -63,6 +63,10 @@ upstream {{ u.name }} {
     sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
     {% endif -%}
 
+    {% if u.resolver -%}
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ u.resolver | replace(" ", "_") }}.conf";
+    {% endif -%}
+
     {% if u.snippet and u.snippet.content %}{{ u.snippet.content | b64decode }}{% endif %}
 
 }
@@ -171,10 +175,10 @@ server {
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
     status_zone {{ s.names[0] }};
     proxy_ssl_server_name on;
-    {% endif -%}
+    {% endif %}
 
     {% if s.resolver -%}
-    resolver {{ s.resolver }};
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ s.resolver | replace(" ", "_") }}.conf";
     {% endif -%}
 
     {# --- Server NGINX App Protect WAF section start --- #}

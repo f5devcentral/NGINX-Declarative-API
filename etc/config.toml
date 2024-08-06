@@ -23,6 +23,7 @@ auth_server_root = "authn/server"
 authz_client_root = "authz/client"
 
 devportal_root = "devportal"
+misc_root = "misc"
 
 # NGINX Declarative API Server
 [apiserver]
@@ -58,6 +59,8 @@ auth_client_dir = '/etc/nginx/authn/client'
 auth_server_dir = '/etc/nginx/authn/server'
 authz_client_dir = '/etc/nginx/authz/client'
 njs_dir = '/etc/nginx/njs'
+misc_dir = '/etc/nginx/misc'
+resolver_dir = '/etc/nginx/misc/resolvers'
 
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
