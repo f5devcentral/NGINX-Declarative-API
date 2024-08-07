@@ -386,9 +386,9 @@ Example hooks:
 
 ### DNS resolvers
 
-|                       | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                     |
-|-----------------------|----------|----------|----------|-------------------------------------------------------------------------------------------|
-| DNS resolver profiles |          |          | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreams[]`</li> |
+|                       | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                              |
+|-----------------------|----------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------|
+| DNS resolver profiles |          |          | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreams[]`</li><li>`declaration.layer4.upstreams[]`</li> |
 
 #### Examples
 

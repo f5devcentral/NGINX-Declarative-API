@@ -42,8 +42,6 @@ def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authenticat
                         # Sets up authentication
                         if authP['type'].lower() == 'token':
 
-                            print(f"===> {authP['name']} {authP['token']['username']} {authP['token']['password']}")
-
                             authToken = authP['token']['token']
                             authTokenType = authP['token']['type']
 

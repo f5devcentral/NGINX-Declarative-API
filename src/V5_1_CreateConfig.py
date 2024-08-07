@@ -82,19 +82,11 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
     j2_env.filters['regex_replace'] = v5_1.MiscUtils.regex_replace
 
-    if 'http' in d['declaration']:
-        if 'snippet' in d['declaration']['http']:
-            status, snippet = v5_1.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication'])
-
-            if status != 200:
-                return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
-
-            d['declaration']['http']['snippet'] = snippet
-
-        # Check resolver profiles validity and creates resolver config files
+    # Check resolver profiles validity and creates resolver config files
+    if 'resolvers' in d['declaration']:
         all_resolver_profiles = []
 
-        d_resolver_profiles = v5_1.MiscUtils.getDictKey(d, 'declaration.http.resolvers')
+        d_resolver_profiles = v5_1.MiscUtils.getDictKey(d, 'declaration.resolvers')
         if d_resolver_profiles is not None:
             # Render all resolver profiles
             for i in range(len(d_resolver_profiles)):
@@ -107,12 +99,22 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 b64renderedResolverProfile = base64.b64encode(bytes(renderedResolverProfile, 'utf-8')).decode(
                     'utf-8')
-                configFileName = NcgConfig.config['nms']['resolver_dir'] + '/' + resolver_profile['name'].replace(' ', '_') + ".conf"
+                configFileName = NcgConfig.config['nms']['resolver_dir'] + '/' + resolver_profile['name'].replace(' ',
+                                                                                                                  '_') + ".conf"
                 resolverProfileConfigFile = {'contents': b64renderedResolverProfile,
-                                         'name': configFileName}
+                                             'name': configFileName}
 
                 all_resolver_profiles.append(resolver_profile['name'])
                 auxFiles['files'].append(resolverProfileConfigFile)
+
+    if 'http' in d['declaration']:
+        if 'snippet' in d['declaration']['http']:
+            status, snippet = v5_1.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication'])
+
+            if status != 200:
+                return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
+
+            d['declaration']['http']['snippet'] = snippet
 
         # Check HTTP upstreams validity
         all_upstreams = []
@@ -126,7 +128,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     return {"status_code": 422,
                             "message": {"status_code": status, "message":
                                 {"code": status,
-                                 "content": f"invalid resolver profile [{upstream['resolver']}] in upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
+                                 "content": f"invalid resolver profile [{upstream['resolver']}] in HTTP upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if upstream['snippet']:
                     status, snippet = v5_1.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
@@ -143,7 +145,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 b64renderedUpstreamProfile = base64.b64encode(bytes(renderedUpstreamProfile, 'utf-8')).decode(
                     'utf-8')
-                configFileName = NcgConfig.config['nms']['upstream_dir'] + '/' + upstream['name'].replace(' ', '_') + ".conf"
+                configFileName = NcgConfig.config['nms']['upstream_http_dir'] + '/' + upstream['name'].replace(' ', '_') + ".conf"
                 upstreamProfileConfigFile = {'contents': b64renderedUpstreamProfile,
                                          'name': configFileName}
 
@@ -341,7 +343,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         return {"status_code": 422,
                                     "message": {"status_code": status, "message":
                                         {"code": status,
-                                         "content": f"invalid resolver profile [{server['resolver'] }] in server [{server['name']}], must be one of {all_resolver_profiles}"}}}
+                                         "content": f"invalid resolver profile [{server['resolver'] }] in HTTP server [{server['name']}], must be one of {all_resolver_profiles}"}}}
 
                 # Server level Javascript hooks
                 if server['njs']:
@@ -513,11 +515,48 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         d_upstreams = v5_1.MiscUtils.getDictKey(d, 'declaration.layer4.upstreams')
         if d_upstreams is not None:
             for i in range(len(d_upstreams)):
+                upstream = d_upstreams[i]
+
+                if upstream['resolver'] and upstream['resolver']  not in all_resolver_profiles:
+                    return {"status_code": 422,
+                            "message": {"status_code": status, "message":
+                                {"code": status,
+                                 "content": f"invalid resolver profile [{upstream['resolver']}] in stream upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
+
+                if upstream['snippet']:
+                    status, snippet = v5_1.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
+
+                    if status != 200:
+                        return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
+
+                    d['declaration']['layer4']['upstreams'][i]['snippet'] = snippet
+
+                # Add the rendered upstream configuration snippet as a config file in the staged configuration
+                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-stream.tmpl"
+                renderedUpstreamProfile = j2_env.get_template(templateName).render(
+                    u=upstream, ncgconfig=NcgConfig.config)
+
+                b64renderedUpstreamProfile = base64.b64encode(bytes(renderedUpstreamProfile, 'utf-8')).decode(
+                    'utf-8')
+                configFileName = NcgConfig.config['nms']['upstream_stream_dir'] + '/' + upstream['name'].replace(' ', '_') + ".conf"
+                upstreamProfileConfigFile = {'contents': b64renderedUpstreamProfile,
+                                         'name': configFileName}
+
+                auxFiles['files'].append(upstreamProfileConfigFile)
+
                 all_upstreams.append(d_upstreams[i]['name'])
 
         d_servers = v5_1.MiscUtils.getDictKey(d, 'declaration.layer4.servers')
         if d_servers is not None:
             for server in d_servers:
+
+                # Server level resolver name validity check
+                if server['resolver']:
+                    if server['resolver'] not in all_resolver_profiles:
+                        return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid resolver profile [{server['resolver'] }] in stream server [{server['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if server['snippet']:
                     status, snippet = v5_1.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'])

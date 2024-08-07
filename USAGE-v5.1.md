@@ -49,7 +49,10 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nginxone.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nginxone.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
       - `.output.nginxone.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
-- `.declaration` describes the NGINX configuration to be created.
+- `.declaration` describes the NGINX configuration to be created
+  - `.declaration.http[]` NGINX HTTP definitions
+  - `.declaration.layer4[]` NGINX TCP/UDP definitions
+  - `.declaration.resolvers[]` DNS resolvers definitions
 
 ### Locations ###
 

@@ -4,7 +4,7 @@ JSON declaration structure
 
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, Extra, model_validator
+from pydantic import BaseModel, model_validator
 
 import re
 
@@ -521,6 +521,7 @@ class Server(BaseModel, extra="forbid"):
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -556,15 +557,14 @@ class L4Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
-    fail_timeout: Optional[str] = ""
+    fail_timeout: Optional[str] = "10s"
     max_conns: Optional[int] = 0
-    slow_start: Optional[str] = ""
+    slow_start: Optional[str] = "0"
     backup: Optional[bool] = False
 
 
 class Upstream(BaseModel, extra="forbid"):
     name: str
-    upstream: Optional[str] = ""
     resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
@@ -582,6 +582,7 @@ class Upstream(BaseModel, extra="forbid"):
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
@@ -766,12 +767,12 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
-    resolvers: Optional[List[Resolver]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
+    resolvers: Optional[List[Resolver]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):

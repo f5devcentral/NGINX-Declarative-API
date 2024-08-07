@@ -52,7 +52,7 @@ include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" "
 {% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
 {% if u.name %}
-include "{{ ncgconfig.nms.upstream_dir }}/{{ u.name | replace(' ', '_') }}.conf";
+include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.conf";
 {% endif %}
 {% endfor %}
 {% endif %}
@@ -155,7 +155,7 @@ server {
 
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
-    status_zone {{ s.names[0] }};
+    status_zone {{ s.names[0] | replace(" ", "_") }};
     proxy_ssl_server_name on;
     {% endif %}
 
