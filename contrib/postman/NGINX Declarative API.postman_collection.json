@@ -1,10 +1,11 @@
 {
 	"info": {
-		"_postman_id": "1671fdaf-2caf-4d3c-8d6f-3401483f1c76",
+		"_postman_id": "a1156d5a-a047-4070-87dc-1784eeba5eba",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "30973250"
+		"_exporter_id": "1667416",
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-a1156d5a-a047-4070-87dc-1784eeba5eba?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
@@ -7974,7 +7975,7 @@
 									"name": "Stream server",
 									"item": [
 										{
-											"name": "Create",
+											"name": "Create stream server",
 											"event": [
 												{
 													"listen": "test",
@@ -8968,7 +8969,7 @@
 		},
 		{
 			"key": "nginxone_token",
-			"value": "<NGINX_ONE_API_TOKEN>",
+			"value": "<API_TOKEN>",
 			"type": "string"
 		},
 		{

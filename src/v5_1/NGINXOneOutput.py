@@ -214,7 +214,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         #### / NGINX App Protect policies support
 
         ### Publish staged config to instance group
-        r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/clusters/{igUid}/config',
+        r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config',
                           data=json.dumps(stagedConfig),
                           headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"},
                           verify=False)
@@ -233,7 +233,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         isPending = True
         while isPending:
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/clusters/{igUid}/publications/{publication_id}',
+            deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}',
                                            headers={"Authorization": f"Bearer APIToken {nOneToken}"},
                                            verify=False)
 
