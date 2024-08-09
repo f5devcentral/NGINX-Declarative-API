@@ -4,7 +4,7 @@ JSON declaration structure
 
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, Extra, model_validator
+from pydantic import BaseModel, model_validator
 
 import re
 
@@ -126,7 +126,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     url: str = ""
     namespace: str = ""
     token: str = ""
-    cluster: str = ""
+    configsyncgroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
@@ -521,6 +521,7 @@ class Server(BaseModel, extra="forbid"):
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -556,14 +557,15 @@ class L4Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
-    fail_timeout: Optional[str] = ""
+    fail_timeout: Optional[str] = "10s"
     max_conns: Optional[int] = 0
-    slow_start: Optional[str] = ""
+    slow_start: Optional[str] = "0"
     backup: Optional[bool] = False
 
 
 class Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -580,6 +582,7 @@ class Upstream(BaseModel, extra="forbid"):
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
@@ -661,6 +664,15 @@ class Map(BaseModel, extra="forbid"):
 class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
+
+
+class Resolver(BaseModel, extra="forbid"):
+    name: str
+    address: str
+    valid: Optional[str] = ""
+    ipv4: bool = True
+    ipv6: bool = True
+    timeout: str = "30s"
 
 
 class Authentication_Client(BaseModel, extra="forbid"):
@@ -760,6 +772,7 @@ class Http(BaseModel, extra="forbid"):
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
+    resolvers: Optional[List[Resolver]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):
@@ -791,17 +804,17 @@ class DevPortal_Backstage(BaseModel, extra="forbid"):
       
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
-    type: str
+    type: str = ""
     redocly: Optional[DevPortal_Redocly] = {}
     backstage: Optional[DevPortal_Backstage] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'DeveloperPortal':
-        _type, _redocly, _backstage = self.type, self.redocly, self.backstage
+        _enabled, _type, _redocly, _backstage = self.enabled, self.type, self.redocly, self.backstage
 
         valid = ['redocly', 'backstage']
 
-        if _type not in valid:
+        if _enabled == True and _type not in valid:
             raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
 
         isError = False

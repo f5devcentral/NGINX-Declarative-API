@@ -4,8 +4,11 @@ NGINX App Protect support functions
 
 import requests
 import json
+import base64
 
 import v5_1.GitOps
+
+from NcgConfig import NcgConfig
 
 from fastapi.responses import Response, JSONResponse
 
@@ -144,7 +147,7 @@ def checkDeclarationPolicies(declaration: dict):
     return 200, ""
 
 
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Management Suite
+# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
 # Returns a tuple with two dictionaries: all_policy_names_and_versions, all_policy_active_names_and_uids
 def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
@@ -240,7 +243,7 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
     return doWeHavePolicies
 
 
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Management Suite
+# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
 # Returns a tuple: status, response payload
 def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict):
@@ -267,3 +270,38 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
 
     return
+
+
+# Compile a NGINX App Protect policy and optional user-defined signatures using NGINX App Protect 5 compiler
+# https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/
+#
+# Global settings:
+# {
+#    "waf-settings": {
+#      "cookie-protection": {
+#         "seed": "80miIOiSeXfvNBiDJV4t"
+#      },
+#      "user-defined-signatures": [
+#        {
+#          "$ref": "file:///policies/uds.json"
+#        }
+#      ]
+#    }
+# }
+def compilePolicy(napPolicy: str, customSignatures: str):
+    b64napPolicy = base64.b64encode(bytes(napPolicy, 'utf-8')).decode('utf-8')
+    b64customSignatures = base64.b64encode(bytes(customSignatures, 'utf-8')).decode('utf-8')
+    cookieProtectionSeed = NcgConfig.config['nap']['cookie_protection_seed']
+
+    payload = {}
+    payload['user-signatures'] = b64customSignatures
+    payload['policy'] = b64napPolicy
+    payload['cookie-protection-seed'] = cookieProtectionSeed
+
+    try:
+        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
+                                 headers={'Content-Type': 'application/json'}, data=json.dumps(payload))
+    except Exception as e:
+        return 400, str(e)
+
+    return response

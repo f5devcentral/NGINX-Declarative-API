@@ -23,6 +23,7 @@ auth_server_root = "authn/server"
 authz_client_root = "authz/client"
 
 devportal_root = "devportal"
+misc_root = "misc"
 
 # NGINX Declarative API Server
 [apiserver]
@@ -40,6 +41,13 @@ host = "devportal"
 port = 5000
 uri = "/v1/devportal"
 
+# NGINX App Protect
+[nap]
+cookie_protection_seed = "tBjtd3WXKqoKp27pfEBc"
+compiler_host = "nap-compiler"
+compiler_port = 5000
+compiler_uri = "/v1/compile/policy"
+
 # Staged configuration directories
 [nms]
 nginx_conf = '/etc/nginx/nginx.conf'
@@ -51,6 +59,9 @@ auth_client_dir = '/etc/nginx/authn/client'
 auth_server_dir = '/etc/nginx/authn/server'
 authz_client_dir = '/etc/nginx/authz/client'
 njs_dir = '/etc/nginx/njs'
+resolver_dir = '/etc/nginx/resolvers'
+upstream_http_dir = '/etc/nginx/upstreams/http'
+upstream_stream_dir = '/etc/nginx/upstreams/stream'
 
 # Time to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
