@@ -298,8 +298,6 @@ def compilePolicy(napPolicy: str, customSignatures: str):
     payload['policy'] = b64napPolicy
     payload['cookie-protection-seed'] = cookieProtectionSeed
 
-    print(f"PAYLOAD {payload}")
-
     try:
         response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
                                  headers={'Content-Type': 'application/json'}, data=json.dumps(payload))
