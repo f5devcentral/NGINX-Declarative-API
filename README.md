@@ -2,7 +2,7 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) (currently in early stage).
+This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) (currently in early stage / unstable).
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
@@ -10,11 +10,10 @@ GitOps integration is supported: source of truth is checked for updates (NGINX A
 
 Use cases include:
 
-- Rapid configuration generation and templating
-- CI/CD integration with NGINX Instance Manager (instance group) and NGINX One Cloud Console (config sync group)
+- Integration with NGINX Instance Manager (instance group) and NGINX One Cloud Console (config sync group)
 - NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
 - API Gateway deployments with automated Swagger / OpenAPI schema import
-- API Developer portals zero-touch deployment
+- API Developer portals zero-touch deployment (redocly and backstage supported)
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
   - TLS certificates, keys and chains/bundles
@@ -29,9 +28,9 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 ## Supported releases
 
 - NGINX Instance Manager 2.14+
-- NGINX One Cloud Console
+- NGINX One Cloud Console (early stage / unstable)
 - NGINX Plus R30+
-- NGINX App Protect WAF 4.8+
+- NGINX App Protect WAF 4
 
 ## Architecture
 
@@ -55,10 +54,6 @@ stateDiagram-v2
     DEVP: Developer Portal Service
     OUTPUT: Output
     REDIS: Redis
-    POST: Generic POST endpoint
-    CONFIGMAP: Kubernetes ConfigMap
-    PLAINTEXT: Plaintext
-    BASE64: Base64-encoded
 
     DevOps --> Pipeline
     Pipeline --> INPUT
@@ -69,10 +64,6 @@ stateDiagram-v2
     SOT --> NDAPI
     NDAPI --> REDIS
     REDIS --> NDAPI
-    OUTPUT --> BASE64
-    OUTPUT --> POST
-    OUTPUT --> CONFIGMAP
-    OUTPUT --> PLAINTEXT
     OUTPUT --> NIM
     OUTPUT --> N1
     NDAPI --> DEVP
@@ -139,10 +130,6 @@ end
 
 ## Output formats
 
-- [X] Plaintext
-- [X] JSON-wrapped Base64-encoded
-- [X] Kubernetes Configmap
-- [X] POST to Generic REST API endpoint
 - [X] Output to NGINX Instance Manager 2.14+ imperative REST API (instance group)
 - [X] Output to NGINX One Cloud Console REST API (config sync group)
   
@@ -154,9 +141,9 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.1](/USAGE-v5.1.md) - development
-- [API v5.0](/USAGE-v5.0.md) - latest
-- [API v4.2](/USAGE-v4.2.md)
+- [API v5.1](/USAGE-v5.1.md) - latest
+- [API v5.0](/USAGE-v5.0.md)
+- [API v4.2](/USAGE-v4.2.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

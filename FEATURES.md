@@ -4,21 +4,31 @@
 
 | Feature                    | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                                                                                                                                               |
 |----------------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                  | CRUD     | CRUD     | CRUD     | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                        |
-| HTTP servers               | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                       |
-| TCP/UDP servers            | CRUD     | CRUD     | CRUD     | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                                 |
-| TLS                        | CRUD     | CRUD     | CRUD     | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                                     |
-| Client authentication      | X        | X        | CRUD     | See [client authentication](#Client-authentication)                                                                                                                                                                 |
-| Upstream authentication    | X        | X        | CRUD     | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
-| Rate limiting              | X        | X        | CRUD     |                                                                                                                                                                                                                     |
-| Active healthchecks        | X        | X        | CRUD     |                                                                                                                                                                                                                     |
-| Cookie-based stickiness    | X        | X        | CRUD     |                                                                                                                                                                                                                     |
-| HTTP headers manipulation  | X        | X        | CRUD     | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
-| Maps                       | X        | X        | CRUD     |                                                                                                                                                                                                                     |
-| NGINX Plus REST API access | X        | X        | CRUD     |                                                                                                                                                                                                                     |
-| NGINX App Protect WAF      | X        | X        | CRUD     | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Upstreams                  | X        | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                                        |
+| HTTP servers               | X        | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                                       |
+| TCP/UDP servers            | X        | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                                 |
+| TLS                        | X        | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                                     |
+| Client authentication      | X        | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                                 |
+| Upstream authentication    | X        | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
+| Rate limiting              | X        | X        | X        |                                                                                                                                                                                                                     |
+| Active healthchecks        | X        | X        | X        |                                                                                                                                                                                                                     |
+| Cookie-based stickiness    | X        | X        | X        |                                                                                                                                                                                                                     |
+| HTTP headers manipulation  | X        | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
+| Maps                       | X        | X        | X        |                                                                                                                                                                                                                     |
+| NGINX Plus REST API access | X        | X        | X        |                                                                                                                                                                                                                     |
+| NGINX App Protect WAF      | X        | X        | X        | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
-### API Gateway
+### HTTP Locations
+
+Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.declaration.http.servers[].locations[].urimatch` can be:
+
+- *prefix* - prefix URI matching
+- *exact* - exact URI matching
+- *regex* - case sensitive regex matching
+- *iregex* - case insensitive regex matching
+- *best* - case sensitive regex matching that halts any other location matching once a match is made
+
+### NGINX API Gateway use case
 
 | Feature                                      | API v4.2 | API v5.0 | API v5.1                                                                      | Notes                                                                         |
 |----------------------------------------------|----------|----------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
@@ -28,12 +38,37 @@
 | per-URI client authentication                | X        | X        | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |
 | per-URI client authorization                 | X        | X        | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           |
 
-### API Gateway - Developer Portal
+Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway
 
-| Type          | API v4.2 | API v5.0  | API v5.1 | Notes |
-|---------------|----------|-----------|----------|-------|
-| Redocly       | X        | X         | X        |       |
-| Backstage.io  |          | X         | X        |       |
+Declaration path `.declaration.http.servers[].locations[].apigateway` defines the API Gateway configuration:
+
+- `openapi_schema` - the base64-encoded schema, or the schema URL. YAML and JSON are supported
+- `api_gateway.enabled` - enable/disable API Gateway provisioning
+- `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
+- `api_gateway.server_url` - the base URL of the upstream server
+- `developer_portal.enabled` - enable/disable Developer portal provisioning
+- `developer_portal.type` - developer portal type. `redocly` and `backstage` are currently supported
+- `developer_portal.redocly.*` - Redocly-based developer portal parameters. See the [Postman collection](/contrib/postman)
+- `developer_portal.backstage.*` - Backstage-based developer portal parameters. See the [Postman collection](/contrib/postman)
+- `authentication` - optional, used to enforce authentication at the API Gateway level
+- `authentication.client[]` - authentication profile names
+- `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
+- `authentication.paths` - paths to enforce authentication
+- `authorization[]` - optional, used to enforce authorization
+- `authorization[].profile` - authorization profile name
+- `authorization[].enforceOnPaths` - if set to `true` authorization is enforced on all API endpoints listed under `authorization.paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
+- `authorization[].paths` - paths to enforce authorization
+- `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
+- `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
+
+See the [Postman collection](/contrib/) for usage examples
+
+### NGINX API Gateway use case - Developer Portal
+
+| Type          | API v4.2 | API v5.0  | API v5.1 | Notes                                    |
+|---------------|----------|-----------|----------|------------------------------------------|
+| Redocly       | X        | X         | X        | Developer portal published by NGINX Plus |
+| Backstage.io  |          | X         | X        | Backstage YAML manifest generated        |
 
 ### Client authentication
 
@@ -406,3 +441,11 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
     "timeout": "30s"
 }
 ```
+
+### Maps
+
+Map entries `.declaration.maps[].entries.keymatch` can be:
+
+- *exact* - exact variable matching
+- *regex* - case sensitive regex matching
+- *iregex* - case insensitive regex matching
