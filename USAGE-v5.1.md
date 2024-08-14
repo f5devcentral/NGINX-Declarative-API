@@ -3,7 +3,7 @@
 Version 5.1 supports:
 
 - [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+
-- [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) - early stage / unstable
+- [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) - Early Access
 - [NGINX Plus](https://docs.nginx.com/nginx/) R30+
 - [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) 4 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
 

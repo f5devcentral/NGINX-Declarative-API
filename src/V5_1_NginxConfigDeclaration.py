@@ -786,7 +786,7 @@ class DevPortal_Redocly(BaseModel, extra="forbid"):
 
 
 class DevPortal_Backstage(BaseModel, extra="forbid"):
-    name: str
+    name: str = ""
     lifecycle: Optional[str] = "production"
     owner: str = ""
     system: Optional[str] = ""

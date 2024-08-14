@@ -1,2 +1,4 @@
+# DNS resolver template
+
 resolver {{ resolverprofile.address }}{% if resolverprofile.valid %}valid={{ resolverprofile.valid }}{% endif %} ipv4={% if resolverprofile.ipv4 == True %}on{% else %}off{% endif %} ipv6={% if resolverprofile.ipv6 == True %}on{% else %}off{% endif %};
 {% if resolverprofile.timeout %}resolver_timeout {{ resolverprofile.timeout }}{% endif %};

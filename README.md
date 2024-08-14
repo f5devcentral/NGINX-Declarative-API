@@ -2,7 +2,7 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/) (currently in early stage / unstable).
+This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/)
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
@@ -28,7 +28,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 ## Supported releases
 
 - NGINX Instance Manager 2.14+
-- NGINX One Cloud Console (early stage / unstable)
+- NGINX One Cloud Console Early Access
 - NGINX Plus R30+
 - NGINX App Protect WAF 4
 
