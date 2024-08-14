@@ -41,7 +41,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     # NGINX Instance Manager Staged Configuration publish
 
     nOneToken = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.token')
-    nOneCluster = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.cluster')
+    nOneConfigSyncGroup = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')
     nOneNamespace = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.namespace')
 
     nOneSynctime = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.synctime')
@@ -187,7 +187,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
         # Get the instance group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
         returnCode, igUid = v5_1.NGINXOneUtils.getConfigSyncGroupId(nOneUrl = nOneUrl, nOneToken = nOneToken,
-                                                nameSpace = nOneNamespace, configSyncGroupName = nOneCluster)
+                                                nameSpace = nOneNamespace, configSyncGroupName = nOneConfigSyncGroup)
 
         # Invalid instance group
         if returnCode != 200:
