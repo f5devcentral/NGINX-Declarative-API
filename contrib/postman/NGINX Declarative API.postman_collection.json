@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "73598a15-44df-450e-892e-9be62242a1b3",
+		"_postman_id": "4ba43073-b4a2-4e07-9da7-bc252c90a1cd",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -5674,6 +5674,280 @@
 									"name": "Petstore API",
 									"item": [
 										{
+											"name": "API Client test requests",
+											"item": [
+												{
+													"name": "Get Inventory (legitimate request)",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Get Inventory (malicious query string)",
+													"request": {
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/store/inventory?/etc/passwd",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"store",
+																"inventory"
+															],
+															"query": [
+																{
+																	"key": "/etc/passwd",
+																	"value": null
+																}
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Get Inventory (XSS attack)",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login without token",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login with \"DevOps\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login with \"Guest\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQWxpY2UgR3Vlc3QiLCJzdWIiOiJKV1Qgc3ViIGNsYWltIiwiaXNzIjoiSldUIGlzcyBjbGFpbSIsInJvbGVzIjpbImd1ZXN0Il19.jFJDq-33irz7uFxdI8c8fIb5TwTAU5BlemmIFVALUAE",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Login with dual (DevOps & Guest) role token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIiwiZ3Vlc3QiXX0.3ES7aVquklWqlZ4OWzt8rBz5px4kKZRgvifFVNomCsU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image without token",
+													"request": {
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image with \"DevOps\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image with \"Guest\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQWxpY2UgR3Vlc3QiLCJzdWIiOiJKV1Qgc3ViIGNsYWltIiwiaXNzIjoiSldUIGlzcyBjbGFpbSIsInJvbGVzIjpbImd1ZXN0Il19.jFJDq-33irz7uFxdI8c8fIb5TwTAU5BlemmIFVALUAE",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												}
+											],
+											"description": "This folder contains requests to access the Petstore API published through NGINX using the Declarative API"
+										},
+										{
 											"name": "Petstore API Gateway RateLimit",
 											"event": [
 												{
@@ -7739,6 +8013,280 @@
 								{
 									"name": "Petstore API",
 									"item": [
+										{
+											"name": "API Client test requests",
+											"item": [
+												{
+													"name": "Get Inventory (legitimate request)",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Get Inventory (malicious query string)",
+													"request": {
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/store/inventory?/etc/passwd",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"store",
+																"inventory"
+															],
+															"query": [
+																{
+																	"key": "/etc/passwd",
+																	"value": null
+																}
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Get Inventory (XSS attack)",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login without token",
+													"request": {
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login with \"DevOps\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": []
+													},
+													"response": []
+												},
+												{
+													"name": "Login with \"Guest\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQWxpY2UgR3Vlc3QiLCJzdWIiOiJKV1Qgc3ViIGNsYWltIiwiaXNzIjoiSldUIGlzcyBjbGFpbSIsInJvbGVzIjpbImd1ZXN0Il19.jFJDq-33irz7uFxdI8c8fIb5TwTAU5BlemmIFVALUAE",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Login with dual (DevOps & Guest) role token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIiwiZ3Vlc3QiXX0.3ES7aVquklWqlZ4OWzt8rBz5px4kKZRgvifFVNomCsU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image without token",
+													"request": {
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image with \"DevOps\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDI0ODEzNjcsImV4cCI6MTcwMjQ4MTM2OH0.eyJuYW1lIjoiQm9iIERldk9wcyIsInN1YiI6IkpXVCBzdWIgY2xhaW0iLCJpc3MiOiJKV1QgaXNzIGNsYWltIiwicm9sZXMiOlsiZGV2b3BzIl19.SKA_7MszAypMEtX5NDQ0TcUbVYx_Wt0hrtmuyTmrVKU",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "Upload pet image with \"Guest\" token",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjAwMDEiLCJpc3MiOiJCYXNoIEpXVCBHZW5lcmF0b3IiLCJpYXQiOjE3MDk3NjQ3NTMsImV4cCI6MTcwOTc2NDc1NH0.eyJuYW1lIjoiQWxpY2UgR3Vlc3QiLCJzdWIiOiJKV1Qgc3ViIGNsYWltIiwiaXNzIjoiSldUIGlzcyBjbGFpbSIsInJvbGVzIjpbImd1ZXN0Il19.jFJDq-33irz7uFxdI8c8fIb5TwTAU5BlemmIFVALUAE",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [],
+														"body": {
+															"mode": "formdata",
+															"formdata": [
+																{
+																	"key": "file",
+																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
+																	"type": "text"
+																},
+																{
+																	"key": "type",
+																	"value": "image/png",
+																	"type": "text"
+																}
+															]
+														},
+														"url": {
+															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"pet",
+																"1",
+																"uploadImage"
+															]
+														}
+													},
+													"response": []
+												}
+											],
+											"description": "This folder contains requests to access the Petstore API published through NGINX using the Declarative API"
+										},
 										{
 											"name": "Petstore API Gateway RateLimit",
 											"event": [
