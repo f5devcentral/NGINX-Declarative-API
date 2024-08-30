@@ -28,9 +28,9 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 ## Supported releases
 
 - NGINX Instance Manager 2.14+
-- NGINX One Cloud Console Early Access
+- NGINX One Cloud Console
 - NGINX Plus R30+
-- NGINX App Protect WAF 4
+- NGINX App Protect WAF 4 and 5
 
 ## Architecture
 
