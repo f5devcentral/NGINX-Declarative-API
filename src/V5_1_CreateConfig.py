@@ -485,14 +485,22 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                                loc['apigateway']['developer_portal']['redocly']['uri']}
                             auxFiles['files'].append(newAuxFile)
 
+                            ### / Redocly developer portal - Add optional API Developer portal HTML files
                         elif loc['apigateway']['developer_portal']['type'].lower() == 'backstage':
                             ### Backstage developer portal - Create Kubernetes Backstage manifest
                             backstageManifest = j2_env.get_template(f"{NcgConfig.config['templates']['devportal_root']}/backstage.tmpl").render(
                                 declaration=loc['apigateway']['developer_portal']['backstage'], openAPISchema = v5_1.MiscUtils.json_to_yaml(openAPISchemaJSON), ncgconfig=NcgConfig.config)
 
                             extraOutputManifests.append(backstageManifest)
+                            ### / Backstage developer portal - Create Kubernetes Backstage manifest
 
-                        ### / Backstage developer portal - Create Kubernetes Backstage manifest
+                    # API Gateway Developer portal provisioning
+                    if loc['apigateway'] and loc['apigateway']['visibility']:
+                        for vis in loc['apigateway']['visibility']:
+                            if vis.type == 'moesif':
+                                # Moesif integration
+                                # TODO
+                                pass
 
                     # Check rate limit profile name validity
                     if loc['rate_limit'] is not None:
