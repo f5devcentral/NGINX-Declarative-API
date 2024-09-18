@@ -60,6 +60,10 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `developer_portal.type` - developer portal type. `redocly` and `backstage` are currently supported
 - `developer_portal.redocly.*` - Redocly-based developer portal parameters. See the [Postman collection](/contrib/postman)
 - `developer_portal.backstage.*` - Backstage-based developer portal parameters. See the [Postman collection](/contrib/postman)
+- `visibility[]` - API Gateway visibility
+  - `visibility[].enabled` - enable/disable API gateway visibility
+  - `visibility[].type` - visibility integration type. `moesif` is currently supported
+  - `visibility[].moesif.*` - Moesif visibility parameters. See the [Postman collection](/contrib/postman)
 - `authentication` - optional, used to enforce authentication at the API Gateway level
 - `authentication.client[]` - authentication profile names
 - `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
@@ -79,6 +83,13 @@ See the [Postman collection](/contrib/) for usage examples
 |---------------|----------|-----------|----------|------------------------------------------|
 | Redocly       | X        | X         | X        | Developer portal published by NGINX Plus |
 | Backstage.io  |          | X         | X        | Backstage YAML manifest generated        |
+
+### NGINX API Gateway use case - Visibility
+
+| Type         | API v4.2 | API v5.0 | API v5.1 | Notes                                                                                         |
+|--------------|----------|----------|----------|-----------------------------------------------------------------------------------------------|
+| Moesif       |          |          | X        | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
+
 
 ### Client authentication
 

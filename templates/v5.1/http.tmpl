@@ -49,6 +49,7 @@ include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" "
 
 
 {# --- Upstreams section --- #}
+# Upstreams
 {% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
 {% if u.name %}
@@ -58,12 +59,16 @@ include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.
 {% endif %}
 
 {# --- Rate limit section --- #}
-
+# Rate limiting zones
 {% if declaration.rate_limit %}
 {% for rl in declaration.rate_limit %}
 limit_req_zone {{ rl.key }} zone={{ rl.name }}:{{ rl.size }} rate={{ rl.rate }};
 {% endfor %}
 {% endif %}
+
+{# --- Visibility integration section --- #}
+# Visibility integrations
+include "{{ ncgconfig.nms.visibility_dir }}/*-http.conf";
 
 {# --- Server section for NGINX Plus API --- #}
 

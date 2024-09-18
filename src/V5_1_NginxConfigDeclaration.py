@@ -831,10 +831,40 @@ class DeveloperPortal(BaseModel, extra="forbid"):
         return self
 
 
+class Visibility_Moesif(BaseModel, extra="forbid"):
+    application_id: str = ""
+    plugin_path: Optional[str] = "/usr/local/share/lua/5.1/resty/moesif"
+
+
+class Visibility(BaseModel, extra="forbid"):
+    enabled: Optional[bool] = False
+    type: str = ""
+    moesif: Optional[Visibility_Moesif] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Visibility':
+        _enabled, _type, _moesif = self.enabled, self.type, self.moesif
+
+        valid = ['moesif']
+
+        if _enabled == True and _type not in valid:
+            raise ValueError(f"Invalid visibility type [{_type}] must be one of {str(valid)}")
+
+        isError = False
+
+        if _type == 'moesif' and not _moesif:
+            isError = True
+
+        if isError:
+            raise ValueError(f"Missing visibility data for type [{_type}]")
+
+        return self
+
 class APIGateway(BaseModel, extra="forbid"):
     openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
+    visibility: Optional[List[Visibility]] = []
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
     authorization: Optional[List[APIGatewayAuthorization]] = []

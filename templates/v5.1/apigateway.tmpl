@@ -18,6 +18,10 @@
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
 # Destination server: {{ destination_server }}
 
+{% for v in enabledVisibility %}
+include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }}-server.conf";
+{% endfor %}
+
 {% if declaration.paths -%}
 {% for path in declaration.paths %}
 location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
