@@ -54,6 +54,7 @@ stateDiagram-v2
     DEVP: Developer Portal Service
     OUTPUT: Output
     REDIS: Redis
+    3RDPARTY: 3rd Party integrations
 
     DevOps --> Pipeline
     Pipeline --> INPUT
@@ -62,6 +63,8 @@ stateDiagram-v2
     NDAPI --> OUTPUT
     NDAPI --> SOT
     SOT --> NDAPI
+    NDAPI --> 3RDPARTY
+    3RDPARTY --> NDAPI
     NDAPI --> REDIS
     REDIS --> NDAPI
     OUTPUT --> NIM

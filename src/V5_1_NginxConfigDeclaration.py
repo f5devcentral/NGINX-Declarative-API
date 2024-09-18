@@ -833,7 +833,7 @@ class DeveloperPortal(BaseModel, extra="forbid"):
 
 class Visibility_Moesif(BaseModel, extra="forbid"):
     application_id: str = ""
-    plugin_path: Optional[str] = "/usr/local/share/lua/5.1/resty/moesif/"
+    plugin_path: Optional[str] = "/usr/local/share/lua/5.1/resty/moesif"
 
 
 class Visibility(BaseModel, extra="forbid"):

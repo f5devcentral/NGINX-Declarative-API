@@ -38,7 +38,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
               b64StreamConf: str,configFiles = {}, auxFiles = {},
               runfromautosync: bool = False,
               configUid: str = ""):
-    # NGINX Instance Manager Staged Configuration publish
+    # NGINX One Cloud Console Staged Configuration publish
 
     nOneToken = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.token')
     nOneConfigSyncGroup = v5_1.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')
@@ -213,7 +213,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         #
         #### / NGINX App Protect policies support
 
-        ### Publish staged config to instance group
+        ### Publish staged config to config sync group
         r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config',
                           data=json.dumps(stagedConfig),
                           headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"},

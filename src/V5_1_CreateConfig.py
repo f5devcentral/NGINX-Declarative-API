@@ -444,6 +444,52 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         "message": {"status_code": status, "message":
                                             {"code": status, "content": f"invalid server authentication profile [{authServerProfile['profile']}] in location [{loc['uri']}]"}}}
 
+                    # API Gateway visualization integrations
+                    apiGwVisibilityIntegrations = {}
+
+                    if loc['apigateway'] and loc['apigateway']['visibility']:
+                        visibility_integrations = loc['apigateway']['visibility']
+                        for i in range(len(visibility_integrations)):
+                            vis = visibility_integrations[i]
+
+                            if vis['enabled'] == True:
+                                apiGwVisibilityIntegrations[ vis['type'] ] = True
+
+                                if vis['type'].lower() == 'moesif':
+                                    # Moesif integration
+
+                                    # Add the rendered Moesif visibility configuration snippet as a config file in the staged configuration - HTTP context
+                                    templateName = NcgConfig.config['templates'][
+                                                       'visibility_root'] + "/moesif/http.tmpl"
+                                    renderedMoesifHTTP = j2_env.get_template(templateName).render(
+                                        vis=vis, loc=loc, ncgconfig=NcgConfig.config)
+
+                                    b64renderedMoesifHTTP = base64.b64encode(
+                                        bytes(renderedMoesifHTTP, 'utf-8')).decode(
+                                        'utf-8')
+                                    moesifHTTPConfigFile = {'contents': b64renderedMoesifHTTP,
+                                                            'name': NcgConfig.config['nms'][
+                                                                        'visibility_dir'] +
+                                                                    loc['uri'] + "-moesif-http.conf"}
+
+                                    auxFiles['files'].append(moesifHTTPConfigFile)
+
+                                    # Add the rendered Moesif visibility configuration snippet as a config file in the staged configuration - server context
+                                    templateName = NcgConfig.config['templates'][
+                                                       'visibility_root'] + "/moesif/server.tmpl"
+                                    renderedMoesifServer = j2_env.get_template(templateName).render(
+                                        vis=vis, loc=loc, ncgconfig=NcgConfig.config)
+
+                                    b64renderedMoesifServer = base64.b64encode(
+                                        bytes(renderedMoesifServer, 'utf-8')).decode(
+                                        'utf-8')
+                                    moesifServerConfigFile = {'contents': b64renderedMoesifServer,
+                                                              'name': NcgConfig.config['nms'][
+                                                                          'visibility_dir'] +
+                                                                      loc['uri'] + "-moesif-server.conf"}
+
+                                    auxFiles['files'].append(moesifServerConfigFile)
+
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
                         openApiAuthProfile = loc['apigateway']['openapi_schema']['authentication']
@@ -458,7 +504,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
                             apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
-                                declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+                                declaration=apiGatewayConfigDeclaration, enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
@@ -493,14 +539,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                             extraOutputManifests.append(backstageManifest)
                             ### / Backstage developer portal - Create Kubernetes Backstage manifest
-
-                    # API Gateway Developer portal provisioning
-                    if loc['apigateway'] and loc['apigateway']['visibility']:
-                        for vis in loc['apigateway']['visibility']:
-                            if vis.type == 'moesif':
-                                # Moesif integration
-                                # TODO
-                                pass
 
                     # Check rate limit profile name validity
                     if loc['rate_limit'] is not None:
