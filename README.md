@@ -14,6 +14,7 @@ Use cases include:
 - NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
 - API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment (redocly and backstage supported)
+- API Visibility (moesif supported)
 - GitOps integration with source of truth support for
   - NGINX App Protect WAF policies
   - TLS certificates, keys and chains/bundles
