@@ -40,13 +40,15 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 
 ### NGINX API Gateway use case
 
-| Feature                                      | API v4.2 | API v5.0 | API v5.1                                                                      | Notes                                                                         |
-|----------------------------------------------|----------|----------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| Configuration generation from OpenAPI schema | X        | X        | X                                                                             |                                                                               | 
-| HTTP methods enforcement                     | X        | X        | X                                                                             |                                                                               |
-| per-URI rate limiting                        | X        | X        | X                                                                             |                                                                               |
-| per-URI client authentication                | X        | X        | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |
-| per-URI client authorization                 | X        | X        | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           |
+| Feature                                      | API v4.2         | API v5.0                           | API v5.1                                                                      | Notes                                   |
+|----------------------------------------------|------------------|------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------|
+| Configuration generation from OpenAPI schema | X                | X                                  | X                                                                             |                                         | 
+| HTTP methods enforcement                     | X                | X                                  | X                                                                             |                                         |
+| per-URI rate limiting                        | X                | X                                  | X                                                                             |                                         |
+| per-URI client authentication                | X                | X                                  | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |                                         |
+| per-URI client authorization                 | X                | X                                  | <li>JWT claims</li>                                                           |                                         |
+| Developer portal                             | <li>Redocly</li> | <li>Redocly</li><li>Backstage</li> | <li>Redocly</li><li>Backstage</li>                                            | Supported through 3rd party integration |
+| API visibility                               |                  |                                    | <li>Moesif</li>                                                               | Supported through 3rd party integration |
 
 Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway
 
