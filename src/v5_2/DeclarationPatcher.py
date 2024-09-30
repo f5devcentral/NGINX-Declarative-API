@@ -214,13 +214,13 @@ def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict):
 
     # TLS certificates patch
     for c in sourceDeclaration['output']['nms']['certificates']:
-        if 'type' in c and c['type'] in ['certificate', 'key', 'chain'] \
+        if 'type' in c and c['type'] in ['certificate', 'key'] \
                 and 'name' in c and c['name'] \
                 and c['type'] == patchedCertificates['type'] \
                 and c['name'] == patchedCertificates['name']:
 
             if 'contents' in c and c['contents']:
-                # Patching an existing TLS certificate/key/chain, 'name' is the key.
+                # Patching an existing TLS certificate/key, 'name' is the key.
                 # If content is empty the certificate is deleted
                 allTargetCertificates.append(patchedCertificates)
 
@@ -230,7 +230,7 @@ def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict):
             allTargetCertificates.append(c)
 
     if not haveWePatched:
-        # The TLS certificate/key/chain being patched is a new one, let's add it
+        # The TLS certificate/key being patched is a new one, let's add it
         allTargetCertificates.append(patchedCertificates)
 
     sourceDeclaration['output']['nms']['certificates'] = allTargetCertificates

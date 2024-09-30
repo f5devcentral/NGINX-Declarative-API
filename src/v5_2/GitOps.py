@@ -6,10 +6,9 @@ import base64
 import requests
 
 from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
-from typing import List
 
 # pydantic models
-from V4_2_NginxConfigDeclaration import *
+from V5_2_NginxConfigDeclaration import *
 
 
 # Fetches a URL content

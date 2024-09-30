@@ -1,0 +1,23 @@
+# HTTP upstream template
+
+{% if u.name %}
+{% if u.origin %}
+upstream {{ u.name }} {
+    zone {{ u.name }} 64k;
+    {% for o in u.origin -%}
+    server {{ o.server }}{% if o.weight %} weight={{ o.weight }}{% endif %}{% if o.max_fails %} max_fails={{ o.max_fails }}{% endif %}{% if o.fail_timeout %} fail_timeout={{ o.fail_timeout }}{% endif %}{% if o.max_conns %} max_conns={{ o.max_conns }}{% endif %}{% if o.slow_start %} slow_start={{ o.slow_start }}{% endif %}{% if o.backup and o.backup == True %} backup{% endif %};
+    {% endfor %}
+
+    {% if u.sticky and u.sticky.cookie and u.sticky.expires and u.sticky.domain and u.sticky.path -%}
+    sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
+    {% endif -%}
+
+    {% if u.resolver -%}
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ u.resolver | replace(" ", "_") }}.conf";
+    {% endif -%}
+
+    {% if u.snippet and u.snippet.content %}{{ u.snippet.content | b64decode }}{% endif %}
+
+}
+{% endif %}
+{% endif %}
