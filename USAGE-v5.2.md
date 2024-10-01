@@ -3,7 +3,7 @@
 Version 5.2 supports:
 
 - [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.17+
-- [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/)
+- [NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [NGINX Plus](https://docs.nginx.com/nginx/) R31+
 - [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) 4 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
 
@@ -30,11 +30,11 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nms.policies[].versions[].displayName` the policy version's display name
       - `.output.nms.policies[].versions[].description` the policy version's description
       - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
-  - *nginxone* - NGINX configuration is published to a NGINX One Cloud Console config sync group
-    - `.output.nginxone.url` the NGINX One Cloud Console URL
-    - `.output.nginxone.namespace` the NGINX One Cloud Console namespace
+  - *nginxone* - NGINX configuration is published to a NGINX One Console config sync group
+    - `.output.nginxone.url` the NGINX One Console URL
+    - `.output.nginxone.namespace` the NGINX One Console namespace
     - `.output.nginxone.token` the authentication token
-    - `.output.nginxone.configsyncgroup` the NGINX One Cloud Console config sync group name
+    - `.output.nginxone.configsyncgroup` the NGINX One Console config sync group name
     - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX One Cloud Console
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nginxone.certificates` an optional array of TLS certificates/keys/chains to be published
