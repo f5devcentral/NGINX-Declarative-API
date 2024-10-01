@@ -4,10 +4,10 @@
 
 NGINX Declarative API has been tested with the following NGINX control plane releases:
 
-| Control plane            | API v5.0     | API v5.1             | Notes         |
-|--------------------------|--------------|----------------------|---------------|
-| NGINX Instance Manager   | 2.14+        | 2.16+                |               |
-| NGINX One Cloud Console  | Early access | General Availability |               |
+| Control plane          | API v5.0     | API v5.1             | Notes         |
+|------------------------|--------------|----------------------|---------------|
+| NGINX Instance Manager | 2.14+        | 2.16+                |               |
+| NGINX One Console      | Early access | General Availability |               |
 
 
 ### NGINX `http` and `stream` servers
