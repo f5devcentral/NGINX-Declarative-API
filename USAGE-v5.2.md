@@ -2,7 +2,7 @@
 
 Version 5.2 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.18+
+- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+. Version 2.18+ is required for NGINX R33 and above
 - [NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [NGINX Plus](https://docs.nginx.com/nginx/) R31, R32, R33+
 - [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) 4 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
