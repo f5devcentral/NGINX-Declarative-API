@@ -11,6 +11,7 @@ url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 root_dir = "../templates"
 nginxmain = "nginx-conf/nginx.conf"
 mimetypes = "nginx-conf/mime.types"
+license = "nginx-conf/license-key.tmpl"
 
 httpconf = "http.tmpl"
 apigwconf = "apigateway.tmpl"
@@ -51,7 +52,6 @@ compiler_uri = "/v1/compile/policy"
 
 # Staged configuration directories
 [nms]
-nginx_conf = '/etc/nginx/nginx.conf'
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 apigw_dir = '/etc/nginx/apigateway'

@@ -6,7 +6,7 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 
 | Control plane          | API v5.0     | API v5.1             | API v5.2             | Notes |
 |------------------------|--------------|----------------------|----------------------|-------|
-| NGINX Instance Manager | 2.14+        | 2.16+                | 2.16+                |       |
+| NGINX Instance Manager | 2.14+        | 2.16+                | 2.18+                |       |
 | NGINX One Console      | Early access | General Availability | General availability |       |
 
 

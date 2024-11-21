@@ -2,9 +2,9 @@
 
 Version 5.2 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.17+
+- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.18+
 - [NGINX One Console](https://docs.nginx.com/nginx-one/)
-- [NGINX Plus](https://docs.nginx.com/nginx/) R31+
+- [NGINX Plus](https://docs.nginx.com/nginx/) R31, R32, R33+
 - [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) 4 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
 
 The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman) for usage examples

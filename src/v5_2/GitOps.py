@@ -14,6 +14,7 @@ from V5_2_NginxConfigDeclaration import *
 # Fetches a URL content
 def __fetchfromsourceoftruth__(url, headers = {} ):
     # Object is fetched from external repository
+
     try:
         reply = requests.get(url = url, headers = headers, verify=False)
     except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):

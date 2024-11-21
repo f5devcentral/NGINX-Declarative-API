@@ -145,10 +145,18 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
-        nginxconf={'modules': v5_2.MiscUtils.getDictKey(d, 'output.nms.modules')})
+        nginxconf={'modules': v5_2.MiscUtils.getDictKey(d, 'output.nms.modules'),
+                   'license': v5_2.MiscUtils.getDictKey(d, 'output.license')})
 
     # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
     b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
+
+    # NGINX License file
+    licenseJwtFile = j2_env.get_template(NcgConfig.config['templates']['license']).render(
+        nginxconf={'license': v5_2.MiscUtils.getDictKey(d, 'output.license')})
+
+    # Base64-encoded license file (/etc/nginx/license.jwt)
+    b64licenseJwtFile = str(base64.urlsafe_b64encode(licenseJwtFile.encode("utf-8")), "utf-8")
 
     # Base64-encoded NGINX mime.types (/etc/nginx/mime.types)
     f = open(NcgConfig.config['templates']['root_dir'] + '/' + apiversion + '/' + NcgConfig.config['templates'][
@@ -162,6 +170,7 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     # Base64-encoded NGINX HTTP service configuration
     filesNginxMain = {'contents': b64NginxMain, 'name': NcgConfig.config['nms']['config_dir'] + '/nginx.conf'}
+    filesLicenseFile = {'contents': b64licenseJwtFile, 'name': NcgConfig.config['nms']['config_dir'] + '/license.jwt'}
     filesHttpConf = {'contents': b64HttpConf,
                      'name': NcgConfig.config['nms']['config_dir'] + '/' + NcgConfig.config['nms'][
                          'staged_config_http_filename']}
@@ -171,6 +180,7 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     # Append config files to staged configuration
     configFiles['files'].append(filesNginxMain)
+    configFiles['files'].append(filesLicenseFile)
     configFiles['files'].append(filesHttpConf)
     configFiles['files'].append(filesStreamConf)
 

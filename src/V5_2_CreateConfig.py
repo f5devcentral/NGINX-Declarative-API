@@ -630,62 +630,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
     b64HttpConf = str(base64.b64encode(httpConf.encode("utf-8")), "utf-8")
     b64StreamConf = str(base64.b64encode(streamConf.encode("utf-8")), "utf-8")
 
-    if decltype.lower() == "plaintext":
-        # Plaintext output
-        return httpConf + streamConf
-
-    elif decltype.lower() == "json" or decltype.lower() == 'http':
-        # JSON-wrapped b64-encoded output
-        payload = {"http_config": f"{b64HttpConf}", "stream_config": f"{b64StreamConf}"}
-
-        if decltype.lower() == "json":
-            # JSON output
-            return {"status_code": 200, "message": {"status_code": 200, "message": payload}}
-        else:
-            # HTTP POST output
-            try:
-                r = requests.post(d['output']['http']['url'], data=json.dumps(payload),
-                                  headers={'Content-Type': 'application/json'})
-            except:
-                headers = {'Content-Type': 'application/json'}
-                content = {'message': d['output']['http']['url'] + ' unreachable'}
-
-                return {"status_code": 502, "message": {"status_code": 502, "message": content}, "headers": headers}
-
-            r.headers.pop("Content-Length") if "Content-Length" in r.headers else ''
-            r.headers.pop("Server") if "Server" in r.headers else ''
-            r.headers.pop("Date") if "Date" in r.headers else ''
-            r.headers.pop("Content-Type") if "Content-Type" in r.headers else ''
-
-            r.headers['Content-Type'] = 'application/json'
-
-            return {"status_code": r.status_code, "message": {"code": r.status_code, "content": r.text},
-                    "headers": r.headers}
-
-    elif decltype.lower() == 'configmap':
-        # Kubernetes ConfigMap output
-        cmHttp = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=httpConf,
-                                                                                        name=d['output']['configmap'][
-                                                                                                 'name'] + '.http',
-                                                                                        filename=
-                                                                                        d['output']['configmap'][
-                                                                                            'filename'] + '.http',
-                                                                                        namespace=
-                                                                                        d['output']['configmap'][
-                                                                                            'namespace'])
-        cmStream = j2_env.get_template(NcgConfig.config['templates']['configmap']).render(nginxconfig=streamConf,
-                                                                                          name=d['output']['configmap'][
-                                                                                                   'name'] + '.stream',
-                                                                                          filename=
-                                                                                          d['output']['configmap'][
-                                                                                              'filename'] + '.stream',
-                                                                                          namespace=
-                                                                                          d['output']['configmap'][
-                                                                                              'namespace'])
-
-        return Response(content=cmHttp + '\n---\n' + cmStream, headers={'Content-Type': 'application/x-yaml'})
-
-    elif decltype.lower() == 'nms':
+    if decltype.lower() == 'nms':
         # Output to NGINX Instance Manager
 
         # NGINX configuration files for staged config

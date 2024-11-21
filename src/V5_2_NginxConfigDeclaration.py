@@ -134,28 +134,30 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     log_profiles: Optional[List[LogProfile]] = []
 
 
+class License(BaseModel, extra="forbid"):
+    endpoint: str = "product.connect.nginx.com"
+    token: str = ""
+    ssl_verify: bool = True
+    grace_period: bool = False
+
+
 class Output(BaseModel, extra="forbid"):
     type: str
-    configmap: Optional[OutputConfigMap] = {}
-    http: Optional[OutputHttp] = {}
+    license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
     nginxone: Optional[OutputNGINXOne] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Output':
-        _type, configmap, http, nms, nginxone = self.type, self.configmap, self.http, self.nms, self.nginxone
+        _type,nms, nginxone = self.type, self.nms, self.nginxone
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nms', 'nginxone']
+        valid = ['nms', 'nginxone']
         if _type not in valid:
             raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
-        if _type == 'configmap' and not configmap:
-            isError = True
-        elif _type == 'http' and not http:
-            isError = True
-        elif _type == 'nms' and not nms:
+        if _type == 'nms' and not nms:
             isError = True
         elif _type == 'nginxone' and not nginxone:
             isError = True
