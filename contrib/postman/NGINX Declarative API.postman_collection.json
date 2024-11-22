@@ -8670,7 +8670,7 @@
 							"name": "HTTP Headers Manipulation",
 							"item": [
 								{
-									"name": "Create test echo service - NGINX Plus up to R32",
+									"name": "Create test echo service",
 									"event": [
 										{
 											"listen": "test",
@@ -8693,51 +8693,6 @@
 										"body": {
 											"mode": "raw",
 											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
-											"protocol": "http",
-											"host": [
-												"{{ncg_host}}"
-											],
-											"port": "{{ncg_port}}",
-											"path": [
-												"{{ngc_api_version}}",
-												"config"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "Create test echo service - NGINX Plus R33 and above",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
-												],
-												"type": "text/javascript",
-												"packages": {}
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -9452,6 +9407,56 @@
 										"body": {
 											"mode": "raw",
 											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Example HTTP server with Javascript\",\n                    \"resolver\": \"Google\",\n                    \"names\": [\n                        \"njs-test.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/njs-test.nginx.lab_access_log\",\n                        \"error\": \"/var/log/nginx/njs-test.nginx.lab_error_log\"\n                    },\n                    \"njs\": [\n                        {\n                            \"hook\": {\n                                \"type\": \"js_set\",\n                                \"js_set\": {\n                                    \"variable\": \"$serverVarSetByNjs\"\n                                }\n                            },\n                            \"profile\": \"njs_set_variable\",\n                            \"function\": \"njsSetVariable\"\n                        }\n                    ],\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/echo\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"headers\": {\n                                \"to_server\": {\n                                    \"set\": [\n                                        {\n                                            \"name\": \"X-Injected-Client-IP\",\n                                            \"value\": \"$remote_addr\"\n                                        },\n                                        {\n                                            \"name\": \"X-HTTP-Var-Set-By-Njs\",\n                                            \"value\": \"$httpVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"X-Server-Var-Set-By-Njs\",\n                                            \"value\": \"$serverVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"Host\",\n                                            \"value\": \"echo.free.beeceptor.com\"\n                                        }\n                                    ]\n                                }\n                            }\n                        },\n                        {\n                            \"uri\": \"/generatecontent\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"njs\": [\n                                {\n                                    \"hook\": {\n                                        \"type\": \"js_content\"\n                                    },\n                                    \"profile\": \"njs_set_content\",\n                                    \"function\": \"njsSetContent\"\n                                }\n                            ],\n                            \"headers\": {\n                                \"to_server\": {\n                                    \"set\": [\n                                        {\n                                            \"name\": \"X-Injected-Client-IP\",\n                                            \"value\": \"$remote_addr\"\n                                        },\n                                        {\n                                            \"name\": \"X-HTTP-Var-Set-By-Njs\",\n                                            \"value\": \"$httpVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"X-Server-Var-Set-By-Njs\",\n                                            \"value\": \"$serverVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"Host\",\n                                            \"value\": \"echo.free.beeceptor.com\"\n                                        }\n                                    ]\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ],\n            \"njs\": [\n                {\n                    \"hook\": {\n                        \"type\": \"js_set\",\n                        \"js_set\": {\n                            \"variable\": \"$httpVarSetByNjs\"\n                        }\n                    },\n                    \"profile\": \"njs_set_variable\",\n                    \"function\": \"njsSetVariable\"\n                }\n            ],\n            \"njs_profiles\": [\n                {\n                    \"name\": \"njs_set_variable\",\n                    \"file\": {\n                        \"content\": \"ZnVuY3Rpb24gbmpzU2V0VmFyaWFibGUocikgewogICAgcmV0dXJuICJWYXJpYWJsZV9zZXRfYnlfamF2YXNjcmlwdCAtIFVSSSAiK3IudXJpOwp9CgpleHBvcnQgZGVmYXVsdCB7bmpzU2V0VmFyaWFibGV9Cgo=\"\n                    }\n                },\n                {\n                    \"name\": \"njs_set_content\",\n                    \"file\": {\n                        \"content\": \"ZnVuY3Rpb24gbmpzU2V0Q29udGVudChyKSB7CiAgci5yZXR1cm4oMjAwLCAiSGVsbG8gd29ybGQhXG4iKTsKfQoKZXhwb3J0IGRlZmF1bHQge25qc1NldENvbnRlbnR9Cg==\"\n                    }\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": false,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            }\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "NGINX R33+ example",
+							"item": [
+								{
+									"name": "NGINX R33+ example with usage tracking",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -10977,7 +10982,7 @@
 							"name": "HTTP Headers Manipulation",
 							"item": [
 								{
-									"name": "Create test echo service - NGINX Plus up to R32",
+									"name": "Create test echo service",
 									"event": [
 										{
 											"listen": "test",
@@ -11000,51 +11005,6 @@
 										"body": {
 											"mode": "raw",
 											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
-											"protocol": "http",
-											"host": [
-												"{{ncg_host}}"
-											],
-											"port": "{{ncg_port}}",
-											"path": [
-												"{{ngc_api_version}}",
-												"config"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "Create test echo service - NGINX Plus R33 and above",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"exec": [
-													"var respData = JSON.parse(responseBody);",
-													"",
-													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
-													"",
-													"pm.collectionVariables.set('configUid',respData.configUid);"
-												],
-												"type": "text/javascript",
-												"packages": {}
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -11526,6 +11486,56 @@
 										"body": {
 											"mode": "raw",
 											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_js_module\",\n                \"ngx_stream_js_module\"\n            ]\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Example HTTP server with Javascript\",\n                    \"resolver\": \"Google\",\n                    \"names\": [\n                        \"njs-test.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/njs-test.nginx.lab_access_log\",\n                        \"error\": \"/var/log/nginx/njs-test.nginx.lab_error_log\"\n                    },\n                    \"njs\": [\n                        {\n                            \"hook\": {\n                                \"type\": \"js_set\",\n                                \"js_set\": {\n                                    \"variable\": \"$serverVarSetByNjs\"\n                                }\n                            },\n                            \"profile\": \"njs_set_variable\",\n                            \"function\": \"njsSetVariable\"\n                        }\n                    ],\n                    \"headers\": {\n                        \"to_server\": {\n                            \"set\": [\n                                {\n                                    \"name\": \"X-Injected-Client-IP\",\n                                    \"value\": \"$remote_addr\"\n                                },\n                                {\n                                    \"name\": \"Host\",\n                                    \"value\": \"echo.free.beeceptor.com\"\n                                }\n                            ]\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/echo\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"headers\": {\n                                \"to_server\": {\n                                    \"set\": [\n                                        {\n                                            \"name\": \"X-Injected-Client-IP\",\n                                            \"value\": \"$remote_addr\"\n                                        },\n                                        {\n                                            \"name\": \"X-HTTP-Var-Set-By-Njs\",\n                                            \"value\": \"$httpVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"X-Server-Var-Set-By-Njs\",\n                                            \"value\": \"$serverVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"Host\",\n                                            \"value\": \"echo.free.beeceptor.com\"\n                                        }\n                                    ]\n                                }\n                            }\n                        },\n                        {\n                            \"uri\": \"/generatecontent\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test_upstream\",\n                            \"njs\": [\n                                {\n                                    \"hook\": {\n                                        \"type\": \"js_content\"\n                                    },\n                                    \"profile\": \"njs_set_content\",\n                                    \"function\": \"njsSetContent\"\n                                }\n                            ],\n                            \"headers\": {\n                                \"to_server\": {\n                                    \"set\": [\n                                        {\n                                            \"name\": \"X-Injected-Client-IP\",\n                                            \"value\": \"$remote_addr\"\n                                        },\n                                        {\n                                            \"name\": \"X-HTTP-Var-Set-By-Njs\",\n                                            \"value\": \"$httpVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"X-Server-Var-Set-By-Njs\",\n                                            \"value\": \"$serverVarSetByNjs\"\n                                        },\n                                        {\n                                            \"name\": \"Host\",\n                                            \"value\": \"echo.free.beeceptor.com\"\n                                        }\n                                    ]\n                                }\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test_upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ]\n                }\n            ],\n            \"njs\": [\n                {\n                    \"hook\": {\n                        \"type\": \"js_set\",\n                        \"js_set\": {\n                            \"variable\": \"$httpVarSetByNjs\"\n                        }\n                    },\n                    \"profile\": \"njs_set_variable\",\n                    \"function\": \"njsSetVariable\"\n                }\n            ],\n            \"njs_profiles\": [\n                {\n                    \"name\": \"njs_set_variable\",\n                    \"file\": {\n                        \"content\": \"ZnVuY3Rpb24gbmpzU2V0VmFyaWFibGUocikgewogICAgcmV0dXJuICJWYXJpYWJsZV9zZXRfYnlfamF2YXNjcmlwdCAtIFVSSSAiK3IudXJpOwp9CgpleHBvcnQgZGVmYXVsdCB7bmpzU2V0VmFyaWFibGV9Cgo=\"\n                    }\n                },\n                {\n                    \"name\": \"njs_set_content\",\n                    \"file\": {\n                        \"content\": \"ZnVuY3Rpb24gbmpzU2V0Q29udGVudChyKSB7CiAgci5yZXR1cm4oMjAwLCAiSGVsbG8gd29ybGQhXG4iKTsKfQoKZXhwb3J0IGRlZmF1bHQge25qc1NldENvbnRlbnR9Cg==\"\n                    }\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "NGINX R33+ example",
+							"item": [
+								{
+									"name": "NGINX R33+ example with usage tracking",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Test echo app\",\n                    \"names\": [\n                        \"echo.vm-test.ie.ff.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:80\"\n                    },\n                    \"log\": {\n                        \"access\": \"/var/log/nginx/test-echo-access_log\",\n                        \"error\": \"/var/log/nginx/test-echo-error_log\"\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://test-echo-upstream\"\n                        }\n                    ]\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"test-echo-upstream\",\n                    \"origin\": [\n                        {\n                            \"server\": \"echo.free.beeceptor.com\"\n                        }\n                    ],\n                    \"resolver\": \"Google\"\n                }\n            ]\n        },\n        \"resolvers\": [\n            {\n                \"name\": \"Google\",\n                \"address\": \"8.8.8.8\",\n                \"ipv4\": true,\n                \"ipv6\": false,\n                \"timeout\": \"30s\"\n            }\n        ]\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
