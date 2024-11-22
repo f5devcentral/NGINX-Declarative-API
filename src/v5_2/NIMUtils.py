@@ -5,10 +5,6 @@ NGINX Instance Manager support functions
 import requests
 import json
 
-import v4_2.GitOps
-
-from fastapi.responses import Response, JSONResponse
-
 
 # Fetch an instance group UID from NGINX Instance Manager
 # Return None if not found

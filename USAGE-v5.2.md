@@ -1,14 +1,19 @@
-# Usage for NGINX Declarative API v5.1
+# Usage for NGINX Declarative API v5.2
 
-Version 5.1 supports:
+Version 5.2 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+
-- [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/)
-- [NGINX Plus](https://docs.nginx.com/nginx/) R30, R31, R32
+- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+. Version 2.18+ is required for NGINX R33 and above
+- [NGINX One Console](https://docs.nginx.com/nginx-one/)
+- [NGINX Plus](https://docs.nginx.com/nginx/) R31, R32, R33+
 - [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) 4 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
 
 The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman) for usage examples
 
+- `.output.license` defines the JWT license to use for NGINX Plus R33+
+  - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address can be used here
+  - `.output.license.token` the JWT license token
+  - `.output.license.ssl_verify` set to `false` to trust all SSL certificates (not recommended). Useful for reporting to NGINX Instance Manager without a local PKI.
+  - `.output.license.grace_period` Set to 'true' to begin the 180-day reporting enforcement grace period. Reporting must begin or resume before the end of the grace period to ensure continued operation
 - `.output.type` defines how NGINX configuration will be returned:
   - *nms* - NGINX configuration is published as a Staged Config to NGINX Instance Manager
     - `.output.nms.url` the NGINX Instance Manager URL
@@ -30,11 +35,11 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nms.policies[].versions[].displayName` the policy version's display name
       - `.output.nms.policies[].versions[].description` the policy version's description
       - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
-  - *nginxone* - NGINX configuration is published to a NGINX One Cloud Console config sync group
-    - `.output.nginxone.url` the NGINX One Cloud Console URL
-    - `.output.nginxone.namespace` the NGINX One Cloud Console namespace
+  - *nginxone* - NGINX configuration is published to a NGINX One Console config sync group
+    - `.output.nginxone.url` the NGINX One Console URL
+    - `.output.nginxone.namespace` the NGINX One Console namespace
     - `.output.nginxone.token` the authentication token
-    - `.output.nginxone.configsyncgroup` the NGINX One Cloud Console config sync group name
+    - `.output.nginxone.configsyncgroup` the NGINX One Console config sync group name
     - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX One Cloud Console
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nginxone.certificates` an optional array of TLS certificates/keys/chains to be published
@@ -48,12 +53,12 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
 
 ### API endpoints
 
-- `POST /v5.1/config/` - Publish a new declaration
-- `PATCH /v5.1/config/{config_uid}` - Update an existing declaration
+- `POST /v5.2/config/` - Publish a new declaration
+- `PATCH /v5.2/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
-- `GET /v5.1/config/{config_uid}` - Retrieve an existing declaration
-- `DELETE /v5.1/config/{config_uid}` - Delete an existing declaration
+- `GET /v5.2/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v5.2/config/{config_uid}` - Delete an existing declaration

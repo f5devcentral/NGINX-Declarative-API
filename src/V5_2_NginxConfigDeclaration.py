@@ -4,7 +4,7 @@ JSON declaration structure
 
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, Extra, model_validator
+from pydantic import BaseModel, model_validator
 
 import re
 
@@ -122,34 +122,50 @@ class OutputNMS(BaseModel, extra="forbid"):
     log_profiles: Optional[List[LogProfile]] = []
 
 
+class OutputNGINXOne(BaseModel, extra="forbid"):
+    url: str = ""
+    namespace: str = ""
+    token: str = ""
+    configsyncgroup: str = ""
+    synctime: Optional[int] = 0
+    modules: Optional[List[str]] = []
+    certificates: Optional[List[NmsCertificate]] = []
+    policies: Optional[List[NmsPolicy]] = []
+    log_profiles: Optional[List[LogProfile]] = []
+
+
+class License(BaseModel, extra="forbid"):
+    endpoint: str = "product.connect.nginx.com"
+    token: str = ""
+    ssl_verify: bool = True
+    grace_period: bool = False
+
+
 class Output(BaseModel, extra="forbid"):
     type: str
-    configmap: Optional[OutputConfigMap] = {}
-    http: Optional[OutputHttp] = {}
+    license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
+    nginxone: Optional[OutputNGINXOne] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Output':
-        _type, configmap, http, nms = self.type, self.configmap, self.http, self.nms
+        _type,nms, nginxone = self.type, self.nms, self.nginxone
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nms']
+        valid = ['nms', 'nginxone']
         if _type not in valid:
             raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
-        if _type == 'configmap' and not configmap:
+        if _type == 'nms' and not nms:
             isError = True
-        elif _type == 'http' and not http:
-            isError = True
-        elif _type == 'nms' and not nms:
+        elif _type == 'nginxone' and not nginxone:
             isError = True
 
         if isError:
             raise ValueError(f"Invalid output data for type [{_type}]")
 
         return self
-
 
 
 class OcspStapling(BaseModel, extra="forbid"):
@@ -302,8 +318,8 @@ class AuthClientJWT(BaseModel, extra="forbid"):
     def check_type(self) -> 'AuthClientJWT':
         jwt_type, key = self.jwt_type, self.key
 
-        if not key.strip():
-            raise ValueError(f"Invalid: JWT key must not be empty")
+        #if not key.strip():
+        #    raise ValueError(f"Invalid: JWT key must not be empty")
 
         valid = ['signed', 'encrypted', 'nested']
         if jwt_type not in valid:
@@ -507,6 +523,7 @@ class Server(BaseModel, extra="forbid"):
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -542,14 +559,15 @@ class L4Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
-    fail_timeout: Optional[str] = ""
+    fail_timeout: Optional[str] = "10s"
     max_conns: Optional[int] = 0
-    slow_start: Optional[str] = ""
+    slow_start: Optional[str] = "0"
     backup: Optional[bool] = False
 
 
 class Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -566,6 +584,7 @@ class Upstream(BaseModel, extra="forbid"):
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
@@ -647,6 +666,15 @@ class Map(BaseModel, extra="forbid"):
 class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
+
+
+class Resolver(BaseModel, extra="forbid"):
+    name: str
+    address: str
+    valid: Optional[str] = ""
+    ipv4: bool = True
+    ipv6: bool = True
+    timeout: str = "30s"
 
 
 class Authentication_Client(BaseModel, extra="forbid"):
@@ -746,6 +774,7 @@ class Http(BaseModel, extra="forbid"):
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
+    resolvers: Optional[List[Resolver]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):
@@ -753,14 +782,91 @@ class API_Gateway(BaseModel, extra="forbid"):
     strip_uri: Optional[bool] = False
     server_url: Optional[str] = ""
 
+
+class DevPortal_Redocly(BaseModel, extra="forbid"):
+    uri: Optional[str] = "/devportal.html"
+
+
+class DevPortal_Backstage(BaseModel, extra="forbid"):
+    name: str = ""
+    lifecycle: Optional[str] = "production"
+    owner: str = ""
+    system: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'DevPortal_Backstage':
+        _lifecycle = self.lifecycle
+
+        valid = ['experimental', 'production', 'deprecated']
+        if _lifecycle not in valid:
+            raise ValueError(f"Invalid developer portal type [{_lifecycle}] must be one of {str(valid)}")
+
+        return self
+
+      
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
-    uri: Optional[str] = "/devportal.html"
+    type: str = ""
+    redocly: Optional[DevPortal_Redocly] = {}
+    backstage: Optional[DevPortal_Backstage] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'DeveloperPortal':
+        _enabled, _type, _redocly, _backstage = self.enabled, self.type, self.redocly, self.backstage
+
+        valid = ['redocly', 'backstage']
+
+        if _enabled == True and _type not in valid:
+            raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
+
+        isError = False
+
+        if _type == 'redocly' and not _redocly:
+            isError = True
+
+        if _type == 'backstage' and not _backstage:
+            isError = True
+
+        if isError:
+            raise ValueError(f"Missing developer portal data for type [{_type}]")
+
+        return self
+
+
+class Visibility_Moesif(BaseModel, extra="forbid"):
+    application_id: str = ""
+    plugin_path: Optional[str] = "/usr/local/share/lua/5.1/resty/moesif"
+
+
+class Visibility(BaseModel, extra="forbid"):
+    enabled: Optional[bool] = False
+    type: str = ""
+    moesif: Optional[Visibility_Moesif] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Visibility':
+        _enabled, _type, _moesif = self.enabled, self.type, self.moesif
+
+        valid = ['moesif']
+
+        if _enabled == True and _type not in valid:
+            raise ValueError(f"Invalid visibility type [{_type}] must be one of {str(valid)}")
+
+        isError = False
+
+        if _type == 'moesif' and not _moesif:
+            isError = True
+
+        if isError:
+            raise ValueError(f"Missing visibility data for type [{_type}]")
+
+        return self
 
 class APIGateway(BaseModel, extra="forbid"):
     openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
+    visibility: Optional[List[Visibility]] = []
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
     authorization: Optional[List[APIGatewayAuthorization]] = []

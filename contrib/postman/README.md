@@ -2,9 +2,11 @@
 
 This collection contains several declaration examples for the following Declarative API releases:
 
+* API v5.2 - Required for NGINX Plus R33+
 * API v5.1
 * API v5.0
-* API v4.2
+
+**Note**: NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.2.md) for further details. [Postman collection](/contrib/postman) examples are provided for R33.
 
 ---
 

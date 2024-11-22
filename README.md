@@ -2,7 +2,7 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Cloud Console](https://docs.nginx.com/nginx-one/)
+This project provides a set of declarative REST API for [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) and [NGINX One Console](https://docs.nginx.com/nginx-one/)
 
 It can be used to manage NGINX Plus configuration lifecycle and to create NGINX Plus configurations using JSON service definitions.
 
@@ -10,7 +10,7 @@ GitOps integration is supported: source of truth is checked for updates (NGINX A
 
 Use cases include:
 
-- Integration with NGINX Instance Manager (instance group) and NGINX One Cloud Console (config sync group)
+- Integration with NGINX Instance Manager (instance group) and NGINX One Console (config sync group)
 - NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
 - API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment (redocly and backstage supported)
@@ -28,10 +28,12 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## Supported releases
 
-- NGINX Instance Manager 2.14+
-- NGINX One Cloud Console
-- NGINX Plus R30+
-- NGINX App Protect WAF 4 and 5
+- [NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-management-suite/nim/)
+- [NGINX One Console](https://docs.nginx.com/nginx-one/)
+- [NGINX Plus R30+](https://docs.nginx.com/nginx/)
+- NGINX App Protect WAF [4](https://docs.nginx.com/nginx-app-protect-waf/v4/) and [5](https://docs.nginx.com/nginx-app-protect-waf/v5/)
+
+**Note**: NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.2.md) for further details. [Postman collection](/contrib/postman) examples are provided for R33.
 
 ## Architecture
 
@@ -44,7 +46,7 @@ stateDiagram-v2
     Client: REST Client
     Pipeline: CI/CD Pipeline
     NIM: NGINX Instance Manager
-    N1: NGINX One Cloud Console
+    N1: NGINX One Console
     AGENT1: NGINX Agent
     NGINX1: NGINX
     AGENT2: NGINX Agent
@@ -90,7 +92,7 @@ participant Source of Truth
 participant NGINX Declarative API Core
 participant Redis
 participant Developer Portal Service
-participant NGINX Instance Manager / NGINX One
+participant NGINX Instance Manager / NGINX One Console
 participant NGINX
 
 box NGINX Declarative API
@@ -135,7 +137,7 @@ end
 ## Output formats
 
 - [X] Output to NGINX Instance Manager 2.14+ imperative REST API (instance group)
-- [X] Output to NGINX One Cloud Console REST API (config sync group)
+- [X] Output to NGINX One Console REST API (config sync group)
   
 ## Supported features
 
@@ -145,9 +147,9 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.1](/USAGE-v5.1.md) - latest
-- [API v5.0](/USAGE-v5.0.md)
-- [API v4.2](/USAGE-v4.2.md) - deprecated
+- [API v5.2](/USAGE-v5.2.md) - latest - required for NGINX Plus R33+
+- [API v5.1](/USAGE-v5.1.md)
+- [API v5.0](/USAGE-v5.0.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

@@ -166,10 +166,10 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
     # Staged config
     baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
-    #stagedConfig = {'conf_path': NcgConfig.config['nms']['nginx_conf'],
+    #stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
     #                'aux': [ auxFiles ],
     #                'configs': [ configFiles ]}
-    stagedConfig = {'conf_path': NcgConfig.config['nms']['nginx_conf'],
+    stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
                     'configs': [ configFiles, auxFiles ]}
 
     currentBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}').decode(

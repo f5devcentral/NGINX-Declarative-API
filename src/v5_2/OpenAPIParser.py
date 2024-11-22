@@ -54,7 +54,6 @@ class OpenAPIParser:
                     methodInfo = self.openAPISchema['paths'][path][method]
 
                     if method.upper() in self.httpMethods:
-                        #print(f"  - {method} - {methodInfo['description'] if 'description' in methodInfo else ''}")
                         self.m = {}
                         self.m['method'] = method
                         self.m['details'] = {}
