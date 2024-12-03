@@ -112,7 +112,7 @@ Note over NGINX Declarative API Core, Redis: data synchronization
 
 option If updates available
 NGINX Declarative API Core ->>+ Source of Truth: Pull updated objects
-Source of Truth ->>- NGINX Declarative API Core : Updated objects
+Source of Truth ->>- NGINX Declarative API Core: Updated objects
 
 critical Build Staged Config
 critical If Developer Portal enabled
@@ -121,7 +121,7 @@ critical If Developer Portal enabled
 end
 end
 
-NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One: Publish staged config to instance group / config sync group
+NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One Console: Publish staged config to instance group / config sync group
 NGINX Instance Manager / NGINX One Console ->> NGINX: Publish config to NGINX instances
 NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API Core: Publish outcome
 
