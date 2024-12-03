@@ -122,8 +122,8 @@ end
 end
 
 NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One: Publish staged config to instance group / config sync group
-NGINX Instance Manager / NGINX One ->> NGINX: Publish config to NGINX instances
-NGINX Instance Manager / NGINX One ->>- NGINX Declarative API Core: Publish outcome
+NGINX Instance Manager / NGINX One Console ->> NGINX: Publish config to NGINX instances
+NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API Core: Publish outcome
 
 Note over NGINX Declarative API Core, Redis: data synchronization
 
