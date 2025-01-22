@@ -20,7 +20,6 @@ import v5_2.DevPortal
 import v5_2.DeclarationPatcher
 import v5_2.GitOps
 import v5_2.MiscUtils
-import v5_2.NMSOutput
 
 # pydantic models
 from V5_2_NginxConfigDeclaration import *

@@ -20,7 +20,7 @@ import v5_2.DevPortal
 import v5_2.DeclarationPatcher
 import v5_2.GitOps
 import v5_2.MiscUtils
-import v5_2.NMSOutput
+import v5_2.NIMOutput
 
 # pydantic models
 from V5_2_NginxConfigDeclaration import *
@@ -34,7 +34,7 @@ import v5_2.MiscUtils
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
-def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
+def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
               b64StreamConf: str,configFiles = {}, auxFiles = {},
               runfromautosync: bool = False,
               configUid: str = ""):
