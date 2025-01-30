@@ -188,9 +188,13 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     # Append config files to staged configuration
     configFiles['files'].append(filesNginxMain)
-    configFiles['files'].append(filesLicenseFile)
     configFiles['files'].append(filesHttpConf)
     configFiles['files'].append(filesStreamConf)
+
+    # If no R33+ license token was specified in the JSON declaration, it is assumed a token already exists
+    # on the NGINX instances and it won't be overwritten
+    if v5_2.MiscUtils.getDictKey(d, 'output.license.token') != "":
+        configFiles['files'].append(filesLicenseFile)
 
     # Staged config
     baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles}

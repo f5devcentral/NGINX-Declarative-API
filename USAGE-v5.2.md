@@ -11,7 +11,7 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
 
 - `.output.license` defines the JWT license to use for NGINX Plus R33+
   - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address can be used here
-  - `.output.license.token` the JWT license token
+  - `.output.license.token` the JWT license token. If this field is omitted, it is assumed that a `/etc/nginx/license.jwt` token already exists on the instance and it won't be replaced
   - `.output.license.ssl_verify` set to `false` to trust all SSL certificates (not recommended). Useful for reporting to NGINX Instance Manager without a local PKI.
   - `.output.license.grace_period` Set to 'true' to begin the 180-day reporting enforcement grace period. Reporting must begin or resume before the end of the grace period to ensure continued operation
 - `.output.type` defines how NGINX configuration will be returned:
