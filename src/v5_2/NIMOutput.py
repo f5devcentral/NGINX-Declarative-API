@@ -54,6 +54,14 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                             "content": f"invalid NGINX Instance Manager URL {nmsUrlFromJson}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
+    # DNS resolution check
+    dnsOutcome, dnsReply = v5_2.MiscUtils.resolveFQDN(urlCheck.netloc)
+    if not dnsOutcome:
+        return {"status_code": 400,
+                "message": {"status_code": 400, "message": {"code": 400,
+                                                            "content": f"DNS resolution failed for {urlCheck.netloc}: {dnsReply}"}},
+                "headers": {'Content-Type': 'application/json'}}
+
     nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
 
     if nmsSynctime < 0:
