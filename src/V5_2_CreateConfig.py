@@ -23,7 +23,7 @@ import v5_2.DevPortal
 import v5_2.DeclarationPatcher
 import v5_2.GitOps
 import v5_2.MiscUtils
-import v5_2.NMSOutput
+import v5_2.NIMOutput
 import v5_2.NGINXOneOutput
 
 # NGINX App Protect helper functions
@@ -639,7 +639,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # NGINX auxiliary files for staged config
         auxFiles['rootDir'] = NcgConfig.config['nms']['config_dir']
 
-        finalReply = v5_2.NMSOutput.NMSOutput(d = d, declaration = declaration, apiversion = apiversion,
+        finalReply = v5_2.NIMOutput.NIMOutput(d = d, declaration = declaration, apiversion = apiversion,
                                  b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
                                  configFiles = configFiles,
                                  auxFiles = auxFiles,

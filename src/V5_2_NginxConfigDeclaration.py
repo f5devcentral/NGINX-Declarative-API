@@ -136,7 +136,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
 
 class License(BaseModel, extra="forbid"):
     endpoint: str = "product.connect.nginx.com"
-    token: str = ""
+    token: Optional[str] = ""
     ssl_verify: bool = True
     grace_period: bool = False
 

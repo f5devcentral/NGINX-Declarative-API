@@ -20,7 +20,7 @@ import v5_2.DevPortal
 import v5_2.DeclarationPatcher
 import v5_2.GitOps
 import v5_2.MiscUtils
-import v5_2.NMSOutput
+import v5_2.NIMOutput
 
 # pydantic models
 from V5_2_NginxConfigDeclaration import *
@@ -34,7 +34,7 @@ import v5_2.MiscUtils
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
-def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
+def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
               b64StreamConf: str,configFiles = {}, auxFiles = {},
               runfromautosync: bool = False,
               configUid: str = ""):
@@ -52,6 +52,14 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
                                                             "content": f"invalid NGINX Instance Manager URL {nmsUrlFromJson}"}},
+                "headers": {'Content-Type': 'application/json'}}
+
+    # DNS resolution check
+    dnsOutcome, dnsReply = v5_2.MiscUtils.resolveFQDN(urlCheck.netloc)
+    if not dnsOutcome:
+        return {"status_code": 400,
+                "message": {"status_code": 400, "message": {"code": 400,
+                                                            "content": f"DNS resolution failed for {urlCheck.netloc}: {dnsReply}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
@@ -180,9 +188,13 @@ def NMSOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     # Append config files to staged configuration
     configFiles['files'].append(filesNginxMain)
-    configFiles['files'].append(filesLicenseFile)
     configFiles['files'].append(filesHttpConf)
     configFiles['files'].append(filesStreamConf)
+
+    # If no R33+ license token was specified in the JSON declaration, it is assumed a token already exists
+    # on the NGINX instances and it won't be overwritten
+    if v5_2.MiscUtils.getDictKey(d, 'output.license.token') != "":
+        configFiles['files'].append(filesLicenseFile)
 
     # Staged config
     baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles}
