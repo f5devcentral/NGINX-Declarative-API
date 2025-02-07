@@ -1,6 +1,11 @@
 # Docker compose
 
-NGINX Declarative API can be deployed using docker compose on a Linux virtual machine running docker-compose v2.20+
+NGINX Declarative API can be deployed using docker compose on a Linux virtual machine.
+
+Software prerequisites are:
+
+- [docker-compose v2.20+](https://github.com/docker/compose)
+- [jq](https://github.com/jqlang/jq)
 
 Usage:
 
