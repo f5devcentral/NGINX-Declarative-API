@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "3beaacd9-6fff-4a51-a64e-24efdad57e6a",
+		"_postman_id": "ccc21e22-31bc-4f2f-9083-d774d6d9002e",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One Console\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-3beaacd9-6fff-4a51-a64e-24efdad57e6a?action=share&source=collection_link&creator=1667416"
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-ccc21e22-31bc-4f2f-9083-d774d6d9002e?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
@@ -9790,7 +9790,18 @@
 														"method": "GET",
 														"header": [],
 														"url": {
-															"raw": ""
+															"raw": "https://apigw.nginx.lab/petstore/store/inventory",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"store",
+																"inventory"
+															]
 														}
 													},
 													"response": []
@@ -9829,7 +9840,24 @@
 														"method": "GET",
 														"header": [],
 														"url": {
-															"raw": ""
+															"raw": "https://apigw.nginx.lab/petstore/store/inventory?<script>alert();</script>",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"store",
+																"inventory"
+															],
+															"query": [
+																{
+																	"key": "<script>alert();</script>",
+																	"value": null
+																}
+															]
 														}
 													},
 													"response": []
@@ -9840,7 +9868,18 @@
 														"method": "GET",
 														"header": [],
 														"url": {
-															"raw": ""
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
 														}
 													},
 													"response": []
@@ -9861,7 +9900,18 @@
 														"method": "GET",
 														"header": [],
 														"url": {
-															"raw": ""
+															"raw": "https://apigw.nginx.lab/petstore/user/login",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"petstore",
+																"user",
+																"login"
+															]
 														}
 													},
 													"response": []
