@@ -128,7 +128,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
     {% endif -%}
 
-    proxy_pass {{ destination_server }}$uri;
+    proxy_pass {{ destination_server }}$uri$is_args$args;
 }
 
 {% endfor %}
