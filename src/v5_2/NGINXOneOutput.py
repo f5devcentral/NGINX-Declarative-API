@@ -235,89 +235,97 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         #### / NGINX App Protect policies support
 
         ### Publish staged config to config sync group
+        returnHttpCode = 422
+
         r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config',
                           data=json.dumps(stagedConfig),
                           headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"},
                           verify=False)
 
-        if r.status_code != 202:
-            # Configuration push failed
+        if r.status_code not in [200, 202]:
+            # Configuration publish failed
             return {"status_code": r.status_code,
                     "message": {"status_code": r.status_code, "message": r.text},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Fetch the deployment status
-        publishResponse = json.loads(r.text)
-        publication_id = publishResponse['object_id']
+        if r.status_code == 202:
+            # Configuration has been submitted to NGINX One Console, fetch the deployment status - reply was HTTP/202
+            publishResponse = json.loads(r.text)
+            publication_id = publishResponse['object_id']
 
-        # Wait for either NGINX One Cloud Console success or failure after pushing a staged config
-        isPending = True
-        while isPending:
-            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}',
-                                           headers={"Authorization": f"Bearer APIToken {nOneToken}"},
-                                           verify=False)
+            # Wait for either NGINX One Cloud Console success or failure after pushing a staged config
+            isPending = True
+            while isPending:
+                time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+                deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}',
+                                               headers={"Authorization": f"Bearer APIToken {nOneToken}"},
+                                               verify=False)
 
-            checkJson = json.loads(deploymentCheck.text)
+                checkJson = json.loads(deploymentCheck.text)
 
-            if not checkJson['status'] == 'pending':
-                isPending = False
+                if not checkJson['status'] == 'pending':
+                    isPending = False
 
-        if checkJson['status'] == "failed":
-            # Staged config publish to NGINX One failed
-            jsonResponse = checkJson['status_reasons'][0]
-            deploymentCheck.status_code = 422
+            if checkJson['status'] == "failed":
+                # Staged config publish to NGINX One failed
+                jsonResponse = checkJson['status_reasons'][0]
+                returnHttpCode = 422
+            elif checkJson['status'] == "succeeded":
+                jsonResponse = { "message": "Config successfully applied", "status": checkJson['status'] }
+                returnHttpCode = 200
+
         else:
-            # Staged config publish to NGINX One succeeded
-            jsonResponse = json.loads(deploymentCheck.text)
+            # Staged config publish to NGINX One succeeded - reply was HTTP/200
+            jsonResponse = json.loads(r.text)
+            returnHttpCode = 200
 
-            # if nmsSynctime > 0 and runfromautosync == False:
-            if runfromautosync == False:
-                # No configuration is found, generate one
-                configUid = str(v5_2.MiscUtils.getuniqueid())
+        # if nmsSynctime > 0 and runfromautosync == False:
+        if runfromautosync == False:
+            # No configuration is found, generate one
+            configUid = str(v5_2.MiscUtils.getuniqueid())
 
-                # Stores the staged config to redis
-                # Redis keys:
-                # ncg.declaration.[configUid] = original config declaration
-                # ncg.declarationrendered.[configUid] = original config declaration - rendered
-                # ncg.basestagedconfig.[configUid] = base staged configuration
-                # ncg.apiversion.[configUid] = ncg API version
-                # ncg.status.[configUid] = latest status
+            # Stores the staged config to redis
+            # Redis keys:
+            # ncg.declaration.[configUid] = original config declaration
+            # ncg.declarationrendered.[configUid] = original config declaration - rendered
+            # ncg.basestagedconfig.[configUid] = base staged configuration
+            # ncg.apiversion.[configUid] = ncg API version
+            # ncg.status.[configUid] = latest status
 
-                NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-                NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-                NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
-                NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+            NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+            NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
+            NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+            NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
-            # TODO: NGINX App Protect not supported with NGINX One
-            ## Makes NGINX App Protect policies active
-            #doWeHavePolicies = v5_2.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-            #                                                  nmsPassword=nmsPassword,
-            #                                                  activePolicyUids=activePolicyUids,
-            #                                                  instanceGroupUid=igUid)
-            #
-            #if doWeHavePolicies:
-            #    # Clean up NGINX App Protect WAF policies not used anymore
-            #    # and not defined in the declaration just pushed
-            #    time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            #    v5_2.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-            #                                       nmsPassword=nmsPassword,
-            #                                       currentPolicies=provisionedNapPolicies)
+        # TODO: NGINX App Protect not supported with NGINX One
+        ## Makes NGINX App Protect policies active
+        #doWeHavePolicies = v5_2.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+        #                                                  nmsPassword=nmsPassword,
+        #                                                  activePolicyUids=activePolicyUids,
+        #                                                  instanceGroupUid=igUid)
+        #
+        #if doWeHavePolicies:
+        #    # Clean up NGINX App Protect WAF policies not used anymore
+        #    # and not defined in the declaration just pushed
+        #    time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+        #    v5_2.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+        #                                       nmsPassword=nmsPassword,
+        #                                       currentPolicies=provisionedNapPolicies)
 
-            # If deploying a new configuration in GitOps mode start autosync
-            if nOneSynctime == 0:
-                NcgRedis.declarationsList[configUid] = "static"
-            elif not runfromautosync:
-                # GitOps autosync
-                print(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
+        # If deploying a new configuration in GitOps mode start autosync
+        if nOneSynctime == 0:
+            NcgRedis.declarationsList[configUid] = "static"
+        elif not runfromautosync:
+            # GitOps autosync
+            print(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
 
-                job = schedule.every(nOneSynctime).seconds.do(lambda: V5_2_CreateConfig.configautosync(configUid))
-                # Keep track of GitOps configs, key is the threaded job
-                NcgRedis.declarationsList[configUid] = job
+            job = schedule.every(nOneSynctime).seconds.do(lambda: V5_2_CreateConfig.configautosync(configUid))
+            # Keep track of GitOps configs, key is the threaded job
+            NcgRedis.declarationsList[configUid] = job
 
-                NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+            NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
-        responseContent = {'code': deploymentCheck.status_code, 'content': jsonResponse, 'configUid': configUid}
+        responseContent = {' code': returnHttpCode, 'content': jsonResponse, 'configUid': configUid}
 
         # Configuration push completed, update redis keys
         if configUid != "":
@@ -329,8 +337,8 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
             NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
-        return {"status_code": deploymentCheck.status_code,
-            "message": {"status_code": deploymentCheck.status_code,
+        return {"status_code": returnHttpCode,
+            "message": {"status_code": returnHttpCode,
                         "message": responseContent},
             "headers": {'Content-Type': 'application/json'}
             }
