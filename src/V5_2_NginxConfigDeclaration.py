@@ -677,6 +677,14 @@ class Resolver(BaseModel, extra="forbid"):
     timeout: str = "30s"
 
 
+class Cache(BaseModel, extra="forbid"):
+    name: str
+    size: Optional[str] = "10m"
+    ttl: Optional[str] = "10m"
+    max_size: Optional[str] = ""
+    min_free: Optional[str] = ""
+
+
 class Authentication_Client(BaseModel, extra="forbid"):
     name: str
     type: str
