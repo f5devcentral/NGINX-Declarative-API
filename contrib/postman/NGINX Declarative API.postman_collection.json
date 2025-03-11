@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "6e4c0a01-7a47-4126-b1f2-fb28bee606e7",
+		"_postman_id": "63827fd5-e776-41ee-8439-b0937ba618cd",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One Console\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-6e4c0a01-7a47-4126-b1f2-fb28bee606e7?action=share&source=collection_link&creator=1667416"
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-63827fd5-e776-41ee-8439-b0937ba618cd?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
@@ -7392,21 +7392,16 @@
 													"name": "Upload pet image without token",
 													"request": {
 														"method": "POST",
-														"header": [],
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/octet-stream",
+																"type": "text"
+															}
+														],
 														"body": {
-															"mode": "formdata",
-															"formdata": [
-																{
-																	"key": "file",
-																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
-																	"type": "text"
-																},
-																{
-																	"key": "type",
-																	"value": "image/png",
-																	"type": "text"
-																}
-															]
+															"mode": "raw",
+															"raw": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC"
 														},
 														"url": {
 															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
@@ -7440,21 +7435,16 @@
 															]
 														},
 														"method": "POST",
-														"header": [],
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/octet-stream",
+																"type": "text"
+															}
+														],
 														"body": {
-															"mode": "formdata",
-															"formdata": [
-																{
-																	"key": "file",
-																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
-																	"type": "text"
-																},
-																{
-																	"key": "type",
-																	"value": "image/png",
-																	"type": "text"
-																}
-															]
+															"mode": "raw",
+															"raw": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC"
 														},
 														"url": {
 															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
@@ -9659,21 +9649,16 @@
 													"name": "Upload pet image without token",
 													"request": {
 														"method": "POST",
-														"header": [],
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/octet-stream",
+																"type": "text"
+															}
+														],
 														"body": {
-															"mode": "formdata",
-															"formdata": [
-																{
-																	"key": "file",
-																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
-																	"type": "text"
-																},
-																{
-																	"key": "type",
-																	"value": "image/png",
-																	"type": "text"
-																}
-															]
+															"mode": "raw",
+															"raw": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC"
 														},
 														"url": {
 															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
@@ -9707,21 +9692,16 @@
 															]
 														},
 														"method": "POST",
-														"header": [],
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/octet-stream",
+																"type": "text"
+															}
+														],
 														"body": {
-															"mode": "formdata",
-															"formdata": [
-																{
-																	"key": "file",
-																	"value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC",
-																	"type": "text"
-																},
-																{
-																	"key": "type",
-																	"value": "image/png",
-																	"type": "text"
-																}
-															]
+															"mode": "raw",
+															"raw": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TS0UqChYRcchQXbSLijjWKhShQqgVWnUwuX5Ck4YkxcVRcC04+LFYdXBx1tXBVRAEP0CcHZwUXaTE/yWFFjEeHPfj3b3H3TtAaFSYanbFAFWzjFQiLmayq2LwFQEI6Mc4BmVm6nOSlITn+LqHj693UZ7lfe7P0ZvLmwzwicQxphsW8QbxzKalc94nDrOSnCM+J54w6ILEj1xXXH7jXHRY4JlhI52aJw4Ti8UOVjqYlQyVeJo4klM1yhcyLuc4b3FWKzXWuid/YSivrSxzneYIEljEEiSIUFBDGRVYiNKqkWIiRftxD/+w45fIpZCrDEaOBVShQnb84H/wu1uzMDXpJoXiQODFtj9GgeAu0Kzb9vexbTdPAP8zcKW1/dUGMPtJer2tRY6Avm3g4rqtKXvA5Q4w9KTLhuxIfppCoQC8n9E3ZYGBW6Bnze2ttY/TByBNXSVvgINDYKxI2ese7+7u7O3fM63+fgB5bXKpzZcBIwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+gFAhArKAvJglcAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC"
 														},
 														"url": {
 															"raw": "https://apigw.nginx.lab/petstore/pet/1/uploadImage",
