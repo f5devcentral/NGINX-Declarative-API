@@ -62,7 +62,15 @@ include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.
 # Rate limiting zones
 {% if declaration.rate_limit %}
 {% for rl in declaration.rate_limit %}
-limit_req_zone {{ rl.key }} zone={{ rl.name }}:{{ rl.size }} rate={{ rl.rate }};
+limit_req_zone {{ rl.key }} zone={{ rl.name | replace(' ', '_') }}:{{ rl.size }} rate={{ rl.rate }};
+{% endfor %}
+{% endif %}
+
+{# --- Cache section --- #}
+# Cache zones
+{% if declaration.cache %}
+{% for c in declaration.cache %}
+proxy_cache_path {{ c.basepath }}/{{ c.name | replace(' ', '_') }} levels=1:2 keys_zone={{ c.name | replace(' ', '_') }}:{{ c.ttl }}  max_size={{ c.size }};
 {% endfor %}
 {% endif %}
 
@@ -246,7 +254,21 @@ server {
     {# --- Client authorization at server {} level --- #}
     {%- if s.authorization and s.authorization.profile -%}
     include "{{ ncgconfig.nms.authz_client_dir }}/{{ s.authorization.profile | replace(" ", "_") }}.conf";
-    {%- endif -%}
+    {%- endif %}
+
+    {# --- Cache --- #}
+    {%- if s.cache -%}
+    {%- if s.cache.profile %}proxy_cache {{ s.cache.profile | replace(' ', '_') }};{% endif %}
+
+    {% if s.cache.key %}proxy_cache_key "{{ s.cache.key }}";{% endif %}
+
+    {% if s.cache.validity -%}
+    {% for validity in s.cache.validity -%}
+    proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+    {% endfor %}
+    {% endif %}
+
+    {% endif %}
 
     {% filter indent(width=4) %}
 {% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
@@ -353,6 +375,20 @@ server {
         {% if loc.rate_limit.profile %}limit_req zone={{ loc.rate_limit.profile }}{% if loc.rate_limit.burst %} burst={{ loc.rate_limit.burst }}{% endif %}{% if loc.rate_limit.delay == 0 %} nodelay;{% else %} delay={{ loc.rate_limit.delay }};{% endif %}
 
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
+        {% endif %}
+
+        {# --- Cache --- #}
+        {%- if loc.cache -%}
+        {%- if loc.cache.profile %}proxy_cache {{ loc.cache.profile | replace(' ', '_') }};{% endif %}
+
+        {% if loc.cache.key %}proxy_cache_key "{{ loc.cache.key }}";{% endif %}
+
+        {% if loc.cache.validity -%}
+        {% for validity in loc.cache.validity -%}
+        proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+        {% endfor %}
+        {% endif %}
+
         {% endif %}
 
         {# --- Client authentication at location level --- #}

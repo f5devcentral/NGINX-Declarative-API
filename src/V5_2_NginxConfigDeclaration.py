@@ -307,6 +307,24 @@ class APIGatewayAuthorization(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
+
+class APIGatewayCache(BaseModel, extra="forbid"):
+    profile: str
+    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    validity: Optional[List[CacheObjectTTL]] = []
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'APIGatewayCache':
+        profile = self.profile
+
+        if not re.search(alphanumRegexp,profile):
+            raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
 class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
     key: str = ""
@@ -411,6 +429,7 @@ class Location(BaseModel, extra="forbid"):
     authorization: Optional[AuthorizationProfileReference] = {}
     headers: Optional[LocationHeaders]= {}
     njs: Optional[List[NjsHookLocation]] = []
+    cache: Optional[CacheItem] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -510,6 +529,7 @@ class Server(BaseModel, extra="forbid"):
     njs: Optional[List[NjsHookHttpServer]] = []
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
+    cache: Optional[CacheItem] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Server':
@@ -676,13 +696,61 @@ class Resolver(BaseModel, extra="forbid"):
     ipv6: bool = True
     timeout: str = "30s"
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Resolver':
+        name = self.name
 
-class Cache(BaseModel, extra="forbid"):
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid resolver name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
+class CacheProfile(BaseModel, extra="forbid"):
     name: str
+    basepath: Optional[str] = "/tmp"
     size: Optional[str] = "10m"
     ttl: Optional[str] = "10m"
     max_size: Optional[str] = ""
     min_free: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheProfile':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid cache name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
+class CacheObjectTTL(BaseModel, extra="forbid"):
+    code: str = "any"
+    ttl: str = "10m"
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheObjectTTL':
+        code = self.code
+
+        if (code.isdigit() and (int(code) < 100 or int(code) >= 600)) or (not code.isdigit() and code!="any"):
+            raise ValueError(f"Invalid cache HTTP code [{code}] should be an integer between 100 and 599 or 'any'")
+
+        return self
+
+
+class CacheItem(BaseModel, extra="forbid"):
+    profile: str
+    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    validity: Optional[List[CacheObjectTTL]] = []
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheItem':
+        profile = self.profile
+
+        if not re.search(alphanumRegexp,profile):
+            raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Authentication_Client(BaseModel, extra="forbid"):
@@ -777,6 +845,7 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
+    cache: Optional[List[CacheProfile]] = {}
 
 
 class Declaration(BaseModel, extra="forbid"):
@@ -878,6 +947,7 @@ class APIGateway(BaseModel, extra="forbid"):
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
     authorization: Optional[List[APIGatewayAuthorization]] = []
+    cache: Optional[List[APIGatewayCache]] = []
     log: Optional[Log] = {}
 
 
