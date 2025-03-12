@@ -20,11 +20,12 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 | TLS                        | X        | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                                     |
 | Client authentication      | X        | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                                 |
 | Upstream authentication    | X        | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                                     |
-| Rate limiting              | X        | X        | X        |                                                                                                                                                                                                                     |
+| Rate limiting              | X        | X        | X        |
 | Active healthchecks        | X        | X        | X        |                                                                                                                                                                                                                     |
 | Cookie-based stickiness    | X        | X        | X        |                                                                                                                                                                                                                     |
 | HTTP headers manipulation  | X        | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                             |
 | Maps                       | X        | X        | X        |                                                                                                                                                                                                                     |
+| Cache                      |          |          | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                                        |
 | NGINX Plus REST API access | X        | X        | X        |                                                                                                                                                                                                                     |
 | NGINX App Protect WAF      | X        | X        | X        | NOTE: For NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
@@ -40,15 +41,17 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 
 ### NGINX API Gateway use case
 
-| Feature                                      | API v5.0                           | API v5.1                                                                      | API v5.2                                                                      | Notes                                   |
-|----------------------------------------------|------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------|
-| Configuration generation from OpenAPI schema | X                                  | X                                                                             | X                                                                             | OpenAPI 2.0, 3.0, 3.0.1                 | 
-| HTTP methods enforcement                     | X                                  | X                                                                             | X                                                                             |                                         |
-| per-URI rate limiting                        | X                                  | X                                                                             | X                                                                             |                                         |
-| per-URI client authentication                | X                                  | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |                                         |
-| per-URI client authorization                 | X                                  | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           |                                         |
-| Developer portal                             | <li>Redocly</li><li>Backstage</li> | <li>Redocly</li><li>Backstage</li>                                            | <li>Redocly</li><li>Backstage</li>                                            | Supported through 3rd party integration |
-| API visibility                               |                                    | <li>Moesif</li>                                                               | <li>Moesif</li>                                                               | Supported through 3rd party integration |
+| Feature                                      | API v5.0                           | API v5.1                                                                                            | API v5.2                                                                      | Notes                                   |
+|----------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------|
+| Configuration generation from OpenAPI schema | X                                  | X                                                                                                   | X                                                                             | OpenAPI 2.0, 3.0, 3.0.1                 | 
+| HTTP methods enforcement                     | X                                  | X                                                                                                   | X                                                                             |                                         |
+| per-URI rate limiting                        | X                                  | X                                                                                                   | X                                                                             |                                         |
+| per-URI client authentication                | X                                  | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li>                       | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |                                         |
+| per-URI client authorization                 | X                                  | <li>JWT claims</li>                                                                                 | <li>JWT claims</li>                                                           |                                         |
+| per-URI cache                                |                                    |                                                                                                     | X                                                                             |
+| Developer portal                             | <li>Redocly</li><li>Backstage</li> | <li>Redocly</li><li>Backstage</li>                                                                  | <li>Redocly</li><li>Backstage</li>                                            | Supported through 3rd party integration |
+| API visibility                               |                                    | <li>Moesif</li>                                                                                     | <li>Moesif</li>                                                               | Supported through 3rd party integration |
+
 
 Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway
 
@@ -68,12 +71,16 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
   - `visibility[].moesif.*` - Moesif visibility parameters. See the [Postman collection](/contrib/postman)
 - `authentication` - optional, used to enforce authentication at the API Gateway level
 - `authentication.client[]` - authentication profile names
-- `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication.paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
-- `authentication.paths` - paths to enforce authentication
+- `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication[].paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
+- `authentication.paths` - paths to enforce authentication on
 - `authorization[]` - optional, used to enforce authorization
 - `authorization[].profile` - authorization profile name
-- `authorization[].enforceOnPaths` - if set to `true` authorization is enforced on all API endpoints listed under `authorization.paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
-- `authorization[].paths` - paths to enforce authorization
+- `authorization[].enforceOnPaths` - if set to `true` authorization is enforced on all API endpoints listed under `authorization[].paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
+- `authorization[].paths` - paths to enforce authorization on
+- `cache[]` - optional, used to enforce authorization
+- `cache[].profile` - cache profile name
+- `cache[].enforceOnPaths` - if set to `true` caching is performed on all API endpoints listed under `cache[].paths`. if set to `false` caching is performed on all API endpoints but those listed under `cache[].paths`
+- `cache[].paths` - paths to perform caching on
 - `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
 - `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
 

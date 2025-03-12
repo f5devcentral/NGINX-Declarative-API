@@ -152,14 +152,23 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 auxFiles['files'].append(upstreamProfileConfigFile)
                 all_upstreams.append(http['upstreams'][i]['name'])
 
+        http = d['declaration']['http']
+
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
-        http = d['declaration']['http']
 
         d_rate_limit = v5_2.MiscUtils.getDictKey(d, 'declaration.http.rate_limit')
         if d_rate_limit is not None:
             for i in range(len(d_rate_limit)):
                 all_ratelimits.append(d_rate_limit[i]['name'])
+
+        # Check HTTP cache profiles validity
+        all_cache_profiles = []
+
+        d_cache_profiles = v5_2.MiscUtils.getDictKey(d, 'declaration.http.cache')
+        if d_cache_profiles is not None:
+            for i in range(len(d_cache_profiles)):
+                all_cache_profiles.append(d_cache_profiles[i]['name'])
 
         # Check authentication profiles validity and creates authentication config files
 
@@ -343,7 +352,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         return {"status_code": 422,
                                     "message": {"status_code": status, "message":
                                         {"code": status,
-                                         "content": f"invalid resolver profile [{server['resolver'] }] in HTTP server [{server['name']}], must be one of {all_resolver_profiles}"}}}
+                                         "content": f"invalid resolver profile [{server['resolver']}] in HTTP server [{server['name']}], must be one of {all_resolver_profiles}"}}}
+
+                # Server level cache profile name validity
+                if server['cache']:
+                    if server['cache']['profile'] not in all_cache_profiles:
+                        return {"status_code": 422,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"invalid cache profile [{server['cache']['profile']}] in HTTP server [{server['name']}], must be one of {all_cache_profiles}"}}}
 
                 # Server level Javascript hooks
                 if server['njs']:
@@ -365,7 +382,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         {"code": status,
                                          "content": f"invalid client authentication profile [{authClientProfile['profile']}] in server [{server['name']}] must be one of {all_auth_client_profiles}"}}}
 
-                # Location client authorization name validity check
+                # Server client authorization name validity check
                 if 'authorization' in server and server['authorization']:
                     if server['authorization']['profile'] and server['authorization']['profile'] not in all_authz_client_profiles:
                         return {"status_code": 422,
@@ -540,7 +557,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             extraOutputManifests.append(backstageManifest)
                             ### / Backstage developer portal - Create Kubernetes Backstage manifest
 
-                    # Check rate limit profile name validity
+                    # Check location-level rate limit profile name validity
                     if loc['rate_limit'] is not None:
                         if 'profile' in loc['rate_limit'] and loc['rate_limit']['profile'] and loc['rate_limit'][
                             'profile'] not in all_ratelimits:
@@ -551,6 +568,18 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                             {"code": status,
                                              "content":
                                                  f"invalid rate_limit profile [{loc['rate_limit']['profile']}]"}}}
+
+                    # Check location-level cache profile name validity
+                    if loc['cache'] is not None:
+                        if 'profile' in loc['cache'] and loc['cache']['profile'] and loc['cache'][
+                                    'profile'] not in all_cache_profiles:
+                            return {"status_code": 422,
+                                    "message": {
+                                        "status_code": status,
+                                        "message":
+                                            {"code": status,
+                                             "content":
+                                                 f"invalid cache profile [{loc['cache']['profile']}]"}}}
 
             server['snippet']['content'] = base64.b64encode(bytes(serverSnippet, 'utf-8')).decode('utf-8')
 

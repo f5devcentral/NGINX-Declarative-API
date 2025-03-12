@@ -120,6 +120,40 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 
     {# --- Authorization end --- #}
 
+    {# --- Cache --- #}
+    {%- if declaration.location.apigateway.cache -%}
+    {%- for cacheEntry in declaration.location.apigateway.cache %}
+    {%- set enforceCache = namespace(toBeEnforced = False) -%}
+    {%- if cacheEntry.enforceOnPaths == False -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for cachePath in cacheEntry.paths -%}
+    {%- if path.path == cachePath -%}
+    {%- if cacheEntry.enforceOnPaths == True -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceCache.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if enforceCache.toBeEnforced == True -%}
+    {%- if cacheEntry.profile %}proxy_cache {{ cacheEntry.profile | replace(' ', '_') }};{% endif %}
+
+    {% if cacheEntry.key %}proxy_cache_key "{{ cacheEntry.key }}";{% endif %}
+
+    {% if cacheEntry.validity -%}
+    {% for validity in cacheEntry.validity -%}
+    proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+    {% endfor %}
+    {% endif %}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- endif %}
+
+    {# --- Cache end --- #}
+
     {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
     {% endif %}
