@@ -49,35 +49,34 @@ include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" "
 
 
 {# --- Upstreams section --- #}
+# Upstreams
 {% if declaration.upstreams %}
 {% for u in declaration.upstreams %}
 {% if u.name %}
-{% if u.origin %}
-upstream {{ u.name }} {
-    zone {{ u.name }} 64k;
-    {% for o in u.origin -%}
-    server {{ o.server }}{% if o.weight %} weight={{ o.weight }}{% endif %}{% if o.max_fails %} max_fails={{ o.max_fails }}{% endif %}{% if o.fail_timeout %} fail_timeout={{ o.fail_timeout }}{% endif %}{% if o.max_conns %} max_conns={{ o.max_conns }}{% endif %}{% if o.slow_start %} slow_start={{ o.slow_start }}{% endif %}{% if o.backup and o.backup == True %} backup{% endif %};
-    {% endfor %}
-
-    {% if u.sticky and u.sticky.cookie and u.sticky.expires and u.sticky.domain and u.sticky.path -%}
-    sticky cookie {{ u.sticky.cookie }}{% if u.sticky.expires %} expires={{ u.sticky.expires }}{% endif %}{% if u.sticky.domain %} domain={{ u.sticky.domain }}{% endif %}{% if u.sticky.path %} path={{ u.sticky.path }}{% endif %};
-    {% endif -%}
-
-    {% if u.snippet and u.snippet.content %}{{ u.snippet.content | b64decode }}{% endif %}
-
-}
-{% endif %}
+include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.conf";
 {% endif %}
 {% endfor %}
 {% endif %}
 
 {# --- Rate limit section --- #}
-
+# Rate limiting zones
 {% if declaration.rate_limit %}
 {% for rl in declaration.rate_limit %}
-limit_req_zone {{ rl.key }} zone={{ rl.name }}:{{ rl.size }} rate={{ rl.rate }};
+limit_req_zone {{ rl.key }} zone={{ rl.name | replace(' ', '_') }}:{{ rl.size }} rate={{ rl.rate }};
 {% endfor %}
 {% endif %}
+
+{# --- Cache section --- #}
+# Cache zones
+{% if declaration.cache %}
+{% for c in declaration.cache %}
+proxy_cache_path {{ c.basepath }}/{{ c.name | replace(' ', '_') }} levels=1:2 keys_zone={{ c.name | replace(' ', '_') }}:{{ c.ttl }}  max_size={{ c.size }};
+{% endfor %}
+{% endif %}
+
+{# --- Visibility integration section --- #}
+# Visibility integrations
+include "{{ ncgconfig.nms.visibility_dir }}/*-http.conf";
 
 {# --- Server section for NGINX Plus API --- #}
 
@@ -169,12 +168,12 @@ server {
 
     {% if s.names -%}
     server_name{% for svrname in s.names %} {{ svrname }}{% endfor -%};
-    status_zone {{ s.names[0] }};
+    status_zone {{ s.names[0] | replace(" ", "_") }};
     proxy_ssl_server_name on;
-    {% endif -%}
+    {% endif %}
 
     {% if s.resolver -%}
-    resolver {{ s.resolver }};
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ s.resolver | replace(" ", "_") }}.conf";
     {% endif -%}
 
     {# --- Server NGINX App Protect WAF section start --- #}
@@ -255,7 +254,21 @@ server {
     {# --- Client authorization at server {} level --- #}
     {%- if s.authorization and s.authorization.profile -%}
     include "{{ ncgconfig.nms.authz_client_dir }}/{{ s.authorization.profile | replace(" ", "_") }}.conf";
-    {%- endif -%}
+    {%- endif %}
+
+    {# --- Cache --- #}
+    {%- if s.cache -%}
+    {%- if s.cache.profile %}proxy_cache {{ s.cache.profile | replace(' ', '_') }};{% endif %}
+
+    {% if s.cache.key %}proxy_cache_key "{{ s.cache.key }}";{% endif %}
+
+    {% if s.cache.validity -%}
+    {% for validity in s.cache.validity -%}
+    proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+    {% endfor %}
+    {% endif %}
+
+    {% endif %}
 
     {% filter indent(width=4) %}
 {% if s.snippet and s.snippet.content %}{{ s.snippet.content | b64decode }}{% endif %}
@@ -362,6 +375,20 @@ server {
         {% if loc.rate_limit.profile %}limit_req zone={{ loc.rate_limit.profile }}{% if loc.rate_limit.burst %} burst={{ loc.rate_limit.burst }}{% endif %}{% if loc.rate_limit.delay == 0 %} nodelay;{% else %} delay={{ loc.rate_limit.delay }};{% endif %}
 
         {% if loc.rate_limit.httpcode %}limit_req_status {{ loc.rate_limit.httpcode }};{% endif %}{% endif %}
+        {% endif %}
+
+        {# --- Cache --- #}
+        {%- if loc.cache -%}
+        {%- if loc.cache.profile %}proxy_cache {{ loc.cache.profile | replace(' ', '_') }};{% endif %}
+
+        {% if loc.cache.key %}proxy_cache_key "{{ loc.cache.key }}";{% endif %}
+
+        {% if loc.cache.validity -%}
+        {% for validity in loc.cache.validity -%}
+        proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+        {% endfor %}
+        {% endif %}
+
         {% endif %}
 
         {# --- Client authentication at location level --- #}

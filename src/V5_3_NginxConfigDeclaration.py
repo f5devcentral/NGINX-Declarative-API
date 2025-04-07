@@ -4,7 +4,7 @@ JSON declaration structure
 
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, Extra, model_validator
+from pydantic import BaseModel, model_validator
 
 import re
 
@@ -126,7 +126,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     url: str = ""
     namespace: str = ""
     token: str = ""
-    cluster: str = ""
+    configsyncgroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
@@ -134,28 +134,30 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     log_profiles: Optional[List[LogProfile]] = []
 
 
+class License(BaseModel, extra="forbid"):
+    endpoint: Optional[str] = "product.connect.nginx.com"
+    token: Optional[str] = ""
+    ssl_verify: bool = True
+    grace_period: bool = False
+
+
 class Output(BaseModel, extra="forbid"):
     type: str
-    configmap: Optional[OutputConfigMap] = {}
-    http: Optional[OutputHttp] = {}
+    license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
     nginxone: Optional[OutputNGINXOne] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Output':
-        _type, configmap, http, nms, nginxone = self.type, self.configmap, self.http, self.nms, self.nginxone
+        _type,nms, nginxone = self.type, self.nms, self.nginxone
 
-        valid = ['plaintext', 'json', 'configmap', 'http', 'nms', 'nginxone']
+        valid = ['nms', 'nginxone']
         if _type not in valid:
             raise ValueError(f"Invalid output type [{_type}] must be one of {str(valid)}")
 
         isError = False
 
-        if _type == 'configmap' and not configmap:
-            isError = True
-        elif _type == 'http' and not http:
-            isError = True
-        elif _type == 'nms' and not nms:
+        if _type == 'nms' and not nms:
             isError = True
         elif _type == 'nginxone' and not nginxone:
             isError = True
@@ -305,6 +307,24 @@ class APIGatewayAuthorization(BaseModel, extra="forbid"):
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
 
+
+class APIGatewayCache(BaseModel, extra="forbid"):
+    profile: str
+    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    validity: Optional[List[CacheObjectTTL]] = []
+    enforceOnPaths: Optional[bool] = True
+    paths: Optional[List[str]] = []
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'APIGatewayCache':
+        profile = self.profile
+
+        if not re.search(alphanumRegexp,profile):
+            raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
 class AuthClientJWT(BaseModel, extra="forbid"):
     realm: str = "JWT Authentication"
     key: str = ""
@@ -409,6 +429,7 @@ class Location(BaseModel, extra="forbid"):
     authorization: Optional[AuthorizationProfileReference] = {}
     headers: Optional[LocationHeaders]= {}
     njs: Optional[List[NjsHookLocation]] = []
+    cache: Optional[CacheItem] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -508,6 +529,7 @@ class Server(BaseModel, extra="forbid"):
     njs: Optional[List[NjsHookHttpServer]] = []
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
+    cache: Optional[CacheItem] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Server':
@@ -521,6 +543,7 @@ class Server(BaseModel, extra="forbid"):
 
 class L4Server(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     listen: Optional[ListenL4] = {}
     upstream: Optional[str] = ""
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -556,14 +579,15 @@ class L4Origin(BaseModel, extra="forbid"):
     server: str
     weight: Optional[int] = 1
     max_fails: Optional[int] = 1
-    fail_timeout: Optional[str] = ""
+    fail_timeout: Optional[str] = "10s"
     max_conns: Optional[int] = 0
-    slow_start: Optional[str] = ""
+    slow_start: Optional[str] = "0"
     backup: Optional[bool] = False
 
 
 class Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
     sticky: Optional[Sticky] = {}
     snippet: Optional[ObjectFromSourceOfTruth] = {}
@@ -580,6 +604,7 @@ class Upstream(BaseModel, extra="forbid"):
 
 class L4Upstream(BaseModel, extra="forbid"):
     name: str
+    resolver: Optional[str] = ""
     origin: Optional[List[L4Origin]] = []
     snippet: Optional[ObjectFromSourceOfTruth] = {}
 
@@ -661,6 +686,71 @@ class Map(BaseModel, extra="forbid"):
 class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
+
+
+class Resolver(BaseModel, extra="forbid"):
+    name: str
+    address: str
+    valid: Optional[str] = ""
+    ipv4: bool = True
+    ipv6: bool = True
+    timeout: str = "30s"
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Resolver':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid resolver name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
+class CacheProfile(BaseModel, extra="forbid"):
+    name: str
+    basepath: Optional[str] = "/tmp"
+    size: Optional[str] = "10m"
+    ttl: Optional[str] = "10m"
+    max_size: Optional[str] = ""
+    min_free: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheProfile':
+        name = self.name
+
+        if not re.search(alphanumRegexp,name):
+            raise ValueError(f"Invalid cache name [{name}] should match regexp {alphanumRegexp}")
+
+        return self
+
+
+class CacheObjectTTL(BaseModel, extra="forbid"):
+    code: str = "any"
+    ttl: str = "10m"
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheObjectTTL':
+        code = self.code
+
+        if (code.isdigit() and (int(code) < 100 or int(code) >= 600)) or (not code.isdigit() and code!="any"):
+            raise ValueError(f"Invalid cache HTTP code [{code}] should be an integer between 100 and 599 or 'any'")
+
+        return self
+
+
+class CacheItem(BaseModel, extra="forbid"):
+    profile: str
+    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    validity: Optional[List[CacheObjectTTL]] = []
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'CacheItem':
+        profile = self.profile
+
+        if not re.search(alphanumRegexp,profile):
+            raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
+
+        return self
 
 
 class Authentication_Client(BaseModel, extra="forbid"):
@@ -755,11 +845,13 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
+    cache: Optional[List[CacheProfile]] = {}
 
 
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
+    resolvers: Optional[List[Resolver]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):
@@ -773,7 +865,7 @@ class DevPortal_Redocly(BaseModel, extra="forbid"):
 
 
 class DevPortal_Backstage(BaseModel, extra="forbid"):
-    name: str
+    name: str = ""
     lifecycle: Optional[str] = "production"
     owner: str = ""
     system: Optional[str] = ""
@@ -791,17 +883,17 @@ class DevPortal_Backstage(BaseModel, extra="forbid"):
       
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
-    type: str
+    type: str = ""
     redocly: Optional[DevPortal_Redocly] = {}
     backstage: Optional[DevPortal_Backstage] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'DeveloperPortal':
-        _type, _redocly, _backstage = self.type, self.redocly, self.backstage
+        _enabled, _type, _redocly, _backstage = self.enabled, self.type, self.redocly, self.backstage
 
         valid = ['redocly', 'backstage']
 
-        if _type not in valid:
+        if _enabled == True and _type not in valid:
             raise ValueError(f"Invalid developer portal type [{_type}] must be one of {str(valid)}")
 
         isError = False
@@ -818,13 +910,44 @@ class DeveloperPortal(BaseModel, extra="forbid"):
         return self
 
 
+class Visibility_Moesif(BaseModel, extra="forbid"):
+    application_id: str = ""
+    plugin_path: Optional[str] = "/usr/local/share/lua/5.1/resty/moesif"
+
+
+class Visibility(BaseModel, extra="forbid"):
+    enabled: Optional[bool] = False
+    type: str = ""
+    moesif: Optional[Visibility_Moesif] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Visibility':
+        _enabled, _type, _moesif = self.enabled, self.type, self.moesif
+
+        valid = ['moesif']
+
+        if _enabled == True and _type not in valid:
+            raise ValueError(f"Invalid visibility type [{_type}] must be one of {str(valid)}")
+
+        isError = False
+
+        if _type == 'moesif' and not _moesif:
+            isError = True
+
+        if isError:
+            raise ValueError(f"Missing visibility data for type [{_type}]")
+
+        return self
+
 class APIGateway(BaseModel, extra="forbid"):
     openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
     api_gateway: Optional[API_Gateway] =  {}
     developer_portal: Optional[DeveloperPortal] = {}
+    visibility: Optional[List[Visibility]] = []
     rate_limit: Optional[List[RateLimitApiGw]] = []
     authentication: Optional[APIGatewayAuthentication] = {}
     authorization: Optional[List[APIGatewayAuthorization]] = []
+    cache: Optional[List[APIGatewayCache]] = []
     log: Optional[Log] = {}
 
 

@@ -8,12 +8,13 @@ import requests
 from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
 
 # pydantic models
-from V5_0_NginxConfigDeclaration import *
+from V5_3_NginxConfigDeclaration import *
 
 
 # Fetches a URL content
 def __fetchfromsourceoftruth__(url, headers = {} ):
     # Object is fetched from external repository
+
     try:
         reply = requests.get(url = url, headers = headers, verify=False)
     except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):
