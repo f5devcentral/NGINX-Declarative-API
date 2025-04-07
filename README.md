@@ -147,9 +147,9 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.2](/USAGE-v5.2.md) - latest - required for NGINX Plus R33+
-- [API v5.1](/USAGE-v5.1.md)
-- [API v5.0](/USAGE-v5.0.md) - deprecated
+- [API v5.3](/USAGE-v5.3.md) - latest - required for NGINX Plus R33+
+- [API v5.2](/USAGE-v5.2.md) - stable - required for NGINX Plus R33+
+- [API v5.1](/USAGE-v5.1.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
