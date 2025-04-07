@@ -5,10 +5,6 @@ Configuration creation based on jinja2 templates
 import base64
 import json
 import pickle
-import time
-import uuid
-import hashlib
-from datetime import datetime
 from urllib.parse import urlparse
 
 import requests

@@ -13,4 +13,3 @@ uuid
 schedule
 future
 pyyaml
-rq

@@ -21,14 +21,13 @@ import v5_3.DeclarationPatcher
 import v5_3.GitOps
 import v5_3.MiscUtils
 import v5_3.NIMOutput
+import v5_3.NIMUtils
 
 # pydantic models
 from V5_3_NginxConfigDeclaration import *
 
 # NGINX App Protect helper functions
 import v5_3.NAPUtils
-import v5_3.NIMUtils
-import v5_3.MiscUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig

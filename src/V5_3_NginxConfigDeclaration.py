@@ -116,7 +116,6 @@ class OutputNMS(BaseModel, extra="forbid"):
     password: str = ""
     instancegroup: str = ""
     synctime: Optional[int] = 0
-    synchronous: bool = True
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
     policies: Optional[List[NmsPolicy]] = []
@@ -129,7 +128,6 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     token: str = ""
     configsyncgroup: str = ""
     synctime: Optional[int] = 0
-    synchronous: bool = True
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
     policies: Optional[List[NmsPolicy]] = []
@@ -145,6 +143,7 @@ class License(BaseModel, extra="forbid"):
 
 class Output(BaseModel, extra="forbid"):
     type: str
+    synchronous: bool = True
     license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
     nginxone: Optional[OutputNGINXOne] = {}

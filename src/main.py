@@ -6,6 +6,7 @@ NGINX Declarative API
 import json
 import threading
 import time
+import queue
 
 import schedule
 import uvicorn
@@ -24,6 +25,8 @@ import V5_2_NginxConfigDeclaration
 
 import V5_3_CreateConfig
 import V5_3_NginxConfigDeclaration
+import v5_3.Asynchronous
+
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
 redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
@@ -34,11 +37,23 @@ app = FastAPI(
     contact={"name": "GitHub", "url": cfg.config['main']['url']}
 )
 
+#
 # GitOps autosync scheduler
-def runScheduler():
+#
+def runGitOpsScheduler():
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+
+#
+# Asynchronous declaration worker
+#
+def runAsynchronousWorker():
+    while True:
+        item = redis.asyncQueue.get()
+        print(f"Processing asynchronous declaration [{item['configUid']}] method [{item['method']}] API [{item['apiVersion']}]")
+        redis.asyncQueue.task_done()
 
 
 # Submit declaration using v5.1 API
@@ -87,12 +102,19 @@ def post_config_v5_2(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response:
 
 # Submit declaration using v5.3 API
 @app.post("/v5.3/config", status_code=200, response_class=PlainTextResponse)
-def post_config_v5_3(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+def post_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response: Response):
+    retcode, response = v5_3.Asynchronous.checkIfAsynch(declaration = d, method = 'POST', apiVersion='v5.3')
+
+    if retcode is not None:
+        # Request was asynchronous and it has been submitted to the FIFO queue
+        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
+
+    # Synchronous requests handling
     output = V5_3_CreateConfig.createconfig(declaration=d, apiversion='v5.3')
 
-    if type(output) in [Response, str]:
-        # ConfigMap or plaintext response
-        return output
+    #if type(output) in [Response, str]:
+    #    # ConfigMap or plaintext response
+    #    return output
 
     headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
 
@@ -122,6 +144,13 @@ def patch_config_v5_2(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response
 # Modify declaration using v5.3 API
 @app.patch("/v5.3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
+    retcode, response = v5_3.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion='v5.3')
+
+    if retcode is not None:
+        # Request was asynchronous and it has been submitted to the FIFO queue
+        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
+
+    # Synchronous requests handling
     return V5_3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.3')
 
 
@@ -242,8 +271,10 @@ if __name__ == '__main__':
     print(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
 
     print("Starting GitOps scheduler")
-    schedulerThread = threading.Thread(target=runScheduler)
-    schedulerThread.start()
+    threading.Thread(target=runGitOpsScheduler).start()
+
+    print("Starting Asynchronous declarations scheduler")
+    threading.Thread(target=runAsynchronousWorker, daemon=True).start()
 
     apiServerHost = cfg.config['apiserver']['host']
     apiServerPort = cfg.config['apiserver']['port']
