@@ -11,15 +11,6 @@ import re
 # Regexp to check names
 alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
-class OutputConfigMap(BaseModel, extra="forbid"):
-    name: str = "nginx-config"
-    namespace: Optional[str] = ""
-    filename: str = "nginx-config.conf"
-
-
-class OutputHttp(BaseModel, extra="forbid"):
-    url: str = ""
-
 
 class NmsCertificate(BaseModel, extra="forbid"):
     type: str
@@ -428,7 +419,7 @@ class Location(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
-    headers: Optional[LocationHeaders]= {}
+    headers: Optional[LocationHeaders] = {}
     njs: Optional[List[NjsHookLocation]] = []
     cache: Optional[CacheItem] = {}
 
@@ -740,7 +731,7 @@ class CacheObjectTTL(BaseModel, extra="forbid"):
 
 
 class CacheItem(BaseModel, extra="forbid"):
-    profile: str
+    profile: Optional[str] = ""
     key: Optional[str] = "$scheme$proxy_host$request_uri";
     validity: Optional[List[CacheObjectTTL]] = []
 
@@ -748,7 +739,7 @@ class CacheItem(BaseModel, extra="forbid"):
     def check_type(self) -> 'CacheItem':
         profile = self.profile
 
-        if not re.search(alphanumRegexp,profile):
+        if not re.search(alphanumRegexp,profile) and profile != "":
             raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
 
         return self
@@ -846,7 +837,7 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
-    cache: Optional[List[CacheProfile]] = {}
+    cache: Optional[List[CacheProfile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):

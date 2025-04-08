@@ -352,7 +352,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 # Server level cache profile name validity
                 if server['cache']:
-                    if server['cache']['profile'] not in all_cache_profiles:
+                    if server['cache']['profile'] not in all_cache_profiles and server['cache']['profile'] != "":
                         return {"status_code": 422,
                                     "message": {"status_code": status, "message":
                                         {"code": status,
@@ -568,7 +568,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     # Check location-level cache profile name validity
                     if loc['cache'] is not None:
                         if 'profile' in loc['cache'] and loc['cache']['profile'] and loc['cache'][
-                                    'profile'] not in all_cache_profiles:
+                                    'profile'] not in all_cache_profiles and loc['cache'][
+                                    'profile'] != "":
                             return {"status_code": 422,
                                     "message": {
                                         "status_code": status,
@@ -671,7 +672,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  runfromautosync = runfromautosync, configUid = configUid )
 
         if finalReply['status_code'] == 200:
-            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+            if len(extraOutputManifests) > 0:
+                finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
 
@@ -691,7 +693,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  runfromautosync = runfromautosync, configUid = configUid )
 
         if finalReply['status_code'] == 200:
-            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+            if len(extraOutputManifests) > 0:
+                finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
     else:

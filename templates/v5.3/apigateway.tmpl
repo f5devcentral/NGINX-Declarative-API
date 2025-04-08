@@ -138,9 +138,10 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     {%- endfor -%}
 
     {%- if enforceCache.toBeEnforced == True -%}
-    {%- if cacheEntry.profile %}proxy_cache {{ cacheEntry.profile | replace(' ', '_') }};{% endif %}
+    {%- if cacheEntry.profile %}proxy_cache {{ cacheEntry.profile | replace(' ', '_') }};
 
     {% if cacheEntry.key %}proxy_cache_key "{{ cacheEntry.key }}";{% endif %}
+    {% endif %}
 
     {% if cacheEntry.validity -%}
     {% for validity in cacheEntry.validity -%}

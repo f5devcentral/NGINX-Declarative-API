@@ -258,9 +258,10 @@ server {
 
     {# --- Cache --- #}
     {%- if s.cache -%}
-    {%- if s.cache.profile %}proxy_cache {{ s.cache.profile | replace(' ', '_') }};{% endif %}
+    {%- if s.cache.profile %}proxy_cache {{ s.cache.profile | replace(' ', '_') }};
 
     {% if s.cache.key %}proxy_cache_key "{{ s.cache.key }}";{% endif %}
+    {% endif %}
 
     {% if s.cache.validity -%}
     {% for validity in s.cache.validity -%}
@@ -379,9 +380,10 @@ server {
 
         {# --- Cache --- #}
         {%- if loc.cache -%}
-        {%- if loc.cache.profile %}proxy_cache {{ loc.cache.profile | replace(' ', '_') }};{% endif %}
+        {%- if loc.cache.profile %}proxy_cache {{ loc.cache.profile | replace(' ', '_') }};
 
         {% if loc.cache.key %}proxy_cache_key "{{ loc.cache.key }}";{% endif %}
+        {% endif %}
 
         {% if loc.cache.validity -%}
         {% for validity in loc.cache.validity -%}

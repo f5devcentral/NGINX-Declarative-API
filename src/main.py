@@ -15,7 +15,7 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 
 # NGINX Declarative API modules
 import NcgConfig
-import NcgRedis
+from NcgRedis import NcgRedis
 
 import V5_1_CreateConfig
 import V5_1_NginxConfigDeclaration
@@ -29,7 +29,7 @@ import v5_3.Asynchronous
 
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
-redis = NcgRedis.NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
+redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
@@ -51,8 +51,13 @@ def runGitOpsScheduler():
 #
 def runAsynchronousWorker():
     while True:
+        time.sleep(5)
         item = redis.asyncQueue.get()
-        print(f"Processing asynchronous declaration [{item['configUid']}] method [{item['method']}] API [{item['apiVersion']}]")
+        print(f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
+        declaration = item['declaration']
+        response = V5_3_CreateConfig.patch_config(declaration = declaration, configUid = item['configUid'], apiversion = item['apiVersion'])
+        NcgRedis.redis.set(f"ncg.async.submission.{item['submissionUid']}", response.body.decode("utf-8"))
+
         redis.asyncQueue.task_done()
 
 
@@ -103,13 +108,6 @@ def post_config_v5_2(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response:
 # Submit declaration using v5.3 API
 @app.post("/v5.3/config", status_code=200, response_class=PlainTextResponse)
 def post_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    retcode, response = v5_3.Asynchronous.checkIfAsynch(declaration = d, method = 'POST', apiVersion='v5.3')
-
-    if retcode is not None:
-        # Request was asynchronous and it has been submitted to the FIFO queue
-        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
-
-    # Synchronous requests handling
     output = V5_3_CreateConfig.createconfig(declaration=d, apiversion='v5.3')
 
     #if type(output) in [Response, str]:
@@ -132,25 +130,24 @@ def post_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response:
 # Modify declaration using v5.1 API
 @app.patch("/v5.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_1(d: V5_1_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    return V5_1_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.1')
+    return V5_1_CreateConfig.patch_config(declaration = d, configUid = configuid, apiversion = 'v5.1')
 
 
 # Modify declaration using v5.2 API
 @app.patch("/v5.2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_2(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    return V5_2_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.2')
+    return V5_2_CreateConfig.patch_config(declaration = d, configUid = configuid, apiversion = 'v5.2')
 
 
 # Modify declaration using v5.3 API
 @app.patch("/v5.3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    retcode, response = v5_3.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion='v5.3')
+    retcode, response = v5_3.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion = 'v5.3', configUid = configuid)
 
     if retcode is not None:
         # Request was asynchronous and it has been submitted to the FIFO queue
         return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
 
-    # Synchronous requests handling
     return V5_3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.3')
 
 
@@ -225,6 +222,32 @@ def get_config_status(configuid: str):
             headers={'Content-Type': 'application/json'}
         )
     else:
+        return JSONResponse(
+            status_code=200,
+            content=json.loads(status),
+            headers={'Content-Type': 'application/json'}
+        )
+
+# Get asynchronous submission status
+@app.get("/v5.3/config/{configuid}/submission/{submissionuid}", status_code=200, response_class=PlainTextResponse)
+def get_submission_status(configuid: str, submissionuid: str):
+    status = redis.redis.get('ncg.async.submission.' + submissionuid)
+
+    if status is None:
+        return JSONResponse(
+            status_code=404,
+            content={'code': 404, 'details': {'message': f'submission {submissionuid} for declaration {configuid} not found'}},
+            headers={'Content-Type': 'application/json'}
+        )
+    else:
+        jsonStatus = json.loads(status)
+
+        if 'details' in jsonStatus and 'message' in jsonStatus['details']:
+            # Remove the redis entry for ncg.async.submission if configuration publish has been run from the FIFO queue
+            # If the submission is still pending in the queue, it is not removed
+            print(f"Removing status for submission id {submissionuid} for config {configuid}")
+            redis.redis.delete('ncg.async.submission.' + submissionuid)
+
         return JSONResponse(
             status_code=200,
             content=json.loads(status),
