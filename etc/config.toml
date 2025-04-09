@@ -65,8 +65,11 @@ resolver_dir = '/etc/nginx/resolvers'
 upstream_http_dir = '/etc/nginx/upstreams/http'
 upstream_stream_dir = '/etc/nginx/upstreams/stream'
 
-# Time to wait to get status after committing a staged config
+# Time (in seconds) to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
+
+# Time (in seconds) to wait between two subsequent asynchronous submissions publish
+asynchronous_publish_waittime = 5
 
 # NGINX App Protect support
 nap_policies_dir = '/etc/nginx/waf/policies'
