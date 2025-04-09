@@ -51,7 +51,7 @@ def runGitOpsScheduler():
 #
 def runAsynchronousWorker():
     while True:
-        time.sleep(NcgConfig.config['nms']['asynchronous_publish_waittime'])
+        time.sleep(cfg.config['nms']['asynchronous_publish_waittime'])
         item = redis.asyncQueue.get()
         print(f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
         declaration = item['declaration']
