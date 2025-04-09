@@ -69,7 +69,7 @@ upstream_stream_dir = '/etc/nginx/upstreams/stream'
 staged_config_publish_waittime = 2
 
 # Time (in seconds) to wait between two subsequent asynchronous submissions publish
-asynchronous_publish_waittime = 5
+asynchronous_publish_waittime = 30
 
 # NGINX App Protect support
 nap_policies_dir = '/etc/nginx/waf/policies'
