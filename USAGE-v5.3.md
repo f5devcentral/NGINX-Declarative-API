@@ -62,5 +62,6 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
+- `GET /v5.3/config/{configUid}/submission/{submissionUid}` - Retrieve a submission (asynchronous `PATCH` request) status
 - `GET /v5.3/config/{config_uid}` - Retrieve an existing declaration
 - `DELETE /v5.3/config/{config_uid}` - Delete an existing declaration
