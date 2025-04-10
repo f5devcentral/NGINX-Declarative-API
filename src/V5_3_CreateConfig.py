@@ -521,6 +521,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
+                                                                            '/' + server['names'][0] +
                                                                             loc['uri'] + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
