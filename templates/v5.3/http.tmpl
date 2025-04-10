@@ -425,7 +425,7 @@ server {
         {% endif %}
 
         {% if loc.apigateway and loc.apigateway.api_gateway.enabled == True %}
-        include "{{ ncgconfig.nms.apigw_dir }}/{{ s.names[0] }}-{{ loc.uri }}.conf";
+        include "{{ ncgconfig.nms.apigw_dir }}/{{ s.names[0] }}{{ loc.uri }}.conf";
         {% endif %}
 
         {# --- Location snippets --- #}
