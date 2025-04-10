@@ -49,8 +49,8 @@ include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" "
 
 
 {# --- Upstreams section --- #}
-# Upstreams
 {% if declaration.upstreams %}
+# Upstreams
 {% for u in declaration.upstreams %}
 {% if u.name %}
 include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.conf";
@@ -59,16 +59,16 @@ include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.
 {% endif %}
 
 {# --- Rate limit section --- #}
-# Rate limiting zones
 {% if declaration.rate_limit %}
+# Rate limiting zones
 {% for rl in declaration.rate_limit %}
 limit_req_zone {{ rl.key }} zone={{ rl.name | replace(' ', '_') }}:{{ rl.size }} rate={{ rl.rate }};
 {% endfor %}
 {% endif %}
 
 {# --- Cache section --- #}
-# Cache zones
 {% if declaration.cache %}
+# Cache zones
 {% for c in declaration.cache %}
 proxy_cache_path {{ c.basepath }}/{{ c.name | replace(' ', '_') }} levels=1:2 keys_zone={{ c.name | replace(' ', '_') }}:{{ c.ttl }}  max_size={{ c.size }};
 {% endfor %}

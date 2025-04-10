@@ -2,6 +2,7 @@
 
 {# --- Upstreams section --- #}
 {% if declaration.upstreams %}
+# Upstreams
 {% for u in declaration.upstreams %}
 {% if u.name %}
 include "{{ ncgconfig.nms.upstream_stream_dir }}/{{ u.name | replace(' ', '_') }}.conf";
