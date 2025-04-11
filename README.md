@@ -53,7 +53,7 @@ stateDiagram-v2
     NGINX2: NGINX
     INPUT: Input
     SOT: Source of Truth
-    NDAPI: NGINX Declarative API Core
+    NDAPI: NGINX Declarative API
     DEVP: Developer Portal Service
     OUTPUT: Output
     REDIS: Redis
@@ -89,14 +89,14 @@ title GitOps autosync operations
 
 participant CI/CD Pipeline
 participant Source of Truth
-participant NGINX Declarative API Core
+participant NGINX Declarative API
 participant Redis
 participant Developer Portal Service
 participant NGINX Instance Manager / NGINX One Console
 participant NGINX
 
 box NGINX Declarative API
-    participant NGINX Declarative API Core
+    participant NGINX Declarative API
     participant Developer Portal Service
     participant Redis
 end
@@ -105,27 +105,79 @@ CI/CD Pipeline ->> Source of Truth: Commit object updates
 
 critical Run every "synctime" seconds
 
-NGINX Declarative API Core ->>+ Source of Truth: Check for referenced objects updates
-Source of Truth ->>- NGINX Declarative API Core: Latest timestamp
+NGINX Declarative API ->>+ Source of Truth: Check for referenced objects updates
+Source of Truth ->>- NGINX Declarative API: Latest timestamp
 
-Note over NGINX Declarative API Core, Redis: data synchronization
+Note over NGINX Declarative API, Redis: data synchronization
 
 option If updates available
-NGINX Declarative API Core ->>+ Source of Truth: Pull updated objects
-Source of Truth ->>- NGINX Declarative API Core: Updated objects
+NGINX Declarative API ->>+ Source of Truth: Pull updated objects
+Source of Truth ->>- NGINX Declarative API: Updated objects
 
 critical Build Staged Config
 critical If Developer Portal enabled
-    NGINX Declarative API Core ->>+ Developer Portal Service: DevPortal generation request
-    Developer Portal Service ->>- NGINX Declarative API Core: DevPortal definition
+    NGINX Declarative API ->>+ Developer Portal Service: DevPortal generation request
+    Developer Portal Service ->>- NGINX Declarative API: DevPortal definition
 end
 end
 
-NGINX Declarative API Core ->>+ NGINX Instance Manager / NGINX One Console: Publish staged config to instance group / config sync group
+NGINX Declarative API ->>+ NGINX Instance Manager / NGINX One Console: Publish staged config to instance group / config sync group
 NGINX Instance Manager / NGINX One Console ->> NGINX: Publish config to NGINX instances
-NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API Core: Publish outcome
+NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API: Return outcome
 
-Note over NGINX Declarative API Core, Redis: data synchronization
+Note over NGINX Declarative API, Redis: data synchronization
+
+end
+```
+
+## Concurrent access and queuing mode
+
+```mermaid
+sequenceDiagram
+
+title Concurrent access and queueing mode
+
+participant CI/CD Pipeline
+participant NGINX Declarative API
+participant Developer Portal Service
+participant NGINX Instance Manager / NGINX One Console
+participant NGINX
+
+critical Initial configuration deployment
+
+CI/CD Pipeline ->> NGINX Declarative API: POST request - base configuration deployment
+
+NGINX Declarative API ->>+ NGINX Instance Manager / NGINX One Console: Publish staged config to instance group / config sync group
+NGINX Instance Manager / NGINX One Console ->> NGINX: Publish config to NGINX instances
+NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API: Return outcome
+
+NGINX Declarative API ->> CI/CD Pipeline: Response
+
+end
+
+critical Asynchronous configuration submission
+
+CI/CD Pipeline ->> NGINX Declarative API: PATCH request - asynchronous configuration update 1
+NGINX Declarative API ->>+ NGINX Declarative API: request added to the queue
+CI/CD Pipeline ->> NGINX Declarative API: PATCH request - asynchronous configuration update 2 
+NGINX Declarative API ->>+ NGINX Declarative API: request added to the queue
+
+
+loop Queue Manager Thread
+autonumber 1
+
+NGINX Declarative API ->>+ NGINX Declarative API: get configuration update request from queue
+
+NGINX Declarative API ->>+ NGINX Instance Manager / NGINX One Console: Publish staged config to instance group / config sync group
+NGINX Instance Manager / NGINX One Console ->> NGINX: Publish config to NGINX instances
+NGINX Instance Manager / NGINX One Console ->>- NGINX Declarative API: Return outcome
+NGINX Declarative API ->> NGINX Declarative API: Update configuration update request status
+
+autonumber off
+end
+
+CI/CD Pipeline ->> NGINX Declarative API: Check configuration request status
+NGINX Declarative API ->> CI/CD Pipeline: Response
 
 end
 ```

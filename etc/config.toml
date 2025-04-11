@@ -68,7 +68,7 @@ upstream_stream_dir = '/etc/nginx/upstreams/stream'
 # Time (in seconds) to wait to get status after committing a staged config
 staged_config_publish_waittime = 2
 
-# Time (in seconds) to wait between two subsequent asynchronous submissions publish
+# Time (in seconds) to wait between two subsequent asynchronous submissions publish requests through PATCH
 asynchronous_publish_waittime = 30
 
 # NGINX App Protect support

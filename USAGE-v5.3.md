@@ -21,7 +21,7 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nms.password` the NGINX Instance Manager authentication password
     - `.output.nms.instancegroup` the NGINX Instance Manager instance group to publish the configuration to
     - `.output.nms.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX Instance Manager
-    - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX Instance Manager successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declaration to be submitted at the same time/from multiple clients
+    - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX Instance Manager successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declarations to be submitted at the same time/from multiple clients. Currently supported for `PATCH` operations only.
     - `.output.nms.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
       - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
@@ -42,7 +42,7 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nginxone.token` the authentication token
     - `.output.nginxone.configsyncgroup` the NGINX One Console config sync group name
     - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX One Cloud Console
-    - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX One Console successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declaration to be submitted at the same time/from multiple clients
+    - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX One Console successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declarations to be submitted at the same time/from multiple clients. Currently supported for `PATCH` operations only.
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
     - `.output.nginxone.certificates` an optional array of TLS certificates/keys/chains to be published
       - `.output.nginxone.certificates[].type` the item type ('certificate', 'key', 'chain')
