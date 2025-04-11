@@ -112,7 +112,7 @@ do
   esac
 done
 
-if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|build) ]] 
+if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|build) ]]
 then
   usage
 fi

@@ -1,0 +1,179 @@
+{% if declaration.servers %}
+    {# --- OpenAPI schema contains server details --- #}
+    {% if declaration.servers[0].url.lower().startswith('http://') or declaration.servers[0].url.lower().startswith('https://') %}
+        {# --- OpenAPI schema contains a full server URL --- #}
+        {% set destination_server = declaration.servers[0].url %}
+    {% else %}
+        {# --- OpenAPI schema contains a server URI --- #}
+        {% set destination_server = declaration.location.apigateway.api_gateway.server_url + declaration.servers[0].url %}
+    {% endif %}
+{% else %}
+    {# --- OpenAPI schema contains no server details --- #}
+    {% set destination_server = declaration.location.apigateway.api_gateway.server_url %}
+{% endif %}
+
+# API Gateway: {{ declaration.info.title }} {{ declaration.info.version }}
+# OpenAPI version: {{ declaration.version }}
+# Base URI: {{ declaration.location.uri }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
+# Destination server: {{ destination_server }}
+
+{% for v in enabledVisibility %}
+include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }}-server.conf";
+{% endfor %}
+
+{% if declaration.paths -%}
+{% for path in declaration.paths|sort(attribute='path', reverse = True) %}
+location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+    {% for method in path.methods -%}
+    # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
+    {% endfor -%}
+    {% set method_names = path.methods|map(attribute='method')|list %}
+
+    {% if declaration.location.apigateway.log.access %}access_log {{ declaration.location.apigateway.log.access }} main;{% endif %}
+
+    {% if declaration.location.apigateway.log.error %}error_log {{ declaration.location.apigateway.log.error }};{% endif %}
+
+
+    limit_except {{ method_names|join(' ')|upper }} { deny all; }
+
+    {# --- Rate limiting start --- #}
+    {%- for rl in declaration.location.apigateway.rate_limit -%}
+    {%- set enforceRL = namespace(toBeEnforced = False) -%}
+    {%- if rl.enforceOnPaths == False -%}
+    {%- set enforceRL.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for rlPath in rl.paths -%}
+    {%- if path.path == rlPath -%}
+    {%- if rl.enforceOnPaths == True -%}
+    {%- set enforceRL.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceRL.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if enforceRL.toBeEnforced == True -%}
+    {%- if rl.profile %}limit_req zone={{ rl.profile }}{% if rl.burst %} burst={{ rl.burst }}{% endif %}{% if rl.delay == 0 %} nodelay;{% else %} delay={{ rl.delay }};{% endif %}{% endif %}
+
+    {% if rl.httpcode %}limit_req_status {{ rl.httpcode }};{% endif %}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Rate limiting end --- #}
+
+
+    {# --- Authentication start --- #}
+    {%- if declaration.location.apigateway.authentication -%}
+    {%- set enforceAuth = namespace(toBeEnforced = False) -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == False -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for authPath in declaration.location.apigateway.authentication.paths -%}
+    {%- if path.path == authPath -%}
+    {%- if declaration.location.apigateway.authentication.enforceOnPaths == True -%}
+    {%- set enforceAuth.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceAuth.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Client authentication --- #}
+    {%- if enforceAuth.toBeEnforced == True -%}
+    {%- if declaration.location.apigateway.authentication and declaration.location.apigateway.authentication.client -%}
+    {%- for clientAuthProfile in declaration.location.apigateway.authentication.client -%}
+    include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+    {% endfor -%}
+    {%- endif -%}
+    {%- endif -%}
+
+    {%- endif %}
+
+    {# --- Authentication end --- #}
+
+
+    {# --- Authorization start --- #}
+    {%- if declaration.location.apigateway.authorization -%}
+    {%- for authZentry in declaration.location.apigateway.authorization %}
+    {%- set enforceAuthZ = namespace(toBeEnforced = False) -%}
+    {%- if authZentry.enforceOnPaths == False -%}
+    {%- set enforceAuthZ.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for authPath in authZentry.paths -%}
+    {%- if path.path == authPath -%}
+    {%- if authZentry.enforceOnPaths == True -%}
+    {%- set enforceAuthZ.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceAuthZ.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {# --- Client authorization --- #}
+    {%- if enforceAuthZ.toBeEnforced == True -%}
+    include "{{ ncgconfig.nms.authz_client_dir }}/{{ authZentry.profile | replace(" ", "_") }}.conf";
+    {%- endif -%}
+
+    {%- endfor -%}
+    {%- endif %}
+
+    {# --- Authorization end --- #}
+
+    {# --- Cache --- #}
+    {%- if declaration.location.apigateway.cache -%}
+    {%- for cacheEntry in declaration.location.apigateway.cache %}
+    {%- set enforceCache = namespace(toBeEnforced = False) -%}
+    {%- if cacheEntry.enforceOnPaths == False -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for cachePath in cacheEntry.paths -%}
+    {%- if path.path == cachePath -%}
+    {%- if cacheEntry.enforceOnPaths == True -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceCache.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if enforceCache.toBeEnforced == True -%}
+    {%- if cacheEntry.profile %}proxy_cache {{ cacheEntry.profile | replace(' ', '_') }};
+
+    {% if cacheEntry.key %}proxy_cache_key "{{ cacheEntry.key }}";{% endif %}
+    {% endif %}
+
+    {% if cacheEntry.validity -%}
+    {% for validity in cacheEntry.validity -%}
+    proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+    {% endfor %}
+    {% endif %}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- endif %}
+
+    {# --- Cache end --- #}
+
+    {% if declaration.location.apigateway.api_gateway.strip_uri -%}
+    rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
+    {% endif %}
+
+    {% if declaration.location.apigateway.api_gateway.server_url -%}
+    proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
+    {% endif -%}
+
+    proxy_pass {{ destination_server }}$uri$is_args$args;
+}
+
+{% endfor %}
+
+{% if declaration.location.apigateway.developer_portal.enabled == True -%}
+    {% if declaration.location.apigateway.developer_portal.type.lower() == "redocly" %}
+location = {{ declaration.location.uri }}{{ declaration.location.apigateway.developer_portal.redocly.uri }} {
+    rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
+    root {{ ncgconfig.nms.devportal_dir }};
+}
+    {% endif %}
+{% endif %}
+{% endif %}
