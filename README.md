@@ -139,7 +139,6 @@ title Concurrent access and queueing mode
 
 participant CI/CD Pipeline
 participant NGINX Declarative API
-participant Developer Portal Service
 participant NGINX Instance Manager / NGINX One Console
 participant NGINX
 
