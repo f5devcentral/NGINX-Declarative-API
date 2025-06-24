@@ -149,7 +149,7 @@ def checkDeclarationPolicies(declaration: dict):
 
 # For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
-# Returns a tuple with two dictionaries: all_policy_names_and_versions, all_policy_active_names_and_uids
+# Returns a JSON with status code and content
 def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
     # NGINX App Protect policies - each policy supports multiple tagged versions
 
@@ -212,7 +212,8 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
 
                         all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
 
-    return all_policy_names_and_versions, all_policy_active_names_and_uids
+    return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
+                                                  "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
 
 
 # Publish a NGINX App Protect WAF policy making it active

@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "5.3.0"
+version = "5.3.1"
 url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
