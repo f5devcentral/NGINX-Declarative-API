@@ -236,8 +236,16 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                     "headers": {'Content-Type': 'application/json'}}
 
         # Provision NGINX App Protect WAF policies to NGINX Instance Manager
-        provisionedNapPolicies, activePolicyUids = v5_3.NAPUtils.provisionPolicies(
+        ppReply = v5_3.NAPUtils.provisionPolicies(
             nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
+
+        if ppReply.status_code >= 400:
+            return {"status_code": ppReply.status_code,
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+
+        napPolicies = json.loads(ppReply.body)
+        provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
+        activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
         ### / NGINX App Protect policies support
 
