@@ -181,7 +181,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 
 ### Upstream and Source of truth authentication
 
-| Type         | Description                                  | API v5.1 | API v5.2 | API v5.2 | Notes                                                                                  |
+| Type         | Description                                  | API v5.1 | API v5.2 | API v5.3 | Notes                                                                                  |
 |--------------|----------------------------------------------|----------|----------|----------|----------------------------------------------------------------------------------------|
 | Bearer token | Authentication token as Authorization Bearer | X        | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
 | Basic Auth   | Authentication token as Authorization Basic  | X        | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
