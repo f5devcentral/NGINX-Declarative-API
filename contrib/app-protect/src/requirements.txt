@@ -1,5 +1,0 @@
-typing
-uvicorn
-fastapi
-uuid
-pyyaml
