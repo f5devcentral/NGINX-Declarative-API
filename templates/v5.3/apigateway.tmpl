@@ -12,7 +12,9 @@
     {% set destination_server = declaration.location.apigateway.api_gateway.server_url %}
 {% endif %}
 
-# API Gateway: {{ declaration.info.title }} {{ declaration.info.version }}
+{% if declaration.info %}
+# API Gateway: {% if declaration.info.title %}{{ declaration.info.title }}{% endif %} {% if declaration.info.version %}{{ declaration.info.version }}{% endif %}
+{% endif %}
 # OpenAPI version: {{ declaration.version }}
 # Base URI: {{ declaration.location.uri }}
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
