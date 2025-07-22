@@ -12,7 +12,10 @@
     {% set destination_server = declaration.location.apigateway.api_gateway.server_url %}
 {% endif %}
 
-# API Gateway: {{ declaration.info.title }} {{ declaration.info.version }}
+{% if declaration.info %}
+# API Gateway: {% if declaration.info.title %}{{ declaration.info.title }}{% endif %} {% if declaration.info.version %}{{ declaration.info.version }}{% endif %}
+{% endif %}
+
 # OpenAPI version: {{ declaration.version }}
 # Base URI: {{ declaration.location.uri }}
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
@@ -24,7 +27,7 @@ include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }
 
 {% if declaration.paths -%}
 {% for path in declaration.paths|sort(attribute='path', reverse = True) %}
-location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.location.uri }}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
     {% endfor -%}
@@ -156,7 +159,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
     {# --- Cache end --- #}
 
     {% if declaration.location.apigateway.api_gateway.strip_uri -%}
-    rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
+    rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
     {% endif %}
 
     {% if declaration.location.apigateway.api_gateway.server_url -%}
@@ -170,8 +173,8 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {{ declaration.loc
 
 {% if declaration.location.apigateway.developer_portal.enabled == True -%}
     {% if declaration.location.apigateway.developer_portal.type.lower() == "redocly" %}
-location = {{ declaration.location.uri }}{{ declaration.location.apigateway.developer_portal.redocly.uri }} {
-    rewrite ^{{ declaration.location.uri }}/(.*)$ /$1 break;
+location = {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ declaration.location.apigateway.developer_portal.redocly.uri }} {
+    rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
     root {{ ncgconfig.nms.devportal_dir }};
 }
     {% endif %}

@@ -19,7 +19,10 @@ class OpenAPIParser:
         return None
 
     def info(self):
-        return self.openAPISchema['info']
+        if 'info' in self.openAPISchema:
+            return self.openAPISchema['info']
+
+        return None
 
     def servers(self):
         self.allServers = []

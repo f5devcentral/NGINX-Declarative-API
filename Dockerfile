@@ -11,7 +11,6 @@ COPY templates/ templates/
 
 RUN python3 -m venv /deployment/env/ && \
     source /deployment/env/bin/activate && \
-#    python3 -m pip install --upgrade pip && \
     pip3 install --no-cache --upgrade pip setuptools virtualenv && \
     pip3 install -r src/requirements.txt
 

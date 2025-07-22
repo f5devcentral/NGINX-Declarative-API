@@ -28,25 +28,6 @@ services:
     networks:
       - dapi-network
 
-  nap-compiler:
-    profiles:
-      - nap
-    image: nginx-declarative-api-nap-compiler
-    build:
-      context: ../app-protect
-      dockerfile: Dockerfile
-      secrets:
-        - nginx-crt
-        - nginx-key
-      args:
-        VERSION_TAG: "${NAP_COMPILER_TAG}"
-    container_name: "nap-compiler"
-    restart: always
-    ports:
-      - "5002:5000"
-    networks:
-      - dapi-network
-
   nginx-dapi:
     image: nginx-declarative-api
     build:
