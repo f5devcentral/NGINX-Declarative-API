@@ -89,7 +89,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 resolver_profile = d_resolver_profiles[i]
 
                 # Add the rendered resolver configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/resolver.tmpl"
+                templateName = NcgConfig.config['templates']['resolver']
                 renderedResolverProfile = j2_env.get_template(templateName).render(
                     resolverprofile=resolver_profile, ncgconfig=NcgConfig.config)
 
@@ -135,7 +135,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
                 # Add the rendered upstream configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-http.tmpl"
+                templateName = NcgConfig.config['templates']['upstream_http']
                 renderedUpstreamProfile = j2_env.get_template(templateName).render(
                     u=upstream, ncgconfig=NcgConfig.config)
 
@@ -405,6 +405,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     serverSnippet = serverSnippet['content']
 
+                # Create HTTP server configuration file
+                httpServerConf = j2_env.get_template(NcgConfig.config['templates']['server_http']).render(declaration=d['declaration']['http'], s=server, ncgconfig=NcgConfig.config)
+                httpServerConfb64 = base64.b64encode(bytes(httpServerConf, 'utf-8')).decode('utf-8')
+                newHttpServerAuxFile = {'contents': httpServerConfb64, 'name': NcgConfig.config['nms']['server_http_dir'] +
+                                                                        '/' + server['name'].replace(' ', '_') + ".conf"}
+                auxFiles['files'].append(newHttpServerAuxFile)
+
                 for loc in server['locations']:
 
                     # Location level Javascript hooks
@@ -605,7 +612,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     d['declaration']['layer4']['upstreams'][i]['snippet'] = snippet
 
                 # Add the rendered upstream configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-stream.tmpl"
+                templateName = NcgConfig.config['templates']['upstream_stream']
                 renderedUpstreamProfile = j2_env.get_template(templateName).render(
                     u=upstream, ncgconfig=NcgConfig.config)
 
@@ -646,6 +653,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "message":
                                     {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
 
+                # Create Stream server configuration file
+                streamServerConf = j2_env.get_template(NcgConfig.config['templates']['server_stream']).render(s=server, ncgconfig=NcgConfig.config)
+                streamServerConfb64 = base64.b64encode(bytes(streamServerConf, 'utf-8')).decode('utf-8')
+                newStreamServerAuxFile = {'contents': streamServerConfb64, 'name': NcgConfig.config['nms']['server_stream_dir'] +
+                                                                        '/' + server['name'].replace(' ', '_') + ".conf"}
+                auxFiles['files'].append(newStreamServerAuxFile)
+
     # HTTP configuration template rendering
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
         declaration=d['declaration']['http'], ncgconfig=NcgConfig.config) if 'http' in d['declaration'] else ''
@@ -679,7 +693,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         return finalReply
 
     elif decltype.lower() == 'nginxone':
-        # Output to NGINX One Cloud Console
+        # Output to NGINX One Console
 
         # NGINX configuration files for staged config
         configFiles['name'] = NcgConfig.config['nms']['config_dir']

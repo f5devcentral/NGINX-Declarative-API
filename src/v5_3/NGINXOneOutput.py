@@ -1,5 +1,5 @@
 """
-Output to NGINX One SaaS console
+Output to NGINX One console
 """
 
 import base64
@@ -37,7 +37,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
               b64StreamConf: str,configFiles = {}, auxFiles = {},
               runfromautosync: bool = False,
               configUid: str = ""):
-    # NGINX One Cloud Console Staged Configuration publish
+    # NGINX One Console Staged Configuration publish
 
     nOneToken = v5_3.MiscUtils.getDictKey(d, 'output.nginxone.token')
     nOneConfigSyncGroup = v5_3.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')

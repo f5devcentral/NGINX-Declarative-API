@@ -1,3 +1,0 @@
-{% for claim in authprofile.jwt.claims %}
-auth_jwt_require $jwt_authz_claim_{{ claim.name }}_{{ authprofile.name | replace(" ", "_") }} error={{ claim.errorcode }};
-{% endfor %}
