@@ -20,14 +20,14 @@ import v5_3.DevPortal
 import v5_3.DeclarationPatcher
 import v5_3.GitOps
 import v5_3.MiscUtils
+import v5_3.NGINXOneUtils
 
 # pydantic models
 from V5_3_NginxConfigDeclaration import *
 
 # NGINX App Protect helper functions
-import v5_3.NAPUtils
-import v5_3.NGINXOneUtils
-import v5_3.MiscUtils
+# NGINX App Protect helper functions
+import v5_3.NGINXOneNAPUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
@@ -70,8 +70,19 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 "headers": {'Content-Type': 'application/json'}}
 
     # Fetch NGINX App Protect WAF policies from source of truth if needed
-    # TODO: d_policies = v5_3.MiscUtils.getDictKey(d, 'output.nginxone.policies')
-    # NGINX App Protect ignored for NGINX One
+    d_policies = v5_3.MiscUtils.getDictKey(d, 'output.nginxone.policies')
+    if d_policies is not None:
+        for policy in d_policies:
+            if 'versions' in policy:
+                for policyVersion in policy['versions']:
+                    status, content = v5_3.GitOps.getObjectFromRepo(object=policyVersion['contents'],
+                                                                    authProfiles=d['declaration']['http'][
+                                                                        'authentication'])
+
+                    if status != 200:
+                        return {"status_code": 422, "message": {"status_code": status, "message": content}}
+
+                    policyVersion['contents'] = content
 
     # Check TLS items validity
     all_tls = {'certificate': {}, 'key': {}}
@@ -187,9 +198,6 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
     # Staged config
     baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
-    #stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
-    #                'aux': [ auxFiles ],
-    #                'configs': [ configFiles ]}
     stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
                     'configs': [ configFiles, auxFiles ]}
 
@@ -206,33 +214,40 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         print(
             f'Declaration [{configUid}] changed, publishing' if configUid else f'New declaration created, publishing')
 
-        # Get the instance group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
+        # Get the config sync group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
         returnCode, igUid = v5_3.NGINXOneUtils.getConfigSyncGroupId(nOneUrl = nOneUrl, nOneToken = nOneToken,
                                                 nameSpace = nOneNamespace, configSyncGroupName = nOneConfigSyncGroup)
 
-        # Invalid instance group
+        # Invalid config sync group
         if returnCode != 200:
             return {"status_code": 404,
                     "message": {"status_code": 404, "message": {"code": returnCode,
                                                                 "content": igUid}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        ## TODO: NGINX App Protect not supported with NGINX One
-        #### NGINX App Protect policies support - commits policies to control plane
-        #
-        ## Check NGINX App Protect WAF policies configuration sanity
-        #status, description = v5_3.NAPUtils.checkDeclarationPolicies(d)
-        #
-        #if status != 200:
-        #    return {"status_code": 422,
-        #            "message": {"status_code": status, "message": {"code": status, "content": description}},
-        #            "headers": {'Content-Type': 'application/json'}}
-        #
-        ## Provision NGINX App Protect WAF policies to NGINX Instance Manager
-        #provisionedNapPolicies, activePolicyUids = v5_3.NAPUtils.provisionPolicies(
-        #    nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
-        #
-        #### / NGINX App Protect policies support
+        ### NGINX App Protect policies support - commits policies to control plane
+
+        # Check NGINX App Protect WAF policies configuration sanity
+        status, description = v5_3.NGINXOneNAPUtils.checkDeclarationPolicies(d)
+
+        if status != 200:
+            return {"status_code": 422,
+                    "message": {"status_code": status, "message": {"code": status, "content": description}},
+                    "headers": {'Content-Type': 'application/json'}}
+
+        # Provision NGINX App Protect WAF policies to NGINX Instance Manager
+        ppReply = v5_3.NGINXOneNAPUtils.provisionPolicies(
+            nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  declaration=d)
+
+        if ppReply.status_code >= 400:
+            return {"status_code": ppReply.status_code,
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+
+        napPolicies = json.loads(ppReply.body)
+        provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
+        activePolicyUids = napPolicies['all_policy_active_names_and_uids']
+
+        ### / NGINX App Protect policies support
 
         ### Publish staged config to config sync group
         returnHttpCode = 422
@@ -297,20 +312,20 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
             NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
-        # TODO: NGINX App Protect not supported with NGINX One
-        ## Makes NGINX App Protect policies active
-        #doWeHavePolicies = v5_3.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-        #                                                  nmsPassword=nmsPassword,
-        #                                                  activePolicyUids=activePolicyUids,
-        #                                                  instanceGroupUid=igUid)
-        #
-        #if doWeHavePolicies:
-        #    # Clean up NGINX App Protect WAF policies not used anymore
-        #    # and not defined in the declaration just pushed
-        #    time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-        #    v5_3.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-        #                                       nmsPassword=nmsPassword,
-        #                                       currentPolicies=provisionedNapPolicies)
+        # Makes NGINX App Protect policies active
+        doWeHavePolicies = v5_3.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
+                                                             nginxOneToken=nOneToken,
+                                                             nginxOneNamespace=nOneNamespace,
+                                                             activePolicyUids=activePolicyUids,
+                                                             instanceGroupUid=igUid)
+
+        if doWeHavePolicies:
+            # Clean up NGINX App Protect WAF policies not used anymore
+            # and not defined in the declaration just pushed
+            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+            #v5_3.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
+            #                                        nginxOneNamespace=nOneNamespace,
+            #                                        currentPolicies=provisionedNapPolicies)
 
         # If deploying a new configuration in GitOps mode start autosync
         if nOneSynctime == 0:

@@ -72,7 +72,10 @@ def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authenticat
 
         else:
             # Object is specified directly into the JSON payload, perform base64 decoding if needed
-            if v5_3.MiscUtils.isBase64(object['content']):
-                response['content'] = base64.b64decode(object['content']).decode();
+            if not base64Encode:
+                if v5_3.MiscUtils.isBase64(object['content']):
+                    response['content'] = base64.b64decode(object['content']).decode();
+                else:
+                    response['content'] = object['content']
 
     return status_code, response

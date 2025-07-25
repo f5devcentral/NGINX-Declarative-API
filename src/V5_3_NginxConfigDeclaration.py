@@ -28,21 +28,21 @@ class NmsCertificate(BaseModel, extra="forbid"):
         return self
 
 
-class NmsPolicyVersion(BaseModel, extra="forbid"):
+class NGINXPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
     contents: Optional[ObjectFromSourceOfTruth] = {}
 
 
-class NmsPolicy(BaseModel, extra="forbid"):
+class NGINXPolicy(BaseModel, extra="forbid"):
     type: str = ""
-    name: str = ""
+    name: str = "" # Name must be identical to the policy name used in the App Protect policy JSON file
     active_tag: str = ""
-    versions: Optional[List[NmsPolicyVersion]] = []
+    versions: Optional[List[NGINXPolicyVersion]] = []
 
     @model_validator(mode='after')
-    def check_type(self) -> 'NmsPolicy':
+    def check_type(self) -> 'NGINXPolicy':
         _type = self.type
 
         valid = ['app_protect']
@@ -109,7 +109,7 @@ class OutputNMS(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 
@@ -121,7 +121,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 

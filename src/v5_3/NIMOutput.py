@@ -27,7 +27,7 @@ import v5_3.NIMUtils
 from V5_3_NginxConfigDeclaration import *
 
 # NGINX App Protect helper functions
-import v5_3.NAPUtils
+import v5_3.NIMNAPUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
@@ -228,7 +228,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         ### NGINX App Protect policies support - commits policies to control plane
 
         # Check NGINX App Protect WAF policies configuration sanity
-        status, description = v5_3.NAPUtils.checkDeclarationPolicies(d)
+        status, description = v5_3.NIMNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
             return {"status_code": 422,
@@ -236,7 +236,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                     "headers": {'Content-Type': 'application/json'}}
 
         # Provision NGINX App Protect WAF policies to NGINX Instance Manager
-        ppReply = v5_3.NAPUtils.provisionPolicies(
+        ppReply = v5_3.NIMNAPUtils.provisionPolicies(
             nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 
         if ppReply.status_code >= 400:
@@ -305,7 +305,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
             # Makes NGINX App Protect policies active
-            doWeHavePolicies = v5_3.NAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+            doWeHavePolicies = v5_3.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                               nmsPassword=nmsPassword,
                                                               activePolicyUids=activePolicyUids,
                                                               instanceGroupUid=igUid)
@@ -314,7 +314,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 # Clean up NGINX App Protect WAF policies not used anymore
                 # and not defined in the declaration just pushed
                 time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-                v5_3.NAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                v5_3.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                    nmsPassword=nmsPassword,
                                                    currentPolicies=provisionedNapPolicies)
 

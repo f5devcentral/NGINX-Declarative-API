@@ -23,7 +23,7 @@ import v5_3.NIMOutput
 import v5_3.NGINXOneOutput
 
 # NGINX App Protect helper functions
-import v5_3.NAPUtils
+import v5_3.NIMNAPUtils
 import v5_3.NIMUtils
 
 # NGINX Declarative API modules
