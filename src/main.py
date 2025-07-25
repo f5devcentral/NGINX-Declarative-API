@@ -17,9 +17,6 @@ from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import NcgConfig
 from NcgRedis import NcgRedis
 
-import V5_1_CreateConfig
-import V5_1_NginxConfigDeclaration
-
 import V5_2_CreateConfig
 import V5_2_NginxConfigDeclaration
 
@@ -59,28 +56,6 @@ def runAsynchronousWorker():
         NcgRedis.redis.set(f"ncg.async.submission.{item['submissionUid']}", response.body.decode("utf-8"))
 
         redis.asyncQueue.task_done()
-
-
-# Submit declaration using v5.1 API
-@app.post("/v5.1/config", status_code=200, response_class=PlainTextResponse)
-def post_config_v5_1(d: V5_1_NginxConfigDeclaration.ConfigDeclaration, response: Response):
-    output = V5_1_CreateConfig.createconfig(declaration=d, apiversion='v5.1')
-
-    if type(output) in [Response, str]:
-        # ConfigMap or plaintext response
-        return output
-
-    headers = output['message']['headers'] if 'headers' in output['message'] else {'Content-Type': 'application/json'}
-
-    if 'message' in output:
-        if 'message' in output['message']:
-            response = output['message']['message']
-        else:
-            response = output['message']
-    else:
-        response = output
-
-    return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
 
 
 # Submit declaration using v5.2 API
@@ -127,12 +102,6 @@ def post_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response:
     return JSONResponse(content=response, status_code=output['status_code'], headers=headers)
 
 
-# Modify declaration using v5.1 API
-@app.patch("/v5.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def patch_config_v5_1(d: V5_1_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    return V5_1_CreateConfig.patch_config(declaration = d, configUid = configuid, apiversion = 'v5.1')
-
-
 # Modify declaration using v5.2 API
 @app.patch("/v5.2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_2(d: V5_2_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
@@ -149,25 +118,6 @@ def patch_config_v5_3(d: V5_3_NginxConfigDeclaration.ConfigDeclaration, response
         return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
 
     return V5_3_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.3')
-
-
-# Get declaration - v5.1 API
-@app.get("/v5.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
-def get_config_declaration_v5_1(configuid: str):
-    status_code, content = V5_1_CreateConfig.get_declaration(configUid=configuid)
-
-    if status_code == 404:
-        return JSONResponse(
-            status_code=404,
-            content={'code': 404, 'details': {'message': f'declaration {configuid} not found'}},
-            headers={'Content-Type': 'application/json'}
-        )
-
-    return JSONResponse(
-        status_code=200,
-        content=content,
-        headers={'Content-Type': 'application/json'}
-    )
 
 
 # Get declaration - v5.2 API
@@ -209,7 +159,6 @@ def get_config_declaration_v5_3(configuid: str):
 
 
 # Get declaration status
-@app.get("/v5.1/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 @app.get("/v5.2/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 @app.get("/v5.3/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
@@ -256,7 +205,6 @@ def get_submission_status(configuid: str, submissionuid: str):
 
 
 # Delete declaration
-@app.delete("/v5.1/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v5.2/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v5.3/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):

@@ -6,7 +6,7 @@ import requests
 import json
 import base64
 
-import v5_1.GitOps
+import v5_3.GitOps
 
 from NcgConfig import NcgConfig
 
@@ -20,9 +20,9 @@ available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashb
 # Returns a tuple {status_code,text}. status_code is 201 if successful
 def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
                           policyDescription: str, policyJson: str, policyUid: str = ""):
-    # policyBody holds the base64-encoded policy JSON definition
-    # Control plane-compiled policy bundles are supported. Create the NGINX App Protect policy on NMS
-    # POST https://{{nms_host}}/api/platform/v1/security/policies
+    # policyJson holds the base64-encoded policy JSON definition
+    # Control plane-compiled policy bundles are supported. Create the NGINX App Protect policy on NGINX Instance Manager
+    # POST https://IP_ADDRESS/api/platform/v1/security/policies
     # {
     #     "metadata": {
     #         "name": "prod-policy",
@@ -100,7 +100,6 @@ def checkDeclarationPolicies(declaration: dict):
         # Check policy releases for non-univoque tags
         allPolicyVersionTags = {}
         for policyVersion in policy['versions']:
-            # print(f"--> Policy [{policy['name']}] tag [{policyVersion['tag']}]")
             if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
                 return 422, f"Duplicated NGINX App Protect WAF policy tag [{policyVersion['tag']}] " \
                             f"for policy [{policy['name']}]"
@@ -149,7 +148,7 @@ def checkDeclarationPolicies(declaration: dict):
 
 # For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
-# Returns a tuple with two dictionaries: all_policy_names_and_versions, all_policy_active_names_and_uids
+# Returns a JSON with status code and content
 def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
     # NGINX App Protect policies - each policy supports multiple tagged versions
 
@@ -174,7 +173,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v5_1.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v5_3.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                     if status != 200:
                         return JSONResponse(
@@ -212,7 +211,8 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
 
                         all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
 
-    return all_policy_names_and_versions, all_policy_active_names_and_uids
+    return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
+                                                  "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
 
 
 # Publish a NGINX App Protect WAF policy making it active
@@ -270,38 +270,3 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
 
     return
-
-
-# Compile a NGINX App Protect policy and optional user-defined signatures using NGINX App Protect 5 compiler
-# https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/
-#
-# Global settings:
-# {
-#    "waf-settings": {
-#      "cookie-protection": {
-#         "seed": "80miIOiSeXfvNBiDJV4t"
-#      },
-#      "user-defined-signatures": [
-#        {
-#          "$ref": "file:///policies/uds.json"
-#        }
-#      ]
-#    }
-# }
-def compilePolicy(napPolicy: str, customSignatures: str):
-    b64napPolicy = base64.b64encode(bytes(napPolicy, 'utf-8')).decode('utf-8')
-    b64customSignatures = base64.b64encode(bytes(customSignatures, 'utf-8')).decode('utf-8')
-    cookieProtectionSeed = NcgConfig.config['nap']['cookie_protection_seed']
-
-    payload = {}
-    payload['user-signatures'] = b64customSignatures
-    payload['policy'] = b64napPolicy
-    payload['cookie-protection-seed'] = cookieProtectionSeed
-
-    try:
-        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
-                                 headers={'Content-Type': 'application/json'}, data=json.dumps(payload))
-    except Exception as e:
-        return 400, str(e)
-
-    return response
