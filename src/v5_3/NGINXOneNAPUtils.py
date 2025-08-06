@@ -66,26 +66,11 @@ def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: 
                         headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False)
 
 
-# Remove all NGINX App Protect policy versions using PATCH on
-#  https: // {tenant_cname}.console.ves.volterra.io / api / nginx / one / namespaces / {namespace} / app - protect / policies
-def __deleteAllPolicyVersions__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, allPoliciesJSON: dict):
-    if 'items' in allPoliciesJSON:
-        jsonPayload = []
+# Retrieve all versions for the given security policy id
+def __getAllPolicyVersions__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyId: str):
+    return requests.get(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{policyId}/versions?paginated=false",
+                        headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False)
 
-        for p in allPoliciesJSON['items']:
-            policyDeleteObject = {}
-            policyDeleteObject['object_id'] = p['object_id']
-            policyDeleteObject['action'] = "delete"
-
-            jsonPayload.append(policyDeleteObject)
-
-        #return requests.patch(
-        #    url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies",
-        #    headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False,
-        #    data=json.dumps(jsonPayload)
-        #)
-
-    return ""
 
 
 # Return the policy ID for the given policyName. allPoliciesJSON is the JSON output from __getAllPolicies__
@@ -98,19 +83,10 @@ def __getPolicyId__(allPoliciesJSON: dict, policyName: str):
     return ""
 
 
-# Delete security policies from control plane
-def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyUids: list):
-    jsonPayload = []
-
-    for polId in policyUids:
-        item = {}
-        item['object_id'] = polId
-        item['action'] = "delete"
-        jsonPayload.append(item)
-
-    return requests.patch(url=f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies',
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False,
-        data=json.dumps(jsonPayload))
+# Delete the given version for the given security policy
+def __deletePolicyVersion__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyId: str, policyVersionId: str):
+    return requests.delete(url=f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{policyId}/versions/{policyVersionId}',
+        headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False)
 
 
 # Check NAP policies names validity for the given declaration
@@ -184,7 +160,7 @@ def checkDeclarationPolicies(declaration: dict):
 
 # For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
-# Returns a JSON with status code and content
+# Returns a JSON with status code
 def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, declaration: dict):
     # NGINX App Protect policies - each policy supports multiple tagged versions
 
@@ -201,8 +177,7 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
     all_policy_active_names_and_uids = {}
 
     # Policy ID and policy version IDs being created
-    createdPolicyId = ""
-    createdPolicyVersionIds = []
+    createdPolicyIds = []
 
     for p in declaration['output']['nginxone']['policies']:
         policy_name = p['name']
@@ -211,14 +186,6 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
 
             # Iterates over all NGINX App Protect policies
             if p['type'] == 'app_protect':
-                # Iterates over all policy versions
-
-                # Remove pre-existing policy versions
-                allPoliciesJSON = __getAllPolicies__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
-                polId = __getPolicyId__(allPoliciesJSON = json.loads(allPoliciesJSON.text), policyName=policy_name)
-                if polId != "":
-                    __deletePolicy__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyUids=[polId])
-
                 # Create all policy versions
                 for policyVersion in p['versions']:
                     status, policyBody = v5_3.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
@@ -256,12 +223,12 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
 
                         all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
 
-                        createdPolicyId = polId
-                        createdPolicyVersionIds.append(polVersionId)
+                        createdPolicyIds.append(polId)
+
 
     return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
                                                   "all_policy_active_names_and_uids": all_policy_active_names_and_uids,
-                                                  "policy_id": polId,"policy_versions": createdPolicyVersionIds})
+                                                  "policy_ids": list(set(createdPolicyIds))})
 
 
 # Publish a NGINX App Protect WAF policy building a "payloads" entry for NGINX One Console
@@ -292,3 +259,20 @@ def addNapPolicyPayloads(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace
         payloadsArray.append(body)
 
     return payloadsArray
+
+
+# Delete all policy versions not currently deployed to any config sync group
+def removeUndeployedPolicyVersions(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyIds: []):
+    for p in policyIds:
+
+        r = __getAllPolicyVersions__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyId=p)
+
+        if r.status_code == 200:
+            j = json.loads(r.text)
+
+            if 'items' in j:
+                for policyVersion in j['items']:
+                    if not 'deployments' in policyVersion:
+                        # Policy version is not currently deployed, remove it
+                        __deletePolicyVersion__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken,
+                            nginxOneNamespace=nginxOneNamespace, policyId=p, policyVersionId=policyVersion['object_id'])

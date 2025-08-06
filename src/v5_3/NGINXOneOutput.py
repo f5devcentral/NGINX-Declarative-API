@@ -243,6 +243,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             return {"status_code": ppReply.status_code,
                     "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
 
+
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
@@ -255,15 +256,6 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                              instanceGroupUid=igUid)
 
         stagedConfig['payloads'] = napPoliciesConfigPayloads
-
-        #if doWeHavePolicies:
-        #    # Clean up NGINX App Protect WAF policies not used anymore
-        #    # and not defined in the declaration just pushed
-        #    time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-        #    #v5_3.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
-        #    #                                        nginxOneNamespace=nOneNamespace,
-        #    #                                        currentPolicies=provisionedNapPolicies)
-
 
         ### / NGINX App Protect policies support
 
@@ -306,6 +298,9 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             elif checkJson['status'] == "succeeded":
                 jsonResponse = { "message": "Config successfully applied", "status": checkJson['status'] }
                 returnHttpCode = 200
+
+                # Remove NAP policy versions that are not currently deployed on any config sync group
+                v5_3.NGINXOneNAPUtils.removeUndeployedPolicyVersions(nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  policyIds=napPolicies['policy_ids'])
 
         else:
             # Staged config publish to NGINX One succeeded - reply was HTTP/200
