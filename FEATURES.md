@@ -27,7 +27,7 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 | Maps                         | X        | X        |                                                                                                                                                                                                           |
 | Cache                        | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                              |
 | NGINX Plus REST API access   | X        | X        |                                                                                                                                                                                                           |
-| NGINX App Protect WAF        | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| NGINX App Protect WAF        | X        | X        | <li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### HTTP Locations
 
