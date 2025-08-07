@@ -197,7 +197,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         configFiles['files'].append(filesLicenseFile)
 
     # Staged config
-    baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
+    baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles}
     stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
                     'configs': [ configFiles, auxFiles ]}
 
