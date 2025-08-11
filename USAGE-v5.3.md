@@ -48,6 +48,15 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nginxone.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nginxone.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
       - `.output.nginxone.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
+    - `.output.nginxone.policies[]` an optional array of NGINX App Protect security policies
+      - `.output.nginxone.policies[].type` the policy type ('app_protect')
+      - `.output.nginxone.policies[].name` the policy name (ie. 'prod-policy')
+      - `.output.nginxone.policies[].active_tag` the policy tag to enable among all available versions (ie. 'v1')
+      - `.output.nginxone.policies[].versions[]` array with all available policy versions
+      - `.output.nginxone.policies[].versions[].tag` the policy version's tag name
+      - `.output.nginxone.policies[].versions[].displayName` the policy version's display name
+      - `.output.nginxone.policies[].versions[].description` the policy version's description
+      - `.output.nginxone.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
 - `.declaration` describes the NGINX configuration to be created
   - `.declaration.http[]` NGINX HTTP definitions
   - `.declaration.layer4[]` NGINX TCP/UDP definitions
