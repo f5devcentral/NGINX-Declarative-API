@@ -153,7 +153,8 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
         nginxconf={'modules': v5_4.MiscUtils.getDictKey(d, 'output.nms.modules'),
-                   'license': v5_4.MiscUtils.getDictKey(d, 'output.license')})
+                   'license': v5_4.MiscUtils.getDictKey(d, 'output.license')},
+                   d={'http': v5_4.MiscUtils.getDictKey(d, 'declaration.http')})
 
     # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
     b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")

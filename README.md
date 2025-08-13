@@ -30,7 +30,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 - [NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-management-suite/nim/)
 - [NGINX One Console](https://docs.nginx.com/nginx-one/)
-- [NGINX Plus R30+](https://docs.nginx.com/nginx/)
+- [NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - NGINX App Protect WAF [4](https://docs.nginx.com/nginx-app-protect-waf/v4/) and [5](https://docs.nginx.com/nginx-app-protect-waf/v5/)
 
 **Note**: NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.3.md) for further details. [Postman collection](/contrib/postman) examples are provided for R33.
@@ -198,8 +198,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
+- [API v5.4](/USAGE-v5.4.md) - latest
 - [API v5.3](/USAGE-v5.3.md) - stable
-- [API v5.2](/USAGE-v5.2.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

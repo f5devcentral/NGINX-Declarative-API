@@ -717,6 +717,21 @@ class Resolver(BaseModel, extra="forbid"):
 
         return self
 
+class LogFormat(BaseModel, extra="forbid"):
+    name: str
+    escape: str = "default"
+    format: str
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'LogFormat':
+        escape = self.escape
+
+        valid = ['default', 'json', 'none']
+        if escape not in valid:
+            raise ValueError(f"Invalid escape mode [{escape}] must be one of {str(valid)}")
+
+        return self
+
 
 class CacheProfile(BaseModel, extra="forbid"):
     name: str
@@ -858,7 +873,7 @@ class Http(BaseModel, extra="forbid"):
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
     cache: Optional[List[CacheProfile]] = []
-
+    logformats: Optional[List[LogFormat]] = []
 
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}

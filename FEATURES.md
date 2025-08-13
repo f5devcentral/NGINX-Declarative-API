@@ -12,23 +12,24 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 
 ### NGINX `http` and `stream` servers
 
-| Feature                    | API v5.3 | API v5.4 | Notes                                                                                                                                                                                                     |
-|----------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                  | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
-| HTTP servers               | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
-| TCP/UDP servers            | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                       |
-| TLS                        | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                           |
-| Client authentication      | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                       |
-| Upstream authentication    | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                           |
-| Rate limiting              | X        | X        |
-| Active healthchecks        | X        | X        |                                                                                                                                                                                                           |
-| Cookie-based stickiness    | X        | X        |                                                                                                                                                                                                           |
-| HTTP headers manipulation  | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                   |
-| Maps                       | X        | X        |                                                                                                                                                                                                           |
-| Cache                      | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                              |
-| Logging                    | X        | X        | Access and error logging supported for `servers`, `locations` and API Gateway                                                                                                                     |
-| NGINX Plus REST API access | X        | X        |                                                                                                                                                                                                           |
-| NGINX App Protect WAF      | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Feature                     | API v5.3 | API v5.4 | Notes                                                                                                                                                                                                     |
+|-----------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                   | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
+| HTTP servers                | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
+| TCP/UDP servers             | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                       |
+| TLS                         | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                           |
+| Client authentication       | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                       |
+| Upstream authentication     | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                           |
+| Rate limiting               | X        | X        |                                                                                                                                                                                                           |
+| Active healthchecks         | X        | X        |                                                                                                                                                                                                           |
+| Cookie-based stickiness     | X        | X        |                                                                                                                                                                                                           |
+| HTTP headers manipulation   | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                   |
+| Maps                        | X        | X        |                                                                                                                                                                                                           |
+| Cache                       | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                              |
+| HTTP Logging                | X        | X        | Access and error logging supported for `servers`, `locations` and API Gateway                                                                                                                             |
+| HTTP access logging formats |          | X        | Customizable HTTP access logging formats                                                                                                                                                                  |
+| NGINX Plus REST API access  | X        | X        |                                                                                                                                                                                                           |
+| NGINX App Protect WAF       | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### HTTP Locations
 
@@ -473,11 +474,18 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
 }
 ```
 
-#### Logging
+#### HTTP Access and error logging
 
 |         | API v5.3 | API v5.4 | Notes                                                                                                                                                                                                                                 |
 |---------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Logging | X        | X        | Available in <li>`.declaration.http.servers[].log`</li><li>`.declaration.http.servers[].locations[].log`</li><br>`condition` enables conditional logging. Logging will be disabled if `condition` evaluates to "0" or an empty string |
+
+### Access logging formats
+
+|                 | API v5.3 | API v5.4 | Notes |
+|-----------------|----------|----------|-------|
+| Logging formats |          | X        |       |
+
 
 #### Examples
 
@@ -495,9 +503,21 @@ See:
     "condition": "<VALID_VARIABLE>"
   },
   "error": {
-    "destination": "/var/log/nginx/apigw.nginx.lab-error_log",
-    "level": "debug"
+    "destination": "<LOGFILE_NAME or syslog format>",
+    "level": "<debug|info|notice|warn|error|crit|alert|emerg>"
   }
+}
+```
+
+Access logging formats available in `.declaration.http.logformats[]`
+See:
+* Access log format: https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
+
+```json
+{
+    "name": "<LOGGING_FORMAT_NAME>",
+    "escape": "<DEFAULT|JSON|NONE>",
+    "format": "<FORMAT STRING>"
 }
 ```
 
