@@ -11,15 +11,6 @@ import re
 # Regexp to check names
 alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
-class OutputConfigMap(BaseModel, extra="forbid"):
-    name: str = "nginx-config"
-    namespace: Optional[str] = ""
-    filename: str = "nginx-config.conf"
-
-
-class OutputHttp(BaseModel, extra="forbid"):
-    url: str = ""
-
 
 class NmsCertificate(BaseModel, extra="forbid"):
     type: str
@@ -37,21 +28,21 @@ class NmsCertificate(BaseModel, extra="forbid"):
         return self
 
 
-class NmsPolicyVersion(BaseModel, extra="forbid"):
+class NGINXPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
     contents: Optional[ObjectFromSourceOfTruth] = {}
 
 
-class NmsPolicy(BaseModel, extra="forbid"):
+class NGINXPolicy(BaseModel, extra="forbid"):
     type: str = ""
-    name: str = ""
+    name: str = "" # Name must be identical to the policy name used in the App Protect policy JSON file
     active_tag: str = ""
-    versions: Optional[List[NmsPolicyVersion]] = []
+    versions: Optional[List[NGINXPolicyVersion]] = []
 
     @model_validator(mode='after')
-    def check_type(self) -> 'NmsPolicy':
+    def check_type(self) -> 'NGINXPolicy':
         _type = self.type
 
         valid = ['app_protect']
@@ -118,7 +109,7 @@ class OutputNMS(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 
@@ -130,7 +121,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 
@@ -143,6 +134,7 @@ class License(BaseModel, extra="forbid"):
 
 class Output(BaseModel, extra="forbid"):
     type: str
+    synchronous: bool = True
     license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
     nginxone: Optional[OutputNGINXOne] = {}
@@ -241,9 +233,29 @@ class ListenL4(BaseModel, extra="forbid"):
 
 
 class Log(BaseModel, extra="forbid"):
-    access: Optional[str] = ""
-    error: Optional[str] = ""
+    access: Optional[LogAccess] = {}
+    error: Optional[LogError] = {}
 
+
+class LogAccess(BaseModel, extra="forbid"):
+    destination: str
+    format: Optional[str] = "combined"
+    condition: Optional[str] = ""
+
+
+class LogError(BaseModel, extra="forbid"):
+    destination: str
+    level: Optional[str] = "info"
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'LogError':
+        level = self.level
+
+        valid = ['debug','info','notice','warn','error','crit','alert','emerg']
+        if level not in valid:
+            raise ValueError(f"Invalid error log level [{level}] must be one of {str(valid)}")
+
+        return self
 
 class RateLimit(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -427,7 +439,7 @@ class Location(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
-    headers: Optional[LocationHeaders]= {}
+    headers: Optional[LocationHeaders] = {}
     njs: Optional[List[NjsHookLocation]] = []
     cache: Optional[CacheItem] = {}
 
@@ -739,7 +751,7 @@ class CacheObjectTTL(BaseModel, extra="forbid"):
 
 
 class CacheItem(BaseModel, extra="forbid"):
-    profile: str
+    profile: Optional[str] = ""
     key: Optional[str] = "$scheme$proxy_host$request_uri";
     validity: Optional[List[CacheObjectTTL]] = []
 
@@ -747,7 +759,7 @@ class CacheItem(BaseModel, extra="forbid"):
     def check_type(self) -> 'CacheItem':
         profile = self.profile
 
-        if not re.search(alphanumRegexp,profile):
+        if not re.search(alphanumRegexp,profile) and profile != "":
             raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
 
         return self
@@ -845,7 +857,7 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
-    cache: Optional[List[CacheProfile]] = {}
+    cache: Optional[List[CacheProfile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):

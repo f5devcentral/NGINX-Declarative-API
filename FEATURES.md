@@ -4,30 +4,31 @@
 
 NGINX Declarative API has been tested with the following NGINX control plane releases:
 
-| Control plane             | API v5.2                                   | API v5.3             | Notes  |
-|---------------------------|--------------------------------------------|----------------------|--------|
-| NGINX Instance Manager    | 2.18+                                      | 2.18+                |        |
-| NGINX One Console         | General availability                       | General availability |        |
+| Control plane             | API v5.3             | API v5.4             | Notes  |
+|---------------------------|----------------------|----------------------|--------|
+| NGINX Instance Manager    | 2.18+                | 2.18+                |        |
+| NGINX One Console         | General availability | General availability |        |
 
 
 ### NGINX `http` and `stream` servers
 
-| Feature                      | API v5.2 | API v5.3 | Notes                                                                                                                                                                                                     |
-|------------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                    | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
-| HTTP servers                 | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
-| TCP/UDP servers              | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                       |
-| TLS                          | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                           |
-| Client authentication        | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                       |
-| Upstream authentication      | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                           |
-| Rate limiting                | X        | X        |
-| Active healthchecks          | X        | X        |                                                                                                                                                                                                           |
-| Cookie-based stickiness      | X        | X        |                                                                                                                                                                                                           |
-| HTTP headers manipulation    | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                   |
-| Maps                         | X        | X        |                                                                                                                                                                                                           |
-| Cache                        | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                              |
-| NGINX Plus REST API access   | X        | X        |                                                                                                                                                                                                           |
-| NGINX App Protect WAF        | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
+| Feature                    | API v5.3 | API v5.4 | Notes                                                                                                                                                                                                     |
+|----------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Upstreams                  | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
+| HTTP servers               | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
+| TCP/UDP servers            | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                       |
+| TLS                        | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                           |
+| Client authentication      | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                       |
+| Upstream authentication    | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                           |
+| Rate limiting              | X        | X        |
+| Active healthchecks        | X        | X        |                                                                                                                                                                                                           |
+| Cookie-based stickiness    | X        | X        |                                                                                                                                                                                                           |
+| HTTP headers manipulation  | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                                                   |
+| Maps                       | X        | X        |                                                                                                                                                                                                           |
+| Cache                      | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                                              |
+| Logging                    | X        | X        | Access and error logging supported for `servers`, `locations` and API Gateway                                                                                                                     |
+| NGINX Plus REST API access | X        | X        |                                                                                                                                                                                                           |
+| NGINX App Protect WAF      | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
 ### HTTP Locations
 
@@ -41,7 +42,7 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 
 ### NGINX API Gateway use case
 
-| Feature                                               | API v5.2                                                                      | API v5.3                                                                      | Notes                                   |
+| Feature                                               | API v5.3                                                                      | API v5.4                                                                      | Notes                                   |
 |-------------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------|
 | Configuration generation from OpenAPI schema          | X                                                                             | X                                                                             | OpenAPI 2.0, 3.0, 3.0.1                               | 
 | HTTP methods enforcement                              | X                                                                             | X                                                                             |                                                       |
@@ -88,21 +89,21 @@ See the [Postman collection](/contrib/) for usage examples
 
 ### NGINX API Gateway use case - Developer Portal
 
-| Type            | API v5.2 | API v5.3 | Notes                                    |
+| Type            | API v5.3 | API v5.4 | Notes                                    |
 |-----------------|----------|----------|------------------------------------------|
 | Redocly         | X        | X        | Developer portal published by NGINX Plus |
 | Backstage.io    | X        | X        | Backstage YAML manifest generated        |
 
 ### NGINX API Gateway use case - Visibility
 
-| Type          | API v5.2  | API v5.3 | Notes                                                                                         |
-|---------------|-----------|----------|-----------------------------------------------------------------------------------------------|
-| Moesif        | X         | X        | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
+| Type          | API v5.3 | API v5.4 | Notes                                                                                         |
+|---------------|----------|----------|-----------------------------------------------------------------------------------------------|
+| Moesif        | X        | X        | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
 
 
 ### Client authentication
 
-| Type | Description           | API v5.2 | API v5.3 | Notes                               |
+| Type | Description           | API v5.3 | API v5.4 | Notes                               |
 |------|-----------------------|----------|----------|-------------------------------------|
 | jwt  | Java Web Token (JWT)  | X        | X        |                                     |
 | mtls | Mutual TLS            | X        | X        | <li>Supported for HTTP servers</li> |
@@ -151,7 +152,7 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
 
 ### Client authorization
 
-| Type | Description            | API v5.2 | API v5.3 | Notes                                                                                                                                                                              |
+| Type | Description            | API v5.3 | API v5.4 | Notes                                                                                                                                                                              |
 |------|------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | jwt  | Java Web Token (JWT)   | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
 
@@ -181,7 +182,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 
 ### Upstream and Source of truth authentication
 
-| Type         | Description                                    | API v5.2 | API v5.3 | Notes                                                                                  |
+| Type         | Description                                    | API v5.3 | API v5.4 | Notes                                                                                  |
 |--------------|------------------------------------------------|----------|----------|----------------------------------------------------------------------------------------|
 | Bearer token | Authentication token as Authorization Bearer   | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
 | Basic Auth   | Authentication token as Authorization Basic    | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
@@ -249,7 +250,7 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 
 ### HTTP Headers manipulation
 
-| Type                          | API v5.2 | API v5.3 | Notes                                                                                                                        |
+| Type                          | API v5.3 | API v5.4 | Notes                                                                                                                        |
 |-------------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
 | Request (client to server)    | X        | X        | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
 | Response (server to client)   | X        | X        | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
@@ -298,7 +299,7 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
 
 ### NGINX Javascript
 
-| Hook type           | API v5.2 | API v5.3 | Notes                                                                                                                          |
+| Hook type           | API v5.3 | API v5.4 | Notes                                                                                                                          |
 |---------------------|----------|----------|--------------------------------------------------------------------------------------------------------------------------------|
 | js_body_filter      | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                  |
 | js_content          | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                  |
@@ -451,7 +452,7 @@ Example hooks:
 
 ### DNS resolvers
 
-|                         | API v5.2 | API v5.3 | Notes                                                                                                                              |
+|                         | API v5.3 | API v5.4 | Notes                                                                                                                              |
 |-------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------|
 | DNS resolver profiles   | X        | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreams[]`</li><li>`declaration.layer4.upstreams[]`</li> |
 
@@ -463,12 +464,40 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
 
  ```json
 {
-    "name": "Google",
-    "address": "8.8.8.8",
+    "name": "<DNS_RESOLVER_PROFILE_NAME>",
+    "address": "<DNS_IP_OR_HOSTNAME>",
     "valid": "5s",
     "ipv4": true,
     "ipv6": false,
     "timeout": "30s"
+}
+```
+
+#### Logging
+
+|         | API v5.3 | API v5.4 | Notes                                                                                                                                                                                                                                 |
+|---------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Logging | X        | X        | Available in <li>`.declaration.http.servers[].log`</li><li>`.declaration.http.servers[].locations[].log`</li><br>`condition` enables conditional logging. Logging will be disabled if `condition` evaluates to "0" or an empty string |
+
+#### Examples
+
+Access and error logging available in `.declaration.http.servers[].log` and `.declaration.http.servers[].locations[].log`
+See:
+* Access log: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
+* Logging to syslog: https://nginx.org/en/docs/syslog.html
+* Error log: https://nginx.org/en/docs/ngx_core_module.html#error_log
+
+```json
+{
+  "access": {
+    "destination": "<LOGFILE_NAME or syslog format>",
+    "format": "<OPTIONAL_ACCESS_LOG_FORMAT>",
+    "condition": "<VALID_VARIABLE>"
+  },
+  "error": {
+    "destination": "/var/log/nginx/apigw.nginx.lab-error_log",
+    "level": "debug"
+  }
 }
 ```
 

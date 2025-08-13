@@ -10,7 +10,7 @@ import json
 # Return None if not found
 def getConfigSyncGroupId(nOneUrl: str, nOneToken: str, nameSpace: str, configSyncGroupName: str):
     # Retrieve config sync group uid
-    cSyncGroup = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/config-sync-groups',
+    cSyncGroup = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/config-sync-groups?paginated=false',
                       verify=False, headers = {"Authorization": f"Bearer APIToken {nOneToken}"})
 
     if cSyncGroup.status_code != 200:

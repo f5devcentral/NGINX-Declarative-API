@@ -6,7 +6,7 @@ import requests
 import json
 import base64
 
-import v5_2.GitOps
+import v5_4.GitOps
 
 from NcgConfig import NcgConfig
 
@@ -18,63 +18,69 @@ available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashb
 # Define (create/update) a NGINX App Protect policy on NMS.
 # If policyUid is not empty a the policy update is performed
 # Returns a tuple {status_code,text}. status_code is 201 if successful
-def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
-                          policyDescription: str, policyJson: str, policyUid: str = ""):
+def __definePolicyOnNGINXOne__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyJson: str):
+    policyName = json.loads(policyJson)['policy']['name']
+
+    # Payload for NGINX One Console
     # policyBody holds the base64-encoded policy JSON definition
-    # Control plane-compiled policy bundles are supported. Create the NGINX App Protect policy on NMS
-    # POST https://{{nms_host}}/api/platform/v1/security/policies
+    # Control plane-compiled policy bundles are supported. Create the NGINX App Protect policy on NGINX One Console
+    # POST {nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies
     # {
-    #     "metadata": {
-    #         "name": "prod-policy",
-    #         "displayName": "Production Policy - blocking",
-    #         "description": "Production-ready policy - blocking"
-    #     },
-    #     "content": "<BASE64>"
+    #     "policy": "<BASE64>"
     # }
+    policyCreationPayload = {}
+    policyCreationPayload['policy'] = base64.b64encode(bytes(policyJson, 'utf-8')).decode('utf-8')
 
-    policyCreationPayload = {'metadata': {}}
-    policyCreationPayload['metadata']['name'] = policyName
-    policyCreationPayload['metadata']['displayName'] = policyDisplayName
-    policyCreationPayload['metadata']['description'] = policyDescription
-    policyCreationPayload['content'] = policyJson
+    # Retrieve the full policy list from NGINX One Console
+    allExistingPolicies = __getAllPolicies__(nginxOneUrl = nginxOneUrl, nginxOneToken = nginxOneToken, nginxOneNamespace=nginxOneNamespace)
+    polId = __getPolicyId__(json.loads(allExistingPolicies.text), policyName)
 
-    if policyUid != "":
-        # Existing policy update
-        r = requests.put(url=f"{nmsUrl}/api/platform/v1/security/policies/{policyUid}",
-                         data=json.dumps(policyCreationPayload),
-                         headers={'Content-Type': 'application/json'},
-                         auth=(nmsUsername, nmsPassword),
-                         verify=False)
-    else:
-        # New policy creation - first try to create it as a new revision for an existing policy
-        # The response code is 201 if successful and 404 if there is no policy with the given name
-        r = requests.post(url=f"{nmsUrl}/api/platform/v1/security/policies?isNewRevision=true",
+    if polId != "":
+        # This is a new version for an existing policy
+        r = requests.put(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{polId}",
                           data=json.dumps(policyCreationPayload),
-                          headers={'Content-Type': 'application/json'},
-                          auth=(nmsUsername, nmsPassword),
+                          headers={'Content-Type': 'application/json',
+                                   "Authorization": f"Bearer APIToken {nginxOneToken}"},
                           verify=False)
-
-        # Check if this is a new policy with no existing versions. If this is true create its initial version
-        if r.status_code == 404:
-            r = requests.post(url=f"{nmsUrl}/api/platform/v1/security/policies",
-                              data=json.dumps(policyCreationPayload),
-                              headers={'Content-Type': 'application/json'},
-                              auth=(nmsUsername, nmsPassword),
-                              verify=False)
+    else:
+        # New policy creation
+        r = requests.post(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies",
+            data=json.dumps(policyCreationPayload),
+            headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nginxOneToken}"},
+            verify=False)
 
     return r
 
 
 # Retrieve security policies information
-def __getAllPolicies__(nmsUrl: str, nmsUsername: str, nmsPassword: str):
-    return requests.get(url=f'{nmsUrl}/api/platform/v1/security/policies',
-                        auth=(nmsUsername, nmsPassword), verify=False)
+def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str):
+    return requests.get(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies?paginated=false",
+                        headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False)
 
 
-# Delete security policy from control plane
-def __deletePolicy__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyUid: str):
-    return requests.delete(url=f'{nmsUrl}/api/platform/v1/security/policies/{policyUid}',
-                           auth=(nmsUsername, nmsPassword), verify=False)
+# Return the policy ID for the given policyName. allPoliciesJSON is the JSON output from __getAllPolicies__
+def __getPolicyId__(allPoliciesJSON: dict, policyName: str):
+    if 'items' in allPoliciesJSON:
+        for p in allPoliciesJSON['items']:
+            if policyName == p['name']:
+                return p['object_id']
+
+    return ""
+
+
+# Delete security policies from control plane
+def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyUids: list):
+    jsonPayload = []
+
+    for polId in policyUids:
+        item = {}
+        item['object_id'] = polId
+        item['action'] = "delete"
+        jsonPayload.append(item)
+
+    return requests.patch(url=f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies',
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False,
+        data=json.dumps(jsonPayload))
 
 
 # Check NAP policies names validity for the given declaration
@@ -86,10 +92,10 @@ def checkDeclarationPolicies(declaration: dict):
     # { 'policyName': 'activeTag', ... }
     allPolicyNames = {}
 
-    if 'policies' not in declaration['output']['nms']:
+    if 'policies' not in declaration['output']['nginxone']:
         return 200, ""
 
-    for policy in declaration['output']['nms']['policies']:
+    for policy in declaration['output']['nginxone']['policies']:
         # print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
 
         if policy['name'] and policy['name'] in allPolicyNames:
@@ -100,7 +106,6 @@ def checkDeclarationPolicies(declaration: dict):
         # Check policy releases for non-univoque tags
         allPolicyVersionTags = {}
         for policyVersion in policy['versions']:
-            # print(f"--> Policy [{policy['name']}] tag [{policyVersion['tag']}]")
             if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
                 return 422, f"Duplicated NGINX App Protect WAF policy tag [{policyVersion['tag']}] " \
                             f"for policy [{policy['name']}]"
@@ -149,8 +154,8 @@ def checkDeclarationPolicies(declaration: dict):
 
 # For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
-# Returns a tuple with two dictionaries: all_policy_names_and_versions, all_policy_active_names_and_uids
-def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
+# Returns a JSON with status code and content
+def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, declaration: dict):
     # NGINX App Protect policies - each policy supports multiple tagged versions
 
     # Policy names and all tag/uid pairs
@@ -165,7 +170,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
     # 'staging-policy': '7b4b850a-ff9e-42a0-85d0-850171474224' }
     all_policy_active_names_and_uids = {}
 
-    for p in declaration['output']['nms']['policies']:
+    for p in declaration['output']['nginxone']['policies']:
         policy_name = p['name']
         if policy_name:
             policy_active_tag = p['active_tag']
@@ -173,8 +178,16 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             # Iterates over all NGINX App Protect policies
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
+
+                # Remove pre-existing policy versions
+                allPoliciesJSON = __getAllPolicies__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
+                polId = __getPolicyId__(allPoliciesJSON = json.loads(allPoliciesJSON.text), policyName=policy_name)
+                if polId != "":
+                    __deletePolicy__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyUids=[polId])
+
+                # Create all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v5_2.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v5_4.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
 
                     if status != 200:
                         return JSONResponse(
@@ -183,12 +196,9 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
                                      "details": policyBody['content']}
                         )
 
-                    # Create the NGINX App Protect policy on NMS
-                    r = __definePolicyOnNMS__(
-                        nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
-                        policyName=policy_name,
-                        policyDisplayName=policyVersion['displayName'],
-                        policyDescription=policyVersion['description'],
+                    # Create the NGINX App Protect policy on NGINX One Console
+                    r = __definePolicyOnNGINXOne__(
+                        nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace,
                         policyJson=policyBody['content']
                     )
 
@@ -204,7 +214,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
                             all_policy_names_and_versions[policy_name] = []
 
                         # Stores the policy version
-                        uid = json.loads(r.text)['metadata']['uid']
+                        uid = json.loads(r.text)['latest']['object_id']
                         tag = policyVersion['tag']
 
                         if policy_active_tag == tag:
@@ -212,13 +222,14 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
 
                         all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
 
-    return all_policy_names_and_versions, all_policy_active_names_and_uids
+    return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
+                                                  "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
 
 
 # Publish a NGINX App Protect WAF policy making it active
 # activePolicyUids is a dict { "policy_name": "active_uid", [...] }
 # Return True if at least one policy was enabled, False otherwise
-def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePolicyUids: dict, instanceGroupUid: str):
+def makePolicyActive(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, activePolicyUids: dict, instanceGroupUid: str):
     doWeHavePolicies = False
 
     for policyName in activePolicyUids:
@@ -237,71 +248,9 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
         }
 
         doWeHavePolicies = True
-        r = requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
-                          data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
+        r = requests.post(url=f'{nginxOneUrl}/api/platform/v1/security/publish',
+                          data=json.dumps(body),
+                          headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nginxOneToken}"},
+                          verify=False)
 
     return doWeHavePolicies
-
-
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
-# making sure that they are in sync with what is defined in the JSON declaration
-# Returns a tuple: status, response payload
-def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict):
-    # Fetch all policies currently defined on the control plane
-    allNMSPolicies = __getAllPolicies__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword)
-    allNMSPoliciesJson = json.loads(allNMSPolicies.text)
-
-    # Build a list of all uids for policies currently available on the control plane whose names match
-    # currentPolicies (policies that have just been pushed to data plane)
-    allUidsOnNMS = []
-    for p in allNMSPoliciesJson['items']:
-        if p['metadata']['name'] in currentPolicies:
-            allUidsOnNMS.append(p['metadata']['uid'])
-
-    allCurrentPoliciesUIDs = []
-    for policyName in currentPolicies:
-        if policyName:
-            for tag in currentPolicies[policyName]:
-                allCurrentPoliciesUIDs.append(tag['uid'])
-
-    uidsToRemove = list(set(allUidsOnNMS) - set(allCurrentPoliciesUIDs))
-
-    for uid in uidsToRemove:
-        __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
-
-    return
-
-
-# Compile a NGINX App Protect policy and optional user-defined signatures using NGINX App Protect 5 compiler
-# https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/
-#
-# Global settings:
-# {
-#    "waf-settings": {
-#      "cookie-protection": {
-#         "seed": "80miIOiSeXfvNBiDJV4t"
-#      },
-#      "user-defined-signatures": [
-#        {
-#          "$ref": "file:///policies/uds.json"
-#        }
-#      ]
-#    }
-# }
-def compilePolicy(napPolicy: str, customSignatures: str):
-    b64napPolicy = base64.b64encode(bytes(napPolicy, 'utf-8')).decode('utf-8')
-    b64customSignatures = base64.b64encode(bytes(customSignatures, 'utf-8')).decode('utf-8')
-    cookieProtectionSeed = NcgConfig.config['nap']['cookie_protection_seed']
-
-    payload = {}
-    payload['user-signatures'] = b64customSignatures
-    payload['policy'] = b64napPolicy
-    payload['cookie-protection-seed'] = cookieProtectionSeed
-
-    try:
-        response = requests.post(f"http://{NcgConfig.config['nap']['compiler_host']}:{NcgConfig.config['nap']['compiler_port']}{NcgConfig.config['nap']['compiler_uri']}",
-                                 headers={'Content-Type': 'application/json'}, data=json.dumps(payload))
-    except Exception as e:
-        return 400, str(e)
-
-    return response
