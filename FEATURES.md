@@ -500,7 +500,7 @@ See:
   "access": {
     "destination": "<LOGFILE_NAME or syslog format>",
     "format": "<OPTIONAL_ACCESS_LOG_FORMAT>",
-    "condition": "<VALID_VARIABLE>"
+    "condition": "<OPTIONAL_VARIABLE>"
   },
   "error": {
     "destination": "<LOGFILE_NAME or syslog format>",
@@ -509,7 +509,7 @@ See:
 }
 ```
 
-Access logging formats available in `.declaration.http.logformats[]`
+Access logging formats to be defined in `.declaration.http.logformats[]`
 See:
 * Access log format: https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
 
@@ -523,7 +523,7 @@ See:
 
 ### Maps
 
-Map entries `.declaration.maps[].entries.keymatch` can be:
+Map entries `.declaration.http.maps[].entries.keymatch` can be:
 
 - *exact* - exact variable matching
 - *regex* - case sensitive regex matching

@@ -357,6 +357,28 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
         return self
 
+
+class AuthClientOIDC(BaseModel, extra="forbid"):
+    realm: str = "OIDC authentication"
+    key: str = ""
+    cachetime: Optional[int] = 0
+    jwt_type: str = "signed"
+    token_location: Optional[str] = ""
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthClientJWT':
+        jwt_type, key = self.jwt_type, self.key
+
+        #if not key.strip():
+        #    raise ValueError(f"Invalid: JWT key must not be empty")
+
+        valid = ['signed', 'encrypted', 'nested']
+        if jwt_type not in valid:
+            raise ValueError(f"Invalid JWT type [{jwt_type}] must be one of {str(valid)}")
+
+        return self
+
+
 class AuthServerToken(BaseModel, extra="forbid"):
     token: str = ""
     type: Optional[str] = ""
@@ -786,12 +808,13 @@ class Authentication_Client(BaseModel, extra="forbid"):
 
     jwt: Optional[AuthClientJWT] = {}
     mtls: Optional[AuthClientMtls] = {}
+    oidc: Optional[AuthClientOIDC] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Client':
         _type, name = self.type, self.name
 
-        valid = ['jwt', 'mtls']
+        valid = ['jwt', 'mtls', 'oidc']
         if _type not in valid:
             raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
 
@@ -874,6 +897,7 @@ class Http(BaseModel, extra="forbid"):
     njs_profiles: Optional[List[NjsFile]] = []
     cache: Optional[List[CacheProfile]] = []
     logformats: Optional[List[LogFormat]] = []
+
 
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
