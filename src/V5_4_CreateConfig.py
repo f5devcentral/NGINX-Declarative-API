@@ -225,6 +225,10 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             all_auth_client_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
+                        case 'oidc':
+                            # TODO
+                            pass
+
             if 'server' in d_auth_profiles:
                 # Render all server authentication profiles
 

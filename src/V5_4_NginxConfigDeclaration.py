@@ -359,24 +359,22 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
 
 class AuthClientOIDC(BaseModel, extra="forbid"):
-    realm: str = "OIDC authentication"
-    key: str = ""
-    cachetime: Optional[int] = 0
-    jwt_type: str = "signed"
-    token_location: Optional[str] = ""
-
-    @model_validator(mode='after')
-    def check_type(self) -> 'AuthClientJWT':
-        jwt_type, key = self.jwt_type, self.key
-
-        #if not key.strip():
-        #    raise ValueError(f"Invalid: JWT key must not be empty")
-
-        valid = ['signed', 'encrypted', 'nested']
-        if jwt_type not in valid:
-            raise ValueError(f"Invalid JWT type [{jwt_type}] must be one of {str(valid)}")
-
-        return self
+    issuer: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    config_url: Optional[str] = ""
+    cookie_name: Optional[str] = ""
+    extra_auth_args: Optional[str] = ""
+    redirect_uri: Optional[str] = "/oidc_callback"
+    logout_uri: Optional[str] = ""
+    post_logout_uri: Optional[str] = ""
+    logout_token_hint: Optional[bool] = False
+    scope: Optional[str] = "openid"
+    session_store: Optional[str] = ""
+    session_timeout: Optional[str] = "8h"
+    ssl_crl: Optional[str] = ""
+    ssl_trusted_certificate: Optional[str] = ""
+    userinfo: Optional[bool] = False
 
 
 class AuthServerToken(BaseModel, extra="forbid"):

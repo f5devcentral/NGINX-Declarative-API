@@ -153,7 +153,9 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
 
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
-        nginxconf={'modules': v5_4.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
+        nginxconf={'mainhttpfile': NcgConfig.config['nms']['staged_config_http_filename'],
+                   'mainstreamfile': NcgConfig.config['nms']['staged_config_stream_filename'],
+                   'modules': v5_4.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
                    'license': v5_4.MiscUtils.getDictKey(d, 'output.license')},
                    d={'http': v5_4.MiscUtils.getDictKey(d, 'declaration.http')})
 
