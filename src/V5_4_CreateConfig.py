@@ -226,8 +226,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             auxFiles['files'].append(authProfileConfigFile)
 
                         case 'oidc':
-                            # TODO
-                            pass
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - OpenID Connect template
+                            templateName = NcgConfig.config['templates']['auth_client_root'] + "/oidc.tmpl"
+                            renderedClientAuthProfile = j2_env.get_template(templateName).render(
+                                authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                            b64renderedClientAuthProfile = base64.b64encode(
+                                bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
+                            configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/oidc/' + auth_profile[
+                                'name'].replace(' ', '_') + ".conf"
+                            authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                                     'name': configFileName}
+
+                            all_auth_client_profiles.append(auth_profile['name'])
+                            auxFiles['files'].append(authProfileConfigFile)
 
             if 'server' in d_auth_profiles:
                 # Render all server authentication profiles

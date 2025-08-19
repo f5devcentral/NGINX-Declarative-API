@@ -895,6 +895,7 @@ class Http(BaseModel, extra="forbid"):
     njs_profiles: Optional[List[NjsFile]] = []
     cache: Optional[List[CacheProfile]] = []
     logformats: Optional[List[LogFormat]] = []
+    resolver: Optional[str] = ""
 
 
 class Declaration(BaseModel, extra="forbid"):

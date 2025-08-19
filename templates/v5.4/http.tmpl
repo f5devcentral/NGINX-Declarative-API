@@ -19,6 +19,14 @@ js_import {{ njsp.name | replace(" ", "_") }} from {{ njsp.name | replace(" ", "
 {% endfor %}
 {% endif %}
 
+{# --- DNS resolver --- #}
+{% if declaration.resolver -%}
+include "{{ ncgconfig.nms.resolver_dir }}/{{ declaration.resolver | replace(" ", "_") }}.conf";
+{% endif -%}
+
+{# --- OpenID Connect providers --- #}
+include "{{ ncgconfig.nms.auth_client_dir }}/oidc/*.conf";
+
 {# --- Maps section --- #}
 
 {% if declaration.maps %}

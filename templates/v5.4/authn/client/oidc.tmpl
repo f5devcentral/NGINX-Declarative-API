@@ -1,0 +1,47 @@
+# OpenID Connect provider for {{ authprofile.name }}
+
+oidc_provider {{ authprofile.name | replace(" ", "_") }} {
+  issuer {{ authprofile.oidc.issuer }};
+  client_id {{ authprofile.oidc.client_id }};
+  client_secret {{ authprofile.oidc.client_secret }};
+
+  {%- if authprofile.oidc.config_url -%}
+  config_url {{ authprofile.oidc.config_url }};
+  {% endif %}
+  {%- if authprofile.oidc.cookie_name -%}
+  cookie_name {{ authprofile.oidc.cookie_name }};
+  {% endif %}
+  {%- if authprofile.oidc.extra_auth_args -%}
+  extra_auth_args {{ authprofile.oidc.configextra_auth_args_url }};
+  {% endif %}
+  {%- if authprofile.oidc.redirect_uri -%}
+  redirect_uri {{ authprofile.oidc.redirect_uri }};
+  {% endif %}
+  {%- if authprofile.oidc.logout_uri -%}
+  logout_uri {{ authprofile.oidc.logout_uri }};
+  {% endif %}
+  {%- if authprofile.oidc.post_logout_uri -%}
+  post_logout_uri {{ authprofile.oidc.post_logout_uri }};
+  {% endif %}
+  {%- if authprofile.oidc.logout_token_hint -%}
+  logout_token_hint {% if authprofile.oidc.logout_token_hint == True %}on{% else %}off{% endif %};
+  {% endif %}
+  {%- if authprofile.oidc.scope -%}
+  scope {{ authprofile.oidc.scope }};
+  {% endif %}
+  {%- if authprofile.oidc.session_store -%}
+  session_store {{ authprofile.oidc.session_store }};
+  {% endif %}
+  {%- if authprofile.oidc.session_timeout -%}
+  session_timeout {{ authprofile.oidc.session_timeout }};
+  {% endif %}
+  {%- if authprofile.oidc.ssl_crl -%}
+  ssl_crl {{ authprofile.oidc.ssl_crl }};
+  {% endif %}
+  {%- if authprofile.oidc.ssl_trusted_certificate -%}
+  ssl_trusted_certificate {{ authprofile.oidc.ssl_trusted_certificate }};
+  {% endif %}
+  {%- if authprofile.oidc.userinfo -%}
+  userinfo {% if authprofile.oidc.userinfo == True %}on{% else %}off{% endif %};
+  {% endif %}
+}
