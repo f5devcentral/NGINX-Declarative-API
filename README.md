@@ -33,7 +33,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 - [NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - NGINX App Protect WAF [4](https://docs.nginx.com/nginx-app-protect-waf/v4/) and [5](https://docs.nginx.com/nginx-app-protect-waf/v5/)
 
-**Note**: NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.3.md) for further details. [Postman collection](/contrib/postman) examples are provided for R33.
+**Note**: NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.4.md) for further details. [Postman collection](/contrib/postman) examples are provided for NGINX Plus R33+.
 
 ## Architecture
 
@@ -189,7 +189,7 @@ end
 
 - [X] Output to NGINX Instance Manager 2.14+ imperative REST API (instance group)
 - [X] Output to NGINX One Console REST API (config sync group)
-  
+
 ## Supported features
 
 See the [features list](/FEATURES.md)

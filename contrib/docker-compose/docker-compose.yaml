@@ -45,9 +45,3 @@ services:
 
 networks:
   dapi-network:
-
-secrets:
-  nginx-crt:
-    file: ${NGINX_CERT}
-  nginx-key:
-    file: ${NGINX_KEY}
