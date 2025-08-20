@@ -36,10 +36,10 @@ oidc_provider {{ authprofile.name | replace(" ", "_") }} {
   session_timeout {{ authprofile.oidc.session_timeout }};
   {% endif %}
   {%- if authprofile.oidc.ssl_crl -%}
-  ssl_crl {{ authprofile.oidc.ssl_crl }};
+  ssl_crl {{ ncgconfig.nms.certs_dir }}/{{ authprofile.oidc.ssl_crl }}.crt;
   {% endif %}
   {%- if authprofile.oidc.ssl_trusted_certificate -%}
-  ssl_trusted_certificate {{ authprofile.oidc.ssl_trusted_certificate }};
+  ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.oidc.ssl_trusted_certificate }}.crt;
   {% endif %}
   {%- if authprofile.oidc.userinfo -%}
   userinfo {% if authprofile.oidc.userinfo == True %}on{% else %}off{% endif %};

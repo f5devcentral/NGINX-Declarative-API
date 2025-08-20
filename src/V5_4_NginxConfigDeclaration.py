@@ -383,8 +383,8 @@ class AuthClientOIDC(BaseModel, extra="forbid"):
     scope: Optional[str] = "openid"
     session_store: Optional[str] = ""
     session_timeout: Optional[str] = "8h"
-    ssl_crl: Optional[ObjectFromSourceOfTruth] = {}
-    ssl_trusted_certificate: Optional[ObjectFromSourceOfTruth] = {}
+    ssl_crl: Optional[str] = ""
+    ssl_trusted_certificate: Optional[str] = ""
     userinfo: Optional[bool] = False
 
 

@@ -352,6 +352,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 {"code": status,
                                  "content": f"invalid njs profile [{d_http_njs_hooks[i]['profile']}] in HTTP declaration, must be one of {all_njs_profiles}"}}}
 
+        # HTTP level resolver validity check xyz
+        d_http_resolver = v5_4.MiscUtils.getDictKey(d, 'declaration.http.resolver')
+        if d_http_resolver not in all_resolver_profiles:
+            return {"status_code": 422,
+                    "message": {"status_code": status, "message":
+                        {"code": status,
+                         "content": f"invalid resolver profile [{d_http_resolver}] in HTTP context, must be one of {all_resolver_profiles}"}}}
+
         # Parse HTTP servers
         d_servers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
