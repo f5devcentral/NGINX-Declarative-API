@@ -41,7 +41,7 @@ $ ./nginx-dapi.sh -c build
 -> Building NGINX Declarative API Docker images
 [+] Building 3.6s (24/24) FINISHED
 [...]
- => => exporting layers
+ => exporting layers
 [...]
 
 $ docker images
