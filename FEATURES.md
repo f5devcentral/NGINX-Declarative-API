@@ -104,10 +104,11 @@ See the [Postman collection](/contrib/) for usage examples
 
 ### Client authentication
 
-| Type | Description           | API v5.3 | API v5.4 | Notes                               |
-|------|-----------------------|----------|----------|-------------------------------------|
-| jwt  | Java Web Token (JWT)  | X        | X        |                                     |
-| mtls | Mutual TLS            | X        | X        | <li>Supported for HTTP servers</li> |
+| Type | Description          | API v5.3 | API v5.4 | Notes                               |
+|------|----------------------|----------|----------|-------------------------------------|
+| jwt  | Java Web Token (JWT) | X        | X        |                                     |
+| mtls | Mutual TLS           | X        | X        | <li>Supported for HTTP servers</li> |
+| oidc | OpenID Connect       |          | X        | <li>Supported for HTTP servers</li> |
 
 #### Examples
 
@@ -147,6 +148,34 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
             "verify": <true|false>,
             "responder": "<OCSP_RESPONDER_URL>"
         }
+    }
+}
+```
+
+- OpenID Connect client authentication profile
+For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.html
+
+ ```json
+{
+    "name": "<PROFILE_NAME>",
+    "type": "oidc",
+    "oidc": {
+        "issuer": "https://<ISSUER>/realms/<REALM_NAME>",
+        "client_id": "<CLIENT_ID>",
+        "client_secret": "<CLIENT_SECRET>",
+        "config_url": "<OPTIONAL_IDP_METADATA_URL>",
+        "cookie_name" : "<OPTIONAL_SESSION_COOKIE_NAME>",
+        "extra_auth_args": "<OPTIONAL_EXTRA_QUERY_ARGUMENTS>",
+        "redirect_uri": "<OPTIONAL_REDIRECT_URI>",
+        "logout_uri": "<OPTIONAL_LOGOUT_URI>",
+        "post_logout_uri": "<OPTIONAL_POST_LOGOUT_URI>",
+        "logout_token_hint": <true|false>,
+        "scope": "<OPENID_SCOPE>",
+        "session_store": "<OPTIONAL_SESSION_KEYVAL_STORE_NAME>",
+        "session_timeout": "<OPTIONAL_OIDC_SESSION_TIMEOUT>",
+        "ssl_crl": "<OPTIONAL_IDP_SSL_CRL>",
+        "ssl_trusted_certificate": "<OPTIONAL_IDP_SSL_TRUSTED_CA>",
+        "userinfo": <true|false>
     }
 }
 ```
