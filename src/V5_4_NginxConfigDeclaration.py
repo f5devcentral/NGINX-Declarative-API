@@ -358,6 +358,17 @@ class AuthClientJWT(BaseModel, extra="forbid"):
         return self
 
 
+class AcmeIssuers(BaseModel, extra="forbid"):
+    uri: str = ""
+    account_key: Optional[str] = ""
+    contact: Optional[str] = ""
+    ssl_trusted_certificate: Optional[ObjectFromSourceOfTruth] = {}
+    ssl_verify: Optional[bool] = False
+    state_path: Optional[str] = ""
+    accept_terms_of_service: Optional[bool] = False
+    acme_shared_zone: Optional[str] = ""
+
+
 class AuthClientOIDC(BaseModel, extra="forbid"):
     issuer: str = ""
     client_id: str = ""
@@ -372,8 +383,8 @@ class AuthClientOIDC(BaseModel, extra="forbid"):
     scope: Optional[str] = "openid"
     session_store: Optional[str] = ""
     session_timeout: Optional[str] = "8h"
-    ssl_crl: Optional[str] = ""
-    ssl_trusted_certificate: Optional[str] = ""
+    ssl_crl: Optional[ObjectFromSourceOfTruth] = {}
+    ssl_trusted_certificate: Optional[ObjectFromSourceOfTruth] = {}
     userinfo: Optional[bool] = False
 
 
@@ -896,6 +907,7 @@ class Http(BaseModel, extra="forbid"):
     cache: Optional[List[CacheProfile]] = []
     logformats: Optional[List[LogFormat]] = []
     resolver: Optional[str] = ""
+    acme_issuers: Optional[List[AcmeIssuers]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):
