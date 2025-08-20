@@ -297,7 +297,16 @@ server {
         {# --- Client authentication at location level --- #}
         {%- if loc.authentication and loc.authentication.client -%}
         {%- for clientAuthProfile in loc.authentication.client -%}
+        {%- set isThisOIDC = namespace(found = False) -%}
+        {%- for declClientAuthProfile in declaration.authentication.client -%}
+        {%- if declClientAuthProfile.type == "oidc" and declClientAuthProfile.name == clientAuthProfile.profile -%}
+        auth_oidc {{ clientAuthProfile.profile | replace(" ", "_") }};
+        {%- set isThisOIDC.found = True -%}
+        {% endif -%}
+        {%- endfor -%}
+        {%- if isThisOIDC.found == False -%}
         include "{{ ncgconfig.nms.auth_client_dir }}/{{ clientAuthProfile.profile | replace(" ", "_") }}.conf";
+        {%- endif -%}
         {% endfor -%}
         {%- endif -%}
 
