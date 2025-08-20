@@ -36,8 +36,6 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 
 ## Building docker images
 
-Without NGINX App Protect compiler
-
 ```
 $ ./nginx-dapi.sh -c build
 -> Building NGINX Declarative API Docker images
@@ -50,22 +48,6 @@ $ docker images
 REPOSITORY                        TAG       IMAGE ID       CREATED          SIZE
 nginx-declarative-api-devportal   latest    e1bd3cf9965a   1 minutes ago    669MB
 nginx-declarative-api             latest    0d76c5a4338b   1 minutes ago    168MB
-```
-
-With NGINX App Protect compiler
-
-```
-$ ./nginx-dapi.sh -c build
--> Building NGINX Declarative API Docker images
-[+] Building 118.6s (36/36) FINISHED
-[...]
- => => exporting layers
-[...]
-
-$ docker images
-REPOSITORY                           TAG       IMAGE ID       CREATED              SIZE
-nginx-declarative-api-devportal      latest    ad136e8dc5fd   About a minute ago   669MB
-nginx-declarative-api                latest    4c9f89903b6d   About a minute ago   174MB
 ```
 
 ## How to run
