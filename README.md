@@ -11,7 +11,7 @@ GitOps integration is supported: source of truth is checked for updates (NGINX A
 Use cases include:
 
 - Integration with NGINX Instance Manager (instance group) and NGINX One Console (config sync group)
-- NGINX App Protect DevSecOps integration (NGINX Instance Manager only)
+- NGINX App Protect DevSecOps integration
 - API Gateway deployments with automated Swagger / OpenAPI schema import
 - API Developer portals zero-touch deployment (redocly and backstage supported)
 - API Visibility (moesif supported)

@@ -197,7 +197,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         configFiles['files'].append(filesLicenseFile)
 
     # Staged config
-    baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
+    baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles}
     stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
                     'configs': [ configFiles, auxFiles ]}
 
@@ -235,7 +235,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                     "message": {"status_code": status, "message": {"code": status, "content": description}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Provision NGINX App Protect WAF policies to NGINX Instance Manager
+        # Provision NGINX App Protect WAF policies to NGINX One Console
         ppReply = v5_3.NGINXOneNAPUtils.provisionPolicies(
             nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  declaration=d)
 
@@ -243,9 +243,19 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             return {"status_code": ppReply.status_code,
                     "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
 
+
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
+
+        # Add NGINX App Protect policies as payloads[] in the full configuration to be published through NGINX One Console
+        napPoliciesConfigPayloads = v5_3.NGINXOneNAPUtils.addNapPolicyPayloads(nginxOneUrl=nOneUrl,
+                                                             nginxOneToken=nOneToken,
+                                                             nginxOneNamespace=nOneNamespace,
+                                                             activePolicyUids=activePolicyUids,
+                                                             instanceGroupUid=igUid)
+
+        stagedConfig['payloads'] = napPoliciesConfigPayloads
 
         ### / NGINX App Protect policies support
 
@@ -289,6 +299,9 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 jsonResponse = { "message": "Config successfully applied", "status": checkJson['status'] }
                 returnHttpCode = 200
 
+                # Remove NAP policy versions that are not currently deployed on any config sync group
+                v5_3.NGINXOneNAPUtils.removeUndeployedPolicyVersions(nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  policyIds=napPolicies['policy_ids'])
+
         else:
             # Staged config publish to NGINX One succeeded - reply was HTTP/200
             jsonResponse = json.loads(r.text)
@@ -311,21 +324,6 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
             NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
             NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
-
-        # Makes NGINX App Protect policies active
-        doWeHavePolicies = v5_3.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
-                                                             nginxOneToken=nOneToken,
-                                                             nginxOneNamespace=nOneNamespace,
-                                                             activePolicyUids=activePolicyUids,
-                                                             instanceGroupUid=igUid)
-
-        if doWeHavePolicies:
-            # Clean up NGINX App Protect WAF policies not used anymore
-            # and not defined in the declaration just pushed
-            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            #v5_3.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
-            #                                        nginxOneNamespace=nOneNamespace,
-            #                                        currentPolicies=provisionedNapPolicies)
 
         # If deploying a new configuration in GitOps mode start autosync
         if nOneSynctime == 0:

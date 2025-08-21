@@ -32,6 +32,7 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 | NGINX Plus REST API access  | X        | X        |                                                                                                                                                                                                           |
 | NGINX App Protect WAF       | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
 
+
 ### HTTP Locations
 
 Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.declaration.http.servers[].locations[].urimatch` can be:
