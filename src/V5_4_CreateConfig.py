@@ -5,10 +5,6 @@ Configuration creation based on jinja2 templates
 import base64
 import json
 import pickle
-import time
-import uuid
-import hashlib
-from datetime import datetime
 from urllib.parse import urlparse
 
 import requests
@@ -18,24 +14,24 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import ValidationError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-import v5_2.APIGateway
-import v5_2.DevPortal
-import v5_2.DeclarationPatcher
-import v5_2.GitOps
-import v5_2.MiscUtils
-import v5_2.NIMOutput
-import v5_2.NGINXOneOutput
+import v5_4.APIGateway
+import v5_4.DevPortal
+import v5_4.DeclarationPatcher
+import v5_4.GitOps
+import v5_4.MiscUtils
+import v5_4.NIMOutput
+import v5_4.NGINXOneOutput
 
 # NGINX App Protect helper functions
-import v5_2.NAPUtils
-import v5_2.NIMUtils
+import v5_4.NIMNAPUtils
+import v5_4.NIMUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
 # pydantic models
-from V5_2_NginxConfigDeclaration import *
+from V5_4_NginxConfigDeclaration import *
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -80,20 +76,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
                          trim_blocks=True, extensions=["jinja2_base64_filters.Base64Filters"])
-    j2_env.filters['regex_replace'] = v5_2.MiscUtils.regex_replace
+    j2_env.filters['regex_replace'] = v5_4.MiscUtils.regex_replace
 
     # Check resolver profiles validity and creates resolver config files
     if 'resolvers' in d['declaration']:
         all_resolver_profiles = []
 
-        d_resolver_profiles = v5_2.MiscUtils.getDictKey(d, 'declaration.resolvers')
+        d_resolver_profiles = v5_4.MiscUtils.getDictKey(d, 'declaration.resolvers')
         if d_resolver_profiles is not None:
             # Render all resolver profiles
             for i in range(len(d_resolver_profiles)):
                 resolver_profile = d_resolver_profiles[i]
 
                 # Add the rendered resolver configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/resolver.tmpl"
+                templateName = NcgConfig.config['templates']['resolver']
                 renderedResolverProfile = j2_env.get_template(templateName).render(
                     resolverprofile=resolver_profile, ncgconfig=NcgConfig.config)
 
@@ -109,7 +105,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
     if 'http' in d['declaration']:
         if 'snippet' in d['declaration']['http']:
-            status, snippet = v5_2.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication'])
+            status, snippet = v5_4.GitOps.getObjectFromRepo(object = d['declaration']['http']['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
             if status != 200:
                 return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -131,7 +127,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  "content": f"invalid resolver profile [{upstream['resolver']}] in HTTP upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if upstream['snippet']:
-                    status, snippet = v5_2.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
+                    status, snippet = v5_4.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -139,7 +135,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     d['declaration']['http']['upstreams'][i]['snippet'] = snippet
 
                 # Add the rendered upstream configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-http.tmpl"
+                templateName = NcgConfig.config['templates']['upstream_http']
                 renderedUpstreamProfile = j2_env.get_template(templateName).render(
                     u=upstream, ncgconfig=NcgConfig.config)
 
@@ -157,7 +153,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Check HTTP rate_limit profiles validity
         all_ratelimits = []
 
-        d_rate_limit = v5_2.MiscUtils.getDictKey(d, 'declaration.http.rate_limit')
+        d_rate_limit = v5_4.MiscUtils.getDictKey(d, 'declaration.http.rate_limit')
         if d_rate_limit is not None:
             for i in range(len(d_rate_limit)):
                 all_ratelimits.append(d_rate_limit[i]['name'])
@@ -165,7 +161,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Check HTTP cache profiles validity
         all_cache_profiles = []
 
-        d_cache_profiles = v5_2.MiscUtils.getDictKey(d, 'declaration.http.cache')
+        d_cache_profiles = v5_4.MiscUtils.getDictKey(d, 'declaration.http.cache')
         if d_cache_profiles is not None:
             for i in range(len(d_cache_profiles)):
                 all_cache_profiles.append(d_cache_profiles[i]['name'])
@@ -176,7 +172,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         all_auth_client_profiles = []
         all_auth_server_profiles = []
 
-        d_auth_profiles = v5_2.MiscUtils.getDictKey(d, 'declaration.http.authentication')
+        d_auth_profiles = v5_4.MiscUtils.getDictKey(d, 'declaration.http.authentication')
         if d_auth_profiles is not None:
             if 'client' in d_auth_profiles:
                 # Render all client authentication profiles
@@ -210,7 +206,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                               'name': configFileName }
 
-                            all_auth_client_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
                         case 'mtls':
@@ -222,6 +217,22 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             b64renderedClientAuthProfile = base64.b64encode(
                                 bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
                             configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/' + auth_profile[
+                                'name'].replace(' ', '_') + ".conf"
+                            authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
+                                                     'name': configFileName}
+
+                            all_auth_client_profiles.append(auth_profile['name'])
+                            auxFiles['files'].append(authProfileConfigFile)
+
+                        case 'oidc':
+                            # Add the rendered authentication configuration snippet as a config file in the staged configuration - OpenID Connect template
+                            templateName = NcgConfig.config['templates']['auth_client_root'] + "/oidc.tmpl"
+                            renderedClientAuthProfile = j2_env.get_template(templateName).render(
+                                authprofile=auth_profile, ncgconfig=NcgConfig.config)
+
+                            b64renderedClientAuthProfile = base64.b64encode(
+                                bytes(renderedClientAuthProfile, 'utf-8')).decode('utf-8')
+                            configFileName = NcgConfig.config['nms']['auth_client_dir'] + '/oidc/' + auth_profile[
                                 'name'].replace(' ', '_') + ".conf"
                             authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                                      'name': configFileName}
@@ -273,7 +284,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # List of all authorization client profile names
         all_authz_client_profiles = []
 
-        d_authz_profiles = v5_2.MiscUtils.getDictKey(d, 'declaration.http.authorization')
+        d_authz_profiles = v5_4.MiscUtils.getDictKey(d, 'declaration.http.authorization')
         if d_authz_profiles is not None:
             # Render all client authorization profiles
 
@@ -307,18 +318,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                                  'name': configFileName}
 
-                        all_authz_client_profiles.append(authz_profile['name'])
                         auxFiles['files'].append(authProfileConfigFile)
 
         # NGINX Javascript profiles
         all_njs_profiles = []
-        d_njs_files = v5_2.MiscUtils.getDictKey(d, 'declaration.http.njs_profiles')
+        d_njs_files = v5_4.MiscUtils.getDictKey(d, 'declaration.http.njs_profiles')
         if d_njs_files is not None:
             for i in range(len(d_njs_files)):
                 njs_file = d_njs_files[i]
                 njs_filename = njs_file['name'].replace(' ','_')
 
-                status, content = v5_2.GitOps.getObjectFromRepo(object=njs_file['file'],
+                status, content = v5_4.GitOps.getObjectFromRepo(object=njs_file['file'],
                                                                 authProfiles=d['declaration']['http'][
                                                                     'authentication'])
 
@@ -330,8 +340,31 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 auxFiles['files'].append(njsAuxFile)
                 all_njs_profiles.append(njs_filename)
 
+        # NGINX ACME issuer profiles
+        d_acme_issuers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
+        all_acme_issuers = []
+        if d_acme_issuers is not None:
+            # Render all ACME issuer profiles
+            for i in range(len(d_acme_issuers)):
+                acme_issuer = d_acme_issuers[i]
+
+                # Add the rendered resolver configuration snippet as a config file in the staged configuration
+                templateName = NcgConfig.config['templates']['acme_issuer']
+                renderedAcmeIssuerProfile = j2_env.get_template(templateName).render(
+                    acmeprofile=acme_issuer, ncgconfig=NcgConfig.config)
+
+                b64renderedAcmeProfile = base64.b64encode(bytes(renderedAcmeIssuerProfile, 'utf-8')).decode(
+                    'utf-8')
+                configFileName = NcgConfig.config['nms']['acme_dir'] + '/' + acme_issuer['name'].replace(
+                    ' ','_') + ".conf"
+                acmeProfileConfigFile = {'contents': b64renderedAcmeProfile,
+                                             'name': configFileName}
+
+                all_acme_issuers.append(acme_issuer['name'])
+                auxFiles['files'].append(acmeProfileConfigFile)
+
         # HTTP level Javascript hooks
-        d_http_njs_hooks = v5_2.MiscUtils.getDictKey(d, 'declaration.http.njs')
+        d_http_njs_hooks = v5_4.MiscUtils.getDictKey(d, 'declaration.http.njs')
         if d_http_njs_hooks is not None:
             for i in range(len(d_http_njs_hooks)):
                 if d_http_njs_hooks[i]['profile'] not in all_njs_profiles:
@@ -340,8 +373,17 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 {"code": status,
                                  "content": f"invalid njs profile [{d_http_njs_hooks[i]['profile']}] in HTTP declaration, must be one of {all_njs_profiles}"}}}
 
+        # HTTP level resolver validity check
+        d_http_resolver = v5_4.MiscUtils.getDictKey(d, 'declaration.http.resolver')
+        if d_http_resolver:
+            if d_http_resolver not in all_resolver_profiles:
+                return {"status_code": 422,
+                        "message": {"status_code": status, "message":
+                            {"code": status,
+                             "content": f"invalid resolver profile [{d_http_resolver}] in HTTP context, must be one of {all_resolver_profiles}"}}}
+
         # Parse HTTP servers
-        d_servers = v5_2.MiscUtils.getDictKey(d, 'declaration.http.servers')
+        d_servers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.servers')
         if d_servers is not None:
             for server in d_servers:
                 serverSnippet = ''
@@ -356,7 +398,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 # Server level cache profile name validity
                 if server['cache']:
-                    if server['cache']['profile'] not in all_cache_profiles:
+                    if server['cache']['profile'] not in all_cache_profiles and server['cache']['profile'] != "":
                         return {"status_code": 422,
                                     "message": {"status_code": status, "message":
                                         {"code": status,
@@ -401,13 +443,29 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                             {"code": status,
                                              "content": f"invalid client authentication profile [{mtlsClientProfile['profile']}] in server [{server['name']}] must be one of {all_auth_client_profiles}"}}}
 
+                # ACME issuers name validity check
+                if 'acme_issuer' in server['listen']['tls']:
+                    acmeIssuer = server['listen']['tls']['acme_issuer']
+                    if acmeIssuer and acmeIssuer not in all_acme_issuers:
+                        return {"status_code": 422,
+                                "message": {"status_code": status, "message":
+                                    {"code": status,
+                                     "content": f"invalid ACME issuer [{acmeIssuer}] in server [{server['name']}] must be one of {all_acme_issuers}"}}}
+
                 if server['snippet']:
-                    status, serverSnippet = v5_2.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
+                    status, serverSnippet = v5_4.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": serverSnippet}}
 
                     serverSnippet = serverSnippet['content']
+
+                # Create HTTP server configuration file
+                httpServerConf = j2_env.get_template(NcgConfig.config['templates']['server_http']).render(declaration=d['declaration']['http'], s=server, ncgconfig=NcgConfig.config)
+                httpServerConfb64 = base64.b64encode(bytes(httpServerConf, 'utf-8')).decode('utf-8')
+                newHttpServerAuxFile = {'contents': httpServerConfb64, 'name': NcgConfig.config['nms']['server_http_dir'] +
+                                                                        '/' + server['name'].replace(' ', '_') + ".conf"}
+                auxFiles['files'].append(newHttpServerAuxFile)
 
                 for loc in server['locations']:
 
@@ -421,7 +479,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              "content": f"invalid njs profile [{loc['njs'][i]['profile']}] in location [{loc['uri']}], must be one of {all_njs_profiles}"}}}
 
                     if loc['snippet']:
-                        status, snippet = v5_2.GitOps.getObjectFromRepo(object = loc['snippet'], authProfiles = d['declaration']['http']['authentication'])
+                        status, snippet = v5_4.GitOps.getObjectFromRepo(object = loc['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                         if status != 200:
                             return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -509,6 +567,37 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
+
+                        # API Gateway authentication profile names validity check
+                        if loc['apigateway']['authentication'] and loc['apigateway']['authentication']['client']:
+                            apigw_authn_profiles = loc['apigateway']['authentication']['client']
+                            for i in range(len(apigw_authn_profiles)):
+                                if apigw_authn_profiles[i]['profile'] not in all_auth_client_profiles:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway authentication profile [{apigw_authn_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_auth_client_profiles}"}}}
+
+                        # API Gateway authorization profile names validity check
+                        if loc['apigateway']['authorization']:
+                            apigw_authz_profiles = loc['apigateway']['authorization']
+                            for i in range(len(apigw_authz_profiles)):
+                                if apigw_authz_profiles[i]['profile'] not in all_authz_client_profiles:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway authorization profile [{apigw_authz_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_authz_client_profiles}"}}}
+
+                        # API Gateway rate limiting profile names validity check
+                        if loc['apigateway']['rate_limit']:
+                            apigw_rl_profiles = loc['apigateway']['rate_limit']
+                            for i in range(len(apigw_rl_profiles)):
+                                if apigw_rl_profiles[i]['profile'] not in all_ratelimits:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway rate limit profile [{apigw_authz_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_ratelimits}"}}}
+
                         openApiAuthProfile = loc['apigateway']['openapi_schema']['authentication']
                         if openApiAuthProfile and openApiAuthProfile[0]['profile'] not in all_auth_server_profiles:
                             return {"status_code": 422,
@@ -516,7 +605,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         {"code": status,
                                          "content": f"invalid server authentication profile [{openApiAuthProfile[0]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}]"}}}
 
-                        status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_2.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
+                        status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_4.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
 
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
@@ -525,6 +614,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
+                                                                            '/' + server['names'][0] +
                                                                             loc['uri'] + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
@@ -533,7 +623,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         if loc['apigateway']['developer_portal']['type'].lower() == 'redocly':
                             ### Redocly developer portal - Add optional API Developer portal HTML files
-                            status, devPortalHTML = v5_2.DevPortal.createDevPortal(locationDeclaration=loc,
+                            status, devPortalHTML = v5_4.DevPortal.createDevPortal(locationDeclaration=loc,
                                                                                    authProfiles=
                                                                                    d['declaration']['http'][
                                                                                        'authentication'])
@@ -552,7 +642,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         elif loc['apigateway']['developer_portal']['type'].lower() == 'backstage':
                             ### Backstage developer portal - Create Kubernetes Backstage manifest
                             backstageManifest = j2_env.get_template(f"{NcgConfig.config['templates']['devportal_root']}/backstage.tmpl").render(
-                                declaration=loc['apigateway']['developer_portal']['backstage'], openAPISchema = v5_2.MiscUtils.json_to_yaml(openAPISchemaJSON), ncgconfig=NcgConfig.config)
+                                declaration=loc['apigateway']['developer_portal']['backstage'], openAPISchema = v5_4.MiscUtils.json_to_yaml(openAPISchemaJSON), ncgconfig=NcgConfig.config)
 
                             extraOutputManifests.append(backstageManifest)
                             ### / Backstage developer portal - Create Kubernetes Backstage manifest
@@ -572,7 +662,8 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     # Check location-level cache profile name validity
                     if loc['cache'] is not None:
                         if 'profile' in loc['cache'] and loc['cache']['profile'] and loc['cache'][
-                                    'profile'] not in all_cache_profiles:
+                                    'profile'] not in all_cache_profiles and loc['cache'][
+                                    'profile'] != "":
                             return {"status_code": 422,
                                     "message": {
                                         "status_code": status,
@@ -587,7 +678,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Check Layer4/stream upstreams validity
         all_upstreams = []
 
-        d_upstreams = v5_2.MiscUtils.getDictKey(d, 'declaration.layer4.upstreams')
+        d_upstreams = v5_4.MiscUtils.getDictKey(d, 'declaration.layer4.upstreams')
         if d_upstreams is not None:
             for i in range(len(d_upstreams)):
                 upstream = d_upstreams[i]
@@ -599,7 +690,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                  "content": f"invalid resolver profile [{upstream['resolver']}] in stream upstream [{upstream['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if upstream['snippet']:
-                    status, snippet = v5_2.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
+                    status, snippet = v5_4.GitOps.getObjectFromRepo(object = upstream['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -607,7 +698,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                     d['declaration']['layer4']['upstreams'][i]['snippet'] = snippet
 
                 # Add the rendered upstream configuration snippet as a config file in the staged configuration
-                templateName = NcgConfig.config['templates']['misc_root'] + "/upstream-stream.tmpl"
+                templateName = NcgConfig.config['templates']['upstream_stream']
                 renderedUpstreamProfile = j2_env.get_template(templateName).render(
                     u=upstream, ncgconfig=NcgConfig.config)
 
@@ -621,7 +712,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                 all_upstreams.append(d_upstreams[i]['name'])
 
-        d_servers = v5_2.MiscUtils.getDictKey(d, 'declaration.layer4.servers')
+        d_servers = v5_4.MiscUtils.getDictKey(d, 'declaration.layer4.servers')
         if d_servers is not None:
             for server in d_servers:
 
@@ -634,7 +725,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                          "content": f"invalid resolver profile [{server['resolver'] }] in stream server [{server['name']}], must be one of {all_resolver_profiles}"}}}
 
                 if server['snippet']:
-                    status, snippet = v5_2.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'])
+                    status, snippet = v5_4.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": snippet}}
@@ -647,6 +738,13 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 "status_code": status,
                                 "message":
                                     {"code": status, "content": f"invalid Layer4 upstream {server['upstream']}"}}}
+
+                # Create Stream server configuration file
+                streamServerConf = j2_env.get_template(NcgConfig.config['templates']['server_stream']).render(s=server, ncgconfig=NcgConfig.config)
+                streamServerConfb64 = base64.b64encode(bytes(streamServerConf, 'utf-8')).decode('utf-8')
+                newStreamServerAuxFile = {'contents': streamServerConfb64, 'name': NcgConfig.config['nms']['server_stream_dir'] +
+                                                                        '/' + server['name'].replace(' ', '_') + ".conf"}
+                auxFiles['files'].append(newStreamServerAuxFile)
 
     # HTTP configuration template rendering
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
@@ -668,19 +766,20 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # NGINX auxiliary files for staged config
         auxFiles['rootDir'] = NcgConfig.config['nms']['config_dir']
 
-        finalReply = v5_2.NIMOutput.NIMOutput(d = d, declaration = declaration, apiversion = apiversion,
+        finalReply = v5_4.NIMOutput.NIMOutput(d = d, declaration = declaration, apiversion = apiversion,
                                  b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
                                  configFiles = configFiles,
                                  auxFiles = auxFiles,
                                  runfromautosync = runfromautosync, configUid = configUid )
 
         if finalReply['status_code'] == 200:
-            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+            if len(extraOutputManifests) > 0:
+                finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
 
     elif decltype.lower() == 'nginxone':
-        # Output to NGINX One Cloud Console
+        # Output to NGINX One Console
 
         # NGINX configuration files for staged config
         configFiles['name'] = NcgConfig.config['nms']['config_dir']
@@ -688,14 +787,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # NGINX auxiliary files for staged config
         auxFiles['name'] = NcgConfig.config['nms']['config_dir']
 
-        finalReply =  v5_2.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
+        finalReply =  v5_4.NGINXOneOutput.NGINXOneOutput(d = d, declaration = declaration, apiversion = apiversion,
                                  b64HttpConf = b64HttpConf, b64StreamConf = b64StreamConf,
                                  configFiles = configFiles,
                                  auxFiles = auxFiles,
                                  runfromautosync = runfromautosync, configUid = configUid )
 
         if finalReply['status_code'] == 200:
-            finalReply['message']['message']['content']['manifests'] = extraOutputManifests
+            if len(extraOutputManifests) > 0:
+                finalReply['message']['message']['content']['manifests'] = extraOutputManifests
 
         return finalReply
     else:
@@ -718,51 +818,51 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     status_code, currentDeclaration = get_declaration(configUid=configUid)
 
     # Handle policy updates
-    d_policies = v5_2.MiscUtils.getDictKey(declarationToPatch, 'output.nms.policies')
+    d_policies = v5_4.MiscUtils.getDictKey(declarationToPatch, 'output.nms.policies')
     if d_policies is not None:
         # NGINX App Protect WAF policy updates
         for p in d_policies:
-            currentDeclaration = v5_2.DeclarationPatcher.patchNAPPolicies(
+            currentDeclaration = v5_4.DeclarationPatcher.patchNAPPolicies(
                 sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
 
     # Handle certificate updates
-    d_certificates = v5_2.MiscUtils.getDictKey(declarationToPatch, 'output.nms.certificates')
+    d_certificates = v5_4.MiscUtils.getDictKey(declarationToPatch, 'output.nms.certificates')
     if d_certificates is not None:
         # TLS certificate/key updates
         for p in d_certificates:
-            currentDeclaration = v5_2.DeclarationPatcher.patchCertificates(
+            currentDeclaration = v5_4.DeclarationPatcher.patchCertificates(
                 sourceDeclaration=currentDeclaration, patchedCertificates=p)
 
     # Handle declaration updates
     if 'declaration' in declarationToPatch:
         # HTTP
-        d_upstreams = v5_2.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.upstreams')
+        d_upstreams = v5_4.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.upstreams')
         if d_upstreams:
             # HTTP upstream patch
             for u in d_upstreams:
-                currentDeclaration = v5_2.DeclarationPatcher.patchHttpUpstream(
+                currentDeclaration = v5_4.DeclarationPatcher.patchHttpUpstream(
                     sourceDeclaration=currentDeclaration, patchedHttpUpstream=u)
 
-        d_servers = v5_2.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.servers')
+        d_servers = v5_4.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.servers')
         if d_servers:
             # HTTP servers patch
             for s in d_servers:
-                currentDeclaration = v5_2.DeclarationPatcher.patchHttpServer(
+                currentDeclaration = v5_4.DeclarationPatcher.patchHttpServer(
                     sourceDeclaration=currentDeclaration, patchedHttpServer=s)
 
         # Stream / Layer4
-        d_upstreams = v5_2.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.upstreams')
+        d_upstreams = v5_4.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.upstreams')
         if d_upstreams:
             # Stream upstream patch
             for u in d_upstreams:
-                currentDeclaration = v5_2.DeclarationPatcher.patchStreamUpstream(
+                currentDeclaration = v5_4.DeclarationPatcher.patchStreamUpstream(
                     sourceDeclaration=currentDeclaration, patchedStreamUpstream=u)
 
-        d_servers = v5_2.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.servers')
+        d_servers = v5_4.MiscUtils.getDictKey(declarationToPatch, 'declaration.layer4.servers')
         if d_servers:
             # Stream servers patch
             for s in d_servers:
-                currentDeclaration = v5_2.DeclarationPatcher.patchStreamServer(
+                currentDeclaration = v5_4.DeclarationPatcher.patchStreamServer(
                     sourceDeclaration=currentDeclaration, patchedStreamServer=s)
 
     # Apply the updated declaration

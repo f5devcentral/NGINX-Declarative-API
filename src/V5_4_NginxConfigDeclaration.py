@@ -11,15 +11,6 @@ import re
 # Regexp to check names
 alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
-class OutputConfigMap(BaseModel, extra="forbid"):
-    name: str = "nginx-config"
-    namespace: Optional[str] = ""
-    filename: str = "nginx-config.conf"
-
-
-class OutputHttp(BaseModel, extra="forbid"):
-    url: str = ""
-
 
 class NmsCertificate(BaseModel, extra="forbid"):
     type: str
@@ -37,21 +28,21 @@ class NmsCertificate(BaseModel, extra="forbid"):
         return self
 
 
-class NmsPolicyVersion(BaseModel, extra="forbid"):
+class NGINXPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
     contents: Optional[ObjectFromSourceOfTruth] = {}
 
 
-class NmsPolicy(BaseModel, extra="forbid"):
+class NGINXPolicy(BaseModel, extra="forbid"):
     type: str = ""
-    name: str = ""
+    name: str = "" # Name must be identical to the policy name used in the App Protect policy JSON file
     active_tag: str = ""
-    versions: Optional[List[NmsPolicyVersion]] = []
+    versions: Optional[List[NGINXPolicyVersion]] = []
 
     @model_validator(mode='after')
-    def check_type(self) -> 'NmsPolicy':
+    def check_type(self) -> 'NGINXPolicy':
         _type = self.type
 
         valid = ['app_protect']
@@ -118,7 +109,7 @@ class OutputNMS(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 
@@ -130,7 +121,7 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
     certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NmsPolicy]] = []
+    policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
 
@@ -143,6 +134,7 @@ class License(BaseModel, extra="forbid"):
 
 class Output(BaseModel, extra="forbid"):
     type: str
+    synchronous: bool = True
     license: Optional[License] = {}
     nms: Optional[OutputNMS] = {}
     nginxone: Optional[OutputNGINXOne] = {}
@@ -207,13 +199,33 @@ class AuthClientMtls(BaseModel, extra="forbid"):
         return self
 
 
-class Tls(BaseModel, extra="forbid"):
+class L4Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
     authentication: Optional[LocationAuth] = {}
 
+
+class Tls(BaseModel, extra="forbid"):
+    certificate: Optional[str] = ""
+    key: Optional[str] = ""
+    acme_issuer: Optional[str] = ""
+    ciphers: Optional[str] = ""
+    protocols: Optional[List[str]] = []
+    authentication: Optional[LocationAuth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Tls':
+        certificate, key, acme_issuer = self.certificate, self.key, self.acme_issuer
+
+        if acme_issuer and (certificate or key):
+            raise ValueError(f"Certificate and key not allowed when ACME is used")
+
+        if not acme_issuer and (not certificate or not key):
+            raise ValueError(f"Certificate and key required")
+
+        return self
 
 class Listen(BaseModel, extra="forbid"):
     address: Optional[str] = ""
@@ -224,7 +236,7 @@ class Listen(BaseModel, extra="forbid"):
 class ListenL4(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
-    tls: Optional[Tls] = {}
+    tls: Optional[L4Tls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'ListenL4':
@@ -241,9 +253,29 @@ class ListenL4(BaseModel, extra="forbid"):
 
 
 class Log(BaseModel, extra="forbid"):
-    access: Optional[str] = ""
-    error: Optional[str] = ""
+    access: Optional[LogAccess] = {}
+    error: Optional[LogError] = {}
 
+
+class LogAccess(BaseModel, extra="forbid"):
+    destination: str
+    format: Optional[str] = "combined"
+    condition: Optional[str] = ""
+
+
+class LogError(BaseModel, extra="forbid"):
+    destination: str
+    level: Optional[str] = "info"
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'LogError':
+        level = self.level
+
+        valid = ['debug','info','notice','warn','error','crit','alert','emerg']
+        if level not in valid:
+            raise ValueError(f"Invalid error log level [{level}] must be one of {str(valid)}")
+
+        return self
 
 class RateLimit(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -345,6 +377,37 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
         return self
 
+
+class AcmeIssuers(BaseModel, extra="forbid"):
+    name: str = ""
+    uri: str = ""
+    account_key: Optional[str] = ""
+    contact: Optional[str] = ""
+    ssl_trusted_certificate: Optional[str] = ""
+    ssl_verify: Optional[bool] = False
+    state_path: Optional[str] = ""
+    accept_terms_of_service: Optional[bool] = False
+
+
+class AuthClientOIDC(BaseModel, extra="forbid"):
+    issuer: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    config_url: Optional[str] = ""
+    cookie_name: Optional[str] = ""
+    extra_auth_args: Optional[str] = ""
+    redirect_uri: Optional[str] = "/oidc_callback"
+    logout_uri: Optional[str] = ""
+    post_logout_uri: Optional[str] = ""
+    logout_token_hint: Optional[bool] = False
+    scope: Optional[str] = "openid"
+    session_store: Optional[str] = ""
+    session_timeout: Optional[str] = "8h"
+    ssl_crl: Optional[str] = ""
+    ssl_trusted_certificate: Optional[str] = ""
+    userinfo: Optional[bool] = False
+
+
 class AuthServerToken(BaseModel, extra="forbid"):
     token: str = ""
     type: Optional[str] = ""
@@ -427,7 +490,7 @@ class Location(BaseModel, extra="forbid"):
     snippet: Optional[ObjectFromSourceOfTruth] = {}
     authentication: Optional[LocationAuth] = {}
     authorization: Optional[AuthorizationProfileReference] = {}
-    headers: Optional[LocationHeaders]= {}
+    headers: Optional[LocationHeaders] = {}
     njs: Optional[List[NjsHookLocation]] = []
     cache: Optional[CacheItem] = {}
 
@@ -705,6 +768,21 @@ class Resolver(BaseModel, extra="forbid"):
 
         return self
 
+class LogFormat(BaseModel, extra="forbid"):
+    name: str
+    escape: str = "default"
+    format: str
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'LogFormat':
+        escape = self.escape
+
+        valid = ['default', 'json', 'none']
+        if escape not in valid:
+            raise ValueError(f"Invalid escape mode [{escape}] must be one of {str(valid)}")
+
+        return self
+
 
 class CacheProfile(BaseModel, extra="forbid"):
     name: str
@@ -739,7 +817,7 @@ class CacheObjectTTL(BaseModel, extra="forbid"):
 
 
 class CacheItem(BaseModel, extra="forbid"):
-    profile: str
+    profile: Optional[str] = ""
     key: Optional[str] = "$scheme$proxy_host$request_uri";
     validity: Optional[List[CacheObjectTTL]] = []
 
@@ -747,7 +825,7 @@ class CacheItem(BaseModel, extra="forbid"):
     def check_type(self) -> 'CacheItem':
         profile = self.profile
 
-        if not re.search(alphanumRegexp,profile):
+        if not re.search(alphanumRegexp,profile) and profile != "":
             raise ValueError(f"Invalid cache item [{profile}] should match regexp {alphanumRegexp}")
 
         return self
@@ -759,12 +837,13 @@ class Authentication_Client(BaseModel, extra="forbid"):
 
     jwt: Optional[AuthClientJWT] = {}
     mtls: Optional[AuthClientMtls] = {}
+    oidc: Optional[AuthClientOIDC] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Client':
         _type, name = self.type, self.name
 
-        valid = ['jwt', 'mtls']
+        valid = ['jwt', 'mtls', 'oidc']
         if _type not in valid:
             raise ValueError(f"Invalid client authentication type [{_type}] for profile [{name}] must be one of {str(valid)}")
 
@@ -845,7 +924,10 @@ class Http(BaseModel, extra="forbid"):
     authorization: Optional[List[Authorization]] = []
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
-    cache: Optional[List[CacheProfile]] = {}
+    cache: Optional[List[CacheProfile]] = []
+    logformats: Optional[List[LogFormat]] = []
+    resolver: Optional[str] = ""
+    acme_issuers: Optional[List[AcmeIssuers]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):

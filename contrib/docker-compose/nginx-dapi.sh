@@ -70,10 +70,6 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 
 DOCKER_COMPOSE_YAML="docker-compose.yaml"
 PROJECT_NAME="nginx-dapi"
-export NGINX_CERT="unused"
-export NGINX_KEY="unused"
-export PROFILE="basic"
-export NAP_COMPILER_TAG="unused"
 
 while getopts 'hc:' OPTION
 do

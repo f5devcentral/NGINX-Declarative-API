@@ -7,8 +7,10 @@ import requests
 
 from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
 
+import v5_4.MiscUtils
+
 # pydantic models
-from V5_2_NginxConfigDeclaration import *
+from V5_4_NginxConfigDeclaration import *
 
 
 # Fetches a URL content
@@ -65,7 +67,17 @@ def getObjectFromRepo(object: ObjectFromSourceOfTruth, authProfiles: Authenticat
                     fetchedContent = base64.b64encode(bytes(fetchedContent, 'utf-8')).decode('utf-8')
                 else:
                     fetchedContent = bytes(fetchedContent, 'utf-8').decode("utf-8")
+            else:
+                fetchedContent = f"Error fetching {object['content']}"
 
             response['content'] = fetchedContent
+
+        else:
+            # Object is specified directly into the JSON payload, perform base64 decoding if needed
+            if not base64Encode:
+                if v5_4.MiscUtils.isBase64(object['content']):
+                    response['content'] = base64.b64decode(object['content']).decode();
+                else:
+                    response['content'] = object['content']
 
     return status_code, response

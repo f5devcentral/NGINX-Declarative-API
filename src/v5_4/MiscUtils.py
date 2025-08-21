@@ -7,6 +7,7 @@ import json
 import yaml
 import uuid
 import socket
+import base64
 
 
 # Searches for a nested key in a dictionary and returns its value, or None if nothing was found.
@@ -57,3 +58,10 @@ def resolveFQDN(fqdn:str):
   except Exception as e:
     return False,e
 
+
+# Check for base64 encoding, return True if s is base64-encoded, False otherwise
+def isBase64(s):
+    try:
+        return base64.b64encode(base64.b64decode(s)) == bytes(s,"utf-8")
+    except Exception:
+        return False
