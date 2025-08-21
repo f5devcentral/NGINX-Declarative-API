@@ -199,13 +199,33 @@ class AuthClientMtls(BaseModel, extra="forbid"):
         return self
 
 
-class Tls(BaseModel, extra="forbid"):
+class L4Tls(BaseModel, extra="forbid"):
     certificate: str = ""
     key: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
     authentication: Optional[LocationAuth] = {}
 
+
+class Tls(BaseModel, extra="forbid"):
+    certificate: Optional[str] = ""
+    key: Optional[str] = ""
+    acme_issuer: Optional[str] = ""
+    ciphers: Optional[str] = ""
+    protocols: Optional[List[str]] = []
+    authentication: Optional[LocationAuth] = {}
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'Tls':
+        certificate, key, acme_issuer = self.certificate, self.key, self.acme_issuer
+
+        if acme_issuer and (certificate or key):
+            raise ValueError(f"Certificate and key not allowed when ACME is used")
+
+        if not acme_issuer and (not certificate or not key):
+            raise ValueError(f"Certificate and key required")
+
+        return self
 
 class Listen(BaseModel, extra="forbid"):
     address: Optional[str] = ""
@@ -216,7 +236,7 @@ class Listen(BaseModel, extra="forbid"):
 class ListenL4(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
-    tls: Optional[Tls] = {}
+    tls: Optional[L4Tls] = {}
 
     @model_validator(mode='after')
     def check_type(self) -> 'ListenL4':
@@ -359,14 +379,14 @@ class AuthClientJWT(BaseModel, extra="forbid"):
 
 
 class AcmeIssuers(BaseModel, extra="forbid"):
+    name: str = ""
     uri: str = ""
     account_key: Optional[str] = ""
     contact: Optional[str] = ""
-    ssl_trusted_certificate: Optional[ObjectFromSourceOfTruth] = {}
+    ssl_trusted_certificate: Optional[str] = ""
     ssl_verify: Optional[bool] = False
     state_path: Optional[str] = ""
     accept_terms_of_service: Optional[bool] = False
-    acme_shared_zone: Optional[str] = ""
 
 
 class AuthClientOIDC(BaseModel, extra="forbid"):

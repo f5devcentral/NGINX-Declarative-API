@@ -25,11 +25,31 @@ include "{{ ncgconfig.nms.resolver_dir }}/{{ declaration.resolver | replace(" ",
 {% endif -%}
 
 {# --- OpenID Connect providers --- #}
+# OpenID Connect profiles
 include "{{ ncgconfig.nms.auth_client_dir }}/oidc/*.conf";
+
+{# --- ACME issuers shared zone --- #}
+{% if declaration.acme_issuers %}
+# ACME issuers shared memory zone
+acme_shared_zone zone=ngx_acme_shared:1M;
+
+{%- for i in declaration.acme_issuers -%}
+include "{{ ncgconfig.nms.acme_dir }}/{{ i.name | replace(" ", "_") }}.conf";
+{%- endfor -%}
+
+server {
+  # listener on port 80 is required to process ACME HTTP-01 challenges
+  listen 80;
+
+  location / {
+    return 404;
+  }
+}
+{%- endif -%}
 
 {# --- Maps section --- #}
 
-{% if declaration.maps %}
+{%- if declaration.maps %}
 {% for m in declaration.maps %}
 
 map {{ m.match }} {{ m.variable }} {
@@ -80,7 +100,7 @@ limit_req_zone {{ rl.key }} zone={{ rl.name | replace(' ', '_') }}:{{ rl.size }}
 {% for c in declaration.cache %}
 proxy_cache_path {{ c.basepath }}/{{ c.name | replace(' ', '_') }} levels=1:2 keys_zone={{ c.name | replace(' ', '_') }}:{{ c.ttl }}  max_size={{ c.size }};
 {% endfor %}
-{% endif %}
+{% endif -%}
 
 {# --- Visibility integration section --- #}
 # Visibility integrations

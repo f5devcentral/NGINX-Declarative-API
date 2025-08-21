@@ -17,7 +17,8 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 | Upstreams                   | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
 | HTTP servers                | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
 | TCP/UDP servers             | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                                                       |
-| TLS                         | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth (currently supported for NGINX Instance Manager)</li>                                                                           |
+| TLS                         | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                                            |
+| ACME Protocol               |          | X        |                                                                                                                                                                                                           |
 | Client authentication       | X        | X        | See [client authentication](#Client-authentication)                                                                                                                                                       |
 | Upstream authentication     | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                                           |
 | Rate limiting               | X        | X        |                                                                                                                                                                                                           |
@@ -101,6 +102,30 @@ See the [Postman collection](/contrib/) for usage examples
 |---------------|----------|----------|-----------------------------------------------------------------------------------------------|
 | Moesif        | X        | X        | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
 
+
+### TLS
+
+| Type  | Description             | API v5.3 | API v5.4 | Notes |
+|-------|-------------------------|----------|----------|-------|
+| ACME  | ACME Protocol support   |          | X        |       |
+
+#### Examples
+
+ACME issuer profiles to be defined under `.declaration.http.acme_issuers[]`
+For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme_module.html 
+
+```json
+{
+    "name": "<PROFILE_NAME>",
+    "uri": "<ISSUER_URL>",
+    "contact": "<CONTACT_EMAIL_ADDRESS>",
+    "account_key": "<OPTIONAL_ACCOUNT_PRIVATE_KEY>",
+    "ssl_trusted_certificate": "<OPTIONAL_TRUSTED_CA>",
+    "ssl_verify": <true|false>,
+    "state_path": "<OPTIONAL_PATH>",
+    "accept_terms_of_service": <true|false>
+}
+```
 
 ### Client authentication
 

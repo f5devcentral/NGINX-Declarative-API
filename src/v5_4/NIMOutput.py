@@ -92,6 +92,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
             if d_certs[i]['name']:
                 all_tls[d_certs[i]['type']][d_certs[i]['name']] = True
 
+    # TLS certificates and key names validity checks for servers
     d_servers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.servers')
     if d_servers is not None:
         for server in d_servers:
@@ -103,9 +104,9 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                 "message": {
                                     "status_code": 422,
                                     "message": {"code": 422,
-                                                "content": "invalid TLS certificate " +
-                                                           cert_name + " for server" + str(
-                                                    server['names'])}
+                                                "content": "invalid TLS certificate [" +
+                                                           cert_name + "] for server [" + str(
+                                                    server['names']) + "] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                                 }}
 
                     cert_key = v5_4.MiscUtils.getDictKey(server, 'listen.tls.key')
@@ -114,8 +115,8 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                 "message": {
                                     "status_code": 422,
                                     "message": {"code": 422,
-                                                "content": "invalid TLS key " + cert_key + " for server" + str(
-                                                    server['names'])}
+                                                "content": "invalid TLS key [" + cert_key + "] for server [" + str(
+                                                    server['names']) + "] must be one of [" + ",".join(all_tls['key']) + "]"}
                                 }}
 
                     trusted_cert_name = v5_4.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
@@ -124,9 +125,25 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                 "message": {
                                     "status_code": 422,
                                     "message": {"code": 422,
-                                                "content": "invalid trusted CA certificate " +
-                                                           trusted_cert_name + " for server" + str(server['names'])}
+                                                "content": "invalid trusted CA certificate [" +
+                                                           trusted_cert_name + "] for server [" + str(server['names'])
+                                                           + "] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                                 }}
+
+    # TLS certificates and key names validity checks or ACME issuer profiles
+    d_acmeissuers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
+    if d_acmeissuers is not None:
+        for issuer in d_acmeissuers:
+            cert_name = issuer['ssl_trusted_certificate']
+            if cert_name and cert_name not in all_tls['certificate']:
+                return {"status_code": 422,
+                        "message": {
+                            "status_code": 422,
+                            "message": {"code": 422,
+                                        "content": "invalid TLS certificate [" +
+                                                   cert_name + "] for ACME issuer [" + str(
+                                            issuer['name']) +"] must be one of [" + ",".join(all_tls['certificate']) + "]"}
+                        }}
 
     # Add optional certificates specified under output.nms.certificates
     extensions_map = {'certificate': '.crt', 'key': '.key'}

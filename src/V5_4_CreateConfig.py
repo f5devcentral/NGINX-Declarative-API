@@ -206,7 +206,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                               'name': configFileName }
 
-                            all_auth_client_profiles.append(auth_profile['name'])
                             auxFiles['files'].append(authProfileConfigFile)
 
                         case 'mtls':
@@ -319,7 +318,6 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                                  'name': configFileName}
 
-                        all_authz_client_profiles.append(authz_profile['name'])
                         auxFiles['files'].append(authProfileConfigFile)
 
         # NGINX Javascript profiles
@@ -342,6 +340,29 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 auxFiles['files'].append(njsAuxFile)
                 all_njs_profiles.append(njs_filename)
 
+        # NGINX ACME issuer profiles
+        d_acme_issuers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
+        all_acme_issuers = []
+        if d_acme_issuers is not None:
+            # Render all ACME issuer profiles
+            for i in range(len(d_acme_issuers)):
+                acme_issuer = d_acme_issuers[i]
+
+                # Add the rendered resolver configuration snippet as a config file in the staged configuration
+                templateName = NcgConfig.config['templates']['acme_issuer']
+                renderedAcmeIssuerProfile = j2_env.get_template(templateName).render(
+                    acmeprofile=acme_issuer, ncgconfig=NcgConfig.config)
+
+                b64renderedAcmeProfile = base64.b64encode(bytes(renderedAcmeIssuerProfile, 'utf-8')).decode(
+                    'utf-8')
+                configFileName = NcgConfig.config['nms']['acme_dir'] + '/' + acme_issuer['name'].replace(
+                    ' ','_') + ".conf"
+                acmeProfileConfigFile = {'contents': b64renderedAcmeProfile,
+                                             'name': configFileName}
+
+                all_acme_issuers.append(acme_issuer['name'])
+                auxFiles['files'].append(acmeProfileConfigFile)
+
         # HTTP level Javascript hooks
         d_http_njs_hooks = v5_4.MiscUtils.getDictKey(d, 'declaration.http.njs')
         if d_http_njs_hooks is not None:
@@ -352,13 +373,14 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                 {"code": status,
                                  "content": f"invalid njs profile [{d_http_njs_hooks[i]['profile']}] in HTTP declaration, must be one of {all_njs_profiles}"}}}
 
-        # HTTP level resolver validity check xyz
+        # HTTP level resolver validity check
         d_http_resolver = v5_4.MiscUtils.getDictKey(d, 'declaration.http.resolver')
-        if d_http_resolver not in all_resolver_profiles:
-            return {"status_code": 422,
-                    "message": {"status_code": status, "message":
-                        {"code": status,
-                         "content": f"invalid resolver profile [{d_http_resolver}] in HTTP context, must be one of {all_resolver_profiles}"}}}
+        if d_http_resolver:
+            if d_http_resolver not in all_resolver_profiles:
+                return {"status_code": 422,
+                        "message": {"status_code": status, "message":
+                            {"code": status,
+                             "content": f"invalid resolver profile [{d_http_resolver}] in HTTP context, must be one of {all_resolver_profiles}"}}}
 
         # Parse HTTP servers
         d_servers = v5_4.MiscUtils.getDictKey(d, 'declaration.http.servers')
@@ -420,6 +442,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                         "message": {"status_code": status, "message":
                                             {"code": status,
                                              "content": f"invalid client authentication profile [{mtlsClientProfile['profile']}] in server [{server['name']}] must be one of {all_auth_client_profiles}"}}}
+
+                # ACME issuers name validity check
+                if 'acme_issuer' in server['listen']['tls']:
+                    acmeIssuer = server['listen']['tls']['acme_issuer']
+                    if acmeIssuer and acmeIssuer not in all_acme_issuers:
+                        return {"status_code": 422,
+                                "message": {"status_code": status, "message":
+                                    {"code": status,
+                                     "content": f"invalid ACME issuer [{acmeIssuer}] in server [{server['name']}] must be one of {all_acme_issuers}"}}}
 
                 if server['snippet']:
                     status, serverSnippet = v5_4.GitOps.getObjectFromRepo(object = server['snippet'], authProfiles = d['declaration']['http']['authentication'], base64Encode = False)
@@ -536,6 +567,37 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
+
+                        # API Gateway authentication profile names validity check
+                        if loc['apigateway']['authentication'] and loc['apigateway']['authentication']['client']:
+                            apigw_authn_profiles = loc['apigateway']['authentication']['client']
+                            for i in range(len(apigw_authn_profiles)):
+                                if apigw_authn_profiles[i]['profile'] not in all_auth_client_profiles:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway authentication profile [{apigw_authn_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_auth_client_profiles}"}}}
+
+                        # API Gateway authorization profile names validity check
+                        if loc['apigateway']['authorization']:
+                            apigw_authz_profiles = loc['apigateway']['authorization']
+                            for i in range(len(apigw_authz_profiles)):
+                                if apigw_authz_profiles[i]['profile'] not in all_authz_client_profiles:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway authorization profile [{apigw_authz_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_authz_client_profiles}"}}}
+
+                        # API Gateway rate limiting profile names validity check
+                        if loc['apigateway']['rate_limit']:
+                            apigw_rl_profiles = loc['apigateway']['rate_limit']
+                            for i in range(len(apigw_rl_profiles)):
+                                if apigw_rl_profiles[i]['profile'] not in all_ratelimits:
+                                    return {"status_code": 422,
+                                            "message": {"status_code": status, "message":
+                                                {"code": status,
+                                                 "content": f"invalid API Gateway rate limit profile [{apigw_authz_profiles[i]['profile']}] for OpenAPI schema [{loc['apigateway']['openapi_schema']['content']}] must be one of {all_ratelimits}"}}}
+
                         openApiAuthProfile = loc['apigateway']['openapi_schema']['authentication']
                         if openApiAuthProfile and openApiAuthProfile[0]['profile'] not in all_auth_server_profiles:
                             return {"status_code": 422,

@@ -31,6 +31,8 @@ auth_server_root = "authn/server"
 
 authz_client_root = "authz/client"
 
+acme_issuer = "misc/acme.tmpl"
+
 devportal_root = "devportal"
 misc_root = "misc"
 
@@ -61,6 +63,7 @@ compiler_uri = "/v1/compile/policy"
 [nms]
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
+acme_dir = '/etc/nginx/acme'
 apigw_dir = '/etc/nginx/apigateway'
 visibility_dir = '/etc/nginx/visibility'
 devportal_dir = '/etc/nginx/devportal'
