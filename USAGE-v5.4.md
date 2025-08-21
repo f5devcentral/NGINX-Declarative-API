@@ -1,6 +1,6 @@
-# Usage for NGINX Declarative API v5.3
+# Usage for NGINX Declarative API v5.4
 
-Version 5.3 supports:
+Version 5.4 supports:
 
 - [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+. Version 2.18+ is required for NGINX R33 and above
 - [NGINX One Console](https://docs.nginx.com/nginx-one/)
