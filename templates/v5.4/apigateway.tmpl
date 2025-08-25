@@ -57,7 +57,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {%- endfor -%}
 
     {%- if enforceRL.toBeEnforced == True -%}
-    {%- if rl.profile %}limit_req zone={{ rl.profile }}{% if rl.burst %} burst={{ rl.burst }}{% endif %}{% if rl.delay == 0 %} nodelay;{% else %} delay={{ rl.delay }};{% endif %}{% endif %}
+    {%- if rl.profile %}limit_req zone={{ rl.profile | replace(' ', '_') }}{% if rl.burst %} burst={{ rl.burst }}{% endif %}{% if rl.delay == 0 %} nodelay;{% else %} delay={{ rl.delay }};{% endif %}{% endif %}
 
     {% if rl.httpcode %}limit_req_status {{ rl.httpcode }};{% endif %}
     {%- endif -%}
