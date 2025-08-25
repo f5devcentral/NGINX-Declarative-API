@@ -79,31 +79,6 @@ spec:
           containerPort: 5000
 
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: devportal
-  namespace: nginx-dapi
-  labels:
-    app: nap-compiler
-spec:
-  selector:
-    matchLabels:
-      app: nap-compiler
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: nap-compiler
-    spec:
-      containers:
-      - name: devportal
-        image: YOUR_REGISTRY_HERE/nginx-declarative-api-nap-compiler:latest
-        ports:
-        - name: http
-          containerPort: 5000
-
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -143,22 +118,6 @@ metadata:
   namespace: nginx-dapi
   labels:
     app: devportal
-spec:
-  ports:
-  - name: http
-    port: 5000
-  selector:
-    app: devportal
-  type: ClusterIP
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nap-compiler
-  namespace: nginx-dapi
-  labels:
-    app: nap-compiler
 spec:
   ports:
   - name: http
