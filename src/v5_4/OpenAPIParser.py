@@ -60,11 +60,19 @@ class OpenAPIParser:
                         self.m = {}
                         self.m['method'] = method
                         self.m['details'] = {}
+                        self.m['parameters'] = []
 
                         if 'description' in methodInfo and methodInfo['description']:
                             self.m['details']['description'] = methodInfo['description']
                         if 'operationId' in methodInfo and methodInfo['operationId']:
                             self.m['details']['operationId'] = methodInfo['operationId']
+
+                        # loop over query string parameters
+                        parametersInfo = methodInfo['parameters']
+                        for qsParam in parametersInfo:
+                            # TODO
+                            pass
+
 
                         self.p['methods'].append(self.m)
 
