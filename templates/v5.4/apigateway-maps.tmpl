@@ -1,0 +1,21 @@
+# API Gateway maps file
+# OpenAPI version: {{ declaration.version }}
+# Base URI: {{ declaration.location.uri }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
+
+# Required parameters (comma-separated)
+map "" $required_params_list {
+    default "foo,bar,baz";   # <-- Put your required params here
+}
+
+# Check existence of each parameter
+# Each variable will be "1" if missing, "0" if present
+map $arg_foo $missing_foo { "" 1; default 0; }
+map $arg_bar $missing_bar { "" 1; default 0; }
+map $arg_baz $missing_baz { "" 1; default 0; }
+
+# Combine missing flags
+map "$missing_foo$missing_bar$missing_baz" $any_missing {
+   ~1  1;          # if any digit is 1 → one or more missing
+    default 0;     # all present
+}

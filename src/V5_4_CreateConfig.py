@@ -609,6 +609,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
+                            # API Gateway server / locations file
                             apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
                                 declaration=apiGatewayConfigDeclaration, enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
@@ -616,6 +617,16 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
                                                                             '/' + server['names'][0] +
                                                                             loc['uri'] + ".conf" }
+                            auxFiles['files'].append(newAuxFile)
+
+                            # API Gateweay maps file for parameters enforcement
+                            apiGatewayMapsSnippet = j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
+                                declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+                            apiGatewayMapsSnippetb64 = base64.b64encode(bytes(apiGatewayMapsSnippet, 'utf-8')).decode('utf-8')
+
+                            newAuxFile = {'contents': apiGatewayMapsSnippetb64, 'name': NcgConfig.config['nms']['apigw_maps_dir'] +
+                                                                            '/' + server['names'][0] +
+                                                                            loc['uri'].replace('/', '_') + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
                     # API Gateway Developer portal provisioning

@@ -62,17 +62,24 @@ class OpenAPIParser:
                         self.m['details'] = {}
                         self.m['parameters'] = []
 
-                        if 'description' in methodInfo and methodInfo['description']:
-                            self.m['details']['description'] = methodInfo['description']
-                        if 'operationId' in methodInfo and methodInfo['operationId']:
-                            self.m['details']['operationId'] = methodInfo['operationId']
+                        self.m['details']['description'] = methodInfo['description']  if 'description' in methodInfo else ''
+                        self.m['details']['summary'] = methodInfo['summary'] if 'summary' in methodInfo else ''
+                        self.m['details']['operationId'] = methodInfo['operationId'] if 'operationId' in methodInfo else ''
 
                         # loop over query string parameters
-                        parametersInfo = methodInfo['parameters']
-                        for qsParam in parametersInfo:
-                            # TODO
-                            pass
+                        if 'parameters' in methodInfo and methodInfo['parameters']:
+                            parametersInfo = methodInfo['parameters']
+                            for qsParam in parametersInfo:
+                                if 'name' in qsParam:
+                                    thisParam = {}
+                                    thisParam['name'] = qsParam['name']
+                                    thisParam['location'] = qsParam['in'] if 'in' in qsParam else ''
+                                    thisParam['description'] = qsParam['description'] if 'description' in qsParam else ''
+                                    thisParam['required'] = qsParam[
+                                        'required'] if 'required' in qsParam else 'false'
+                                    thisParam['type'] = qsParam['type'] if 'type' in qsParam else ''
 
+                                    self.m['parameters'].append(thisParam)
 
                         self.p['methods'].append(self.m)
 
