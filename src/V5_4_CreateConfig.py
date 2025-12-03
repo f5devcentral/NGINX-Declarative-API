@@ -621,7 +621,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                             # API Gateweay maps file for parameters enforcement
                             apiGatewayMapsSnippet = j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
-                                declaration=apiGatewayConfigDeclaration, ncgconfig=NcgConfig.config)
+                                declaration=apiGatewayConfigDeclaration, server=server['names'][0], ncgconfig=NcgConfig.config)
                             apiGatewayMapsSnippetb64 = base64.b64encode(bytes(apiGatewayMapsSnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewayMapsSnippetb64, 'name': NcgConfig.config['nms']['apigw_maps_dir'] +
