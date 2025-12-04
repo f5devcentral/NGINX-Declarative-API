@@ -13,7 +13,7 @@
 {%- endfor %}
 
 {% if queryStringParms.allParams != '' %}
-# Required query string parameters for {{ path.path }} - method {{ method.method|upper }}
+# Required query string parameters for {{ declaration.location.uri }}{{ path.path }} - method {{ method.method|upper }}
 map "" $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} {
   default "{{ queryStringParms.allParams | trim }}";
 }
@@ -24,7 +24,11 @@ map "" $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ de
 {% if parm.required == True and parm.in|lower == "query" %}
 {% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
 
-map $request_method$host$uri$arg_{{ parm.name }} $missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }} { "" 1; default 0; }
+map $request_method$host$uri$arg_{{ parm.name }} $missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }}
+{
+  ~"{{ method.method|upper }}{{ server }}{{ declaration.location.uri }}{{ path.path }}(.+)" 1;
+  default 0;
+}
 {% endif %}
 {% endfor %}
 
