@@ -611,7 +611,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         if apiGatewayConfigDeclaration:
                             # API Gateway server / locations file
                             apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
-                                declaration=apiGatewayConfigDeclaration, enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
+                                declaration=apiGatewayConfigDeclaration, server=server['names'][0], enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
@@ -619,7 +619,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                             loc['uri'] + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
-                            # API Gateweay maps file for parameters enforcement
+                            # API Gateway maps file for parameters enforcement
                             apiGatewayMapsSnippet = j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
                                 declaration=apiGatewayConfigDeclaration, server=server['names'][0], ncgconfig=NcgConfig.config)
                             apiGatewayMapsSnippetb64 = base64.b64encode(bytes(apiGatewayMapsSnippet, 'utf-8')).decode('utf-8')

@@ -3,33 +3,36 @@
 # Base URI: {{ declaration.location.uri }}
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
 
-{% for path in declaration.paths %}
-{% for method in path.methods %}
-map "" $required_params_{{ method.method}}_{{ server }}_{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} {
-  default "
+{%- for path in declaration.paths %}
+{%- for method in path.methods %}
+{%- set queryStringParms = namespace(allParams = '') %}
 {%- for parm in method.parameters -%}
-{{ parm.name }}
+{%- if parm.required == True and parm.in|lower == "query" %}
+{%- set queryStringParms.allParams = queryStringParms.allParams + ' ' + parm.name %}
+{%- endif %}
+{%- endfor %}
+
+{% if queryStringParms.allParams != '' %}
+# Required query string parameters for {{ path.path }} - method {{ method.method|upper }}
+map "" $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} {
+  default "{{ queryStringParms.allParams | trim }}";
+}
+{%- endif %}
+
+{%- set allParams = namespace(missing = '') -%}
+{% for parm in method.parameters -%}
+{% if parm.required == True and parm.in|lower == "query" %}
+{% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
+
+map $request_method$host$uri$arg_{{ parm.name }} $missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }} { "" 1; default 0; }
+{% endif %}
+{% endfor %}
+
+{% if allParams.missing != '' -%}
+map "{{ allParams.missing | trim }}" $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} {
+  ~1      1;     # if any digit is 1 one or more required query string parameter is missing
+  default 0;     # all required query string parameters present
+}
+{% endif -%}
 {%- endfor -%}
-  ";
-}
-{% endfor %}
-{% endfor %}
-
-######################################
-
-# Required parameters (comma-separated)
-map "" $required_params_list {
-  default "foo,bar,baz";
-}
-
-# Check existence of each parameter
-# Each variable will be "1" if missing, "0" if present
-map $arg_foo $missing_foo { "" 1; default 0; }
-map $arg_bar $missing_bar { "" 1; default 0; }
-map $arg_baz $missing_baz { "" 1; default 0; }
-
-# Combine missing flags
-map "$missing_foo$missing_bar$missing_baz" $any_missing {
-  ~1  1;          # if any digit is 1 → one or more missing
-  default 0;     # all present
-}
+{%- endfor -%}

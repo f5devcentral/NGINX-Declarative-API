@@ -73,10 +73,10 @@ class OpenAPIParser:
                                 if 'name' in qsParam:
                                     thisParam = {}
                                     thisParam['name'] = qsParam['name']
-                                    thisParam['location'] = qsParam['in'] if 'in' in qsParam else ''
+                                    thisParam['in'] = qsParam['in'] if 'in' in qsParam else ''
                                     thisParam['description'] = qsParam['description'] if 'description' in qsParam else ''
                                     thisParam['required'] = qsParam[
-                                        'required'] if 'required' in qsParam else 'false'
+                                        'required'] if 'required' in qsParam else False
                                     thisParam['type'] = qsParam['type'] if 'type' in qsParam else ''
 
                                     self.m['parameters'].append(thisParam)
