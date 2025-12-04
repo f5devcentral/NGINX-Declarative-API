@@ -50,7 +50,7 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 }
 
 #
-# NGINX Declarative API removal
+# NGINX Declarative API image build
 #
 nginx_dapi_build() {
 
