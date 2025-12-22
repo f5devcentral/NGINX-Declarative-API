@@ -77,7 +77,21 @@ class OpenAPIParser:
                                     thisParam['description'] = qsParam['description'] if 'description' in qsParam else ''
                                     thisParam['required'] = qsParam[
                                         'required'] if 'required' in qsParam else False
-                                    thisParam['type'] = qsParam['type'] if 'type' in qsParam else ''
+                                    # thisParam['type'] = qsParam['type'] if 'type' in qsParam else ''
+                                    thisParamSchema = {}
+
+                                    if 'schema' in qsParam:
+                                        thisParamSchema['type'] = qsParam['schema']['type'] if 'type' in qsParam['schema'] else ''
+                                        thisParamSchema['default'] = qsParam['schema']['default'] if 'default' in qsParam['schema'] else ''
+
+                                        thisParamSchemaEnum = []
+                                        if 'enum' in qsParam['schema']:
+                                            for e in qsParam['schema']['enum']:
+                                                thisParamSchemaEnum.append(e)
+
+                                        thisParamSchema['enum'] = thisParamSchemaEnum
+
+                                    thisParam['schema'] = thisParamSchema
 
                                     self.m['parameters'].append(thisParam)
 
