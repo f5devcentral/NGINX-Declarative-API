@@ -192,6 +192,7 @@ server {
     {%- if loc.urimatch|lower == "best" %} ^~ {% endif %}
     {%- endif -%}
     {{ loc.uri }} {
+        status_zone {{ loc.uri }};
         {% if loc.authentication and loc.authentication.server and loc.authentication.server[0].profile -%}
         include "{{ ncgconfig.nms.auth_server_dir }}/{{ loc.authentication.server[0].profile | replace(" ", "_") }}.conf";
         {% endif -%}
