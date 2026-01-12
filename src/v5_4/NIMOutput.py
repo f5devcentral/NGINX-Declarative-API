@@ -261,7 +261,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
         if ppReply.status_code >= 400:
             return {"status_code": ppReply.status_code,
-                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply} }}
 
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
