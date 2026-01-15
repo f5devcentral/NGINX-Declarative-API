@@ -28,6 +28,8 @@ include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }
 {% if declaration.paths -%}
 {% for path in declaration.paths|sort(attribute='path', reverse = True) %}
 location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
+    status_zone {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','(.*)') }};
+
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
     {% if method.details.description %}# Description: {{ method.details.description }}{% endif %}
