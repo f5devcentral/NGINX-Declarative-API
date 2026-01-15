@@ -607,6 +607,12 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_4.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
 
+                        if status!=200:
+                            return {"status_code": 412,
+                                    "message": {"status_code": status, "message":
+                                        {"code": status,
+                                         "content": f"OpenAPI schema fetch failed for {loc['apigateway']['openapi_schema']['content']}"}}}
+
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
                             # API Gateway server / locations file

@@ -37,7 +37,7 @@ def yaml_or_json(document: str):
 
 # YAML to JSON conversion
 def yaml_to_json(document: str):
-    return json.dumps(yaml.safe_load(document))
+    return json.dumps(yaml.load(document, Loader=yaml.BaseLoader))
 
 
 # JSON TO YAML conversion

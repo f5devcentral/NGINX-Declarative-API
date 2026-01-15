@@ -21,6 +21,8 @@
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri | replace('\n',' ') }}
 # Destination server: {{ destination_server | replace('\n',' ') }}
 
+default_type application/json;
+
 {% for v in enabledVisibility %}
 include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }}-server.conf";
 {% endfor %}
@@ -47,10 +49,10 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {% if allParams.missing != '' -%}
     if ( $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
-      return 400 "Missing required query parameters: $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}\n";
+      return 422 '{"code":422,"message":"Missing required query parameters [$required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}]"}';
     }
     if ( $any_values_invalid_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
-      return 400 "Invalid parameter value";
+      return 422 '{"code":422,"message":"Invalid parameter value"}';
     }
     {%- endif %}
 
