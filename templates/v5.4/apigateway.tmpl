@@ -16,10 +16,10 @@
 # API Gateway: {% if declaration.info.title %}{{ declaration.info.title }}{% endif %} {% if declaration.info.version %}{{ declaration.info.version }}{% endif %}
 {% endif %}
 
-# OpenAPI version: {{ declaration.version }}
-# Base URI: {{ declaration.location.uri }}
-# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
-# Destination server: {{ destination_server }}
+# OpenAPI version: {{ declaration.version | replace('\n',' ') }}
+# Base URI: {{ declaration.location.uri | replace('\n',' ') }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri | replace('\n',' ') }}
+# Destination server: {{ destination_server | replace('\n',' ') }}
 
 {% for v in enabledVisibility %}
 include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }}-server.conf";
@@ -32,7 +32,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
-    {% if method.details.description %}# Description: {{ method.details.description }}{% endif %}
+    {% if method.details.description %}# Description: {{ method.details.description | replace('\n',' ') }}{% endif %}
 
     {% if method.details.summary %}# Summary: {{ method.details.summary }}{% endif %}
 
