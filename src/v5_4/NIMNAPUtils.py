@@ -16,7 +16,7 @@ available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashb
 
 
 # Define (create/update) a NGINX App Protect policy on NMS.
-# If policyUid is not empty a the policy update is performed
+# If policyUid is not empty the policy update is performed
 # Returns a tuple {status_code,text}. status_code is 201 if successful
 def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
                           policyDescription: str, policyJson: str, policyUid: str = ""):
