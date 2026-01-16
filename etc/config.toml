@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "5.4.2"
+version = "5.5.0"
 url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
@@ -52,13 +52,6 @@ port = 6379
 host = "devportal"
 port = 5000
 uri = "/v1/devportal"
-
-# NGINX App Protect
-[nap]
-cookie_protection_seed = "tBjtd3WXKqoKp27pfEBc"
-compiler_host = "nap-compiler"
-compiler_port = 5000
-compiler_uri = "/v1/compile/policy"
 
 # Staged configuration directories
 [nms]

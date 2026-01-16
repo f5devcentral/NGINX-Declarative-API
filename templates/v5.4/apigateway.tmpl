@@ -42,14 +42,14 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {# --- Query String parameters enforcement --- -#}
     {%- set allParams = namespace(missing = '') -%}
     {% for parm in method.parameters -%}
-    {% if parm.required == True and parm.in|lower == "query" %}
+    {% if parm.required | lower == "true" and parm.in | lower == "query" %}
     {% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
     {% endif %}
     {% endfor %}
 
     {% if allParams.missing != '' -%}
     if ( $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
-      return 422 '{"code":422,"message":"Missing required query parameters [$required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}]"}';
+      return 422 '{"code":422,"message":"Missing required query parameter [$required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}]"}';
     }
     if ( $any_values_invalid_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
       return 422 '{"code":422,"message":"Invalid parameter value"}';
