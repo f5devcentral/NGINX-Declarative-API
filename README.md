@@ -44,7 +44,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🚀 Supported releases
 
-- [F5 NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-instance-manager/)
+- [F5 NGINX Instance Manager 2.20+](https://docs.nginx.com/nginx-instance-manager/)
 - [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [F5 NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - [F5 WAF for NGINX](https://docs.nginx.com/waf/)
