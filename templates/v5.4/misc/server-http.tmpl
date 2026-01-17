@@ -192,14 +192,13 @@ server {
     {%- if loc.urimatch|lower == "best" %} ^~ {% endif %}
     {%- endif -%}
     {{ loc.uri }} {
-        status_zone {{ loc.uri | replace(" ", "_") }};
         {% if loc.authentication and loc.authentication.server and loc.authentication.server[0].profile -%}
         include "{{ ncgconfig.nms.auth_server_dir }}/{{ loc.authentication.server[0].profile | replace(" ", "_") }}.conf";
         {% endif -%}
 
         {%- if loc.upstream %}proxy_pass {{ loc.upstream }};{% endif -%}
 
-        {%- if loc.log.access %}access_log {{ loc.log.access.destination }}{% if loc.log.access.format %} {{ loc.log.access.format }}{% endif %}{% if loc.log.access.condition %} if={{ loc.log.access.condition }}{% endif %};{% endif %}
+        {%- if loc.log.access %}access_log {{ loc.log.access.destination }}{% if loc.log.access.format %} {{ loc.log.access.format }}{% endif %}{% if loc.log.access.condition %} if={{ loc.log.access.condition }}{% endif %};{% endif -%}
 
         {% if loc.log.error %}error_log {{ loc.log.error.destination }}{% if loc.log.error.level %} {{ loc.log.error.level }}{% endif %};{% endif %}
 
@@ -338,7 +337,7 @@ server {
         {% endif %}
         {% endif %}
 
-        {% if loc.apigateway and loc.apigateway.api_gateway.enabled == True -%}
+        {% if loc.apigateway and loc.apigateway.api_gateway.enabled == True %}
         include "{{ ncgconfig.nms.apigw_dir }}/{{ s.names[0] }}{{ loc.uri }}.conf";
         {% endif %}
 

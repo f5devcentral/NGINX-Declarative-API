@@ -66,18 +66,11 @@ map {{ m.match }} {{ m.variable }} {
 
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
-# Authorization profiles
 variables_hash_bucket_size 512;
-map_hash_bucket_size 256;
 {% for authzprofile in declaration.authorization -%}
 include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" ", "_") }}.maps.conf";
 {% endfor -%}
 {%- endif -%}
-
-{# --- Maps section for API Gateway parameters enforcement --- #}
-
-# API Gateway parameter enforcement maps
-include "{{ ncgconfig.nms.apigw_maps_dir }}/*.conf";
 
 {# --- Snippets section --- #}
 {% if declaration.snippet and declaration.snippet.content %}{{ declaration.snippet.content | b64decode }}{% endif %}

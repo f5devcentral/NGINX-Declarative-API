@@ -31,7 +31,7 @@ from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
 # pydantic models
-from v5_5_NginxConfigDeclaration import *
+from V5_5_NginxConfigDeclaration import *
 
 # Tolerates self-signed TLS certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)

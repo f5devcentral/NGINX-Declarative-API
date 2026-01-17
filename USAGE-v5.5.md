@@ -1,6 +1,6 @@
 # Usage for NGINX Declarative API v5.5
 
-Version 5.4 supports:
+Version 5.5 supports:
 
 - [NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/ 2.20+
 - [NGINX One Console](https://docs.nginx.com/nginx-one-console/)
@@ -10,10 +10,13 @@ Version 5.4 supports:
 The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman) for usage examples
 
 - `.output.license` defines the JWT license to use for NGINX Plus R33+
-  - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address can be used here
+  - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address or FQDN can be used here
   - `.output.license.token` the JWT license token. If this field is omitted, it is assumed that a `/etc/nginx/license.jwt` token already exists on the instance and it won't be replaced
   - `.output.license.ssl_verify` set to `false` to trust all SSL certificates (not recommended). Useful for reporting to NGINX Instance Manager without a local PKI.
   - `.output.license.grace_period` Set to 'true' to begin the 180-day reporting enforcement grace period. Reporting must begin or resume before the end of the grace period to ensure continued operation
+  - `.output.license.proxy` The optional explicit forward proxy `IP_address:port` or `FQDN:port` for usage reporting
+  - `.output.license.grace_period` The optional explicit forward proxy authentication username for usage reporting
+  - `.output.license.grace_period` The optional explicit forward proxy authentication password for usage reporting
 - `.output.type` defines how NGINX configuration will be returned:
   - *nms* - NGINX configuration is published as a Staged Config to NGINX Instance Manager
     - `.output.nms.url` the NGINX Instance Manager URL

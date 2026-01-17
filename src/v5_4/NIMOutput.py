@@ -26,7 +26,7 @@ import v5_4.NIMUtils
 # pydantic models
 from V5_4_NginxConfigDeclaration import *
 
-# F5 WAF for NGINX helper functions
+# NGINX App Protect helper functions
 import v5_4.NIMNAPUtils
 
 # NGINX Declarative API modules
@@ -68,7 +68,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 "message": {"status_code": 400, "message": {"code": 400, "content": "synctime must be >= 0"}},
                 "headers": {'Content-Type': 'application/json'}}
 
-    # Fetch F5 WAF for NGINX WAF policies from source of truth if needed
+    # Fetch NGINX App Protect WAF policies from source of truth if needed
     d_policies = v5_4.MiscUtils.getDictKey(d, 'output.nms.policies')
     if d_policies is not None:
         for policy in d_policies:
@@ -245,9 +245,9 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                                 "content": f"instance group {nmsInstanceGroup} not found"}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        ### F5 WAF for NGINX policies support - commits policies to control plane
+        ### NGINX App Protect policies support - commits policies to control plane
 
-        # Check F5 WAF for NGINX WAF policies configuration sanity
+        # Check NGINX App Protect WAF policies configuration sanity
         status, description = v5_4.NIMNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
@@ -255,19 +255,19 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                     "message": {"status_code": status, "message": {"code": status, "content": description}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Provision F5 WAF for NGINX WAF policies to NGINX Instance Manager
+        # Provision NGINX App Protect WAF policies to NGINX Instance Manager
         ppReply = v5_4.NIMNAPUtils.provisionPolicies(
             nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 
         if ppReply.status_code >= 400:
             return {"status_code": ppReply.status_code,
-                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply} }}
 
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
-        ### / F5 WAF for NGINX policies support
+        ### / NGINX App Protect policies support
 
         ### Publish staged config to instance group
         r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
@@ -324,14 +324,14 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
                 NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
-            # Makes F5 WAF for NGINX policies active
+            # Makes NGINX App Protect policies active
             doWeHavePolicies = v5_4.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                               nmsPassword=nmsPassword,
                                                               activePolicyUids=activePolicyUids,
                                                               instanceGroupUid=igUid)
 
             if doWeHavePolicies:
-                # Clean up F5 WAF for NGINX WAF policies not used anymore
+                # Clean up NGINX App Protect WAF policies not used anymore
                 # and not defined in the declaration just pushed
                 time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
                 v5_4.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,

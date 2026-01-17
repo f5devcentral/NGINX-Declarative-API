@@ -130,6 +130,9 @@ class License(BaseModel, extra="forbid"):
     token: Optional[str] = ""
     ssl_verify: bool = True
     grace_period: bool = False
+    proxy: Optional[str] = ""
+    proxy_username: Optional[str] = ""
+    proxy_password: Optional[str] = ""
 
 
 class Output(BaseModel, extra="forbid"):

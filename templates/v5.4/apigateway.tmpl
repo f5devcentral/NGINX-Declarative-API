@@ -16,12 +16,10 @@
 # API Gateway: {% if declaration.info.title %}{{ declaration.info.title }}{% endif %} {% if declaration.info.version %}{{ declaration.info.version }}{% endif %}
 {% endif %}
 
-# OpenAPI version: {{ declaration.version | replace('\n',' ') }}
-# Base URI: {{ declaration.location.uri | replace('\n',' ') }}
-# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri | replace('\n',' ') }}
-# Destination server: {{ destination_server | replace('\n',' ') }}
-
-default_type application/json;
+# OpenAPI version: {{ declaration.version }}
+# Base URI: {{ declaration.location.uri }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
+# Destination server: {{ destination_server }}
 
 {% for v in enabledVisibility %}
 include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }}-server.conf";
@@ -30,32 +28,8 @@ include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }
 {% if declaration.paths -%}
 {% for path in declaration.paths|sort(attribute='path', reverse = True) %}
 location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','(.*)') }} {
-    status_zone {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','(.*)') }};
-
     {% for method in path.methods -%}
     # {{ method.method|upper }} - operationId: {{ method.details.operationId }}
-    {% if method.details.description %}# Description: {{ method.details.description | replace('\n',' ') }}{% endif %}
-
-    {% if method.details.summary %}# Summary: {{ method.details.summary }}{% endif %}
-
-
-    {# --- Query String parameters enforcement --- -#}
-    {%- set allParams = namespace(missing = '') -%}
-    {% for parm in method.parameters -%}
-    {% if parm.required | lower == "true" and parm.in | lower == "query" %}
-    {% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
-    {% endif %}
-    {% endfor %}
-
-    {% if allParams.missing != '' -%}
-    if ( $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
-      return 422 '{"code":422,"message":"Missing required query parameter [$required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }}]"}';
-    }
-    if ( $any_values_invalid_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('{','_') | replace('}','_') }} ) {
-      return 422 '{"code":422,"message":"Invalid parameter value"}';
-    }
-    {%- endif %}
-
     {% endfor -%}
     {% set method_names = path.methods|map(attribute='method')|list %}
 
@@ -64,9 +38,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {% if declaration.location.apigateway.log.error %}error_log {{ declaration.location.apigateway.log.error.destination }}{% if declaration.location.apigateway.log.error.level %} {{ declaration.location.apigateway.log.error.level }}{% endif %};{% endif %}
 
 
-    {# --- HTTP methods enforcement --- -#}
     limit_except {{ method_names|join(' ')|upper }} { deny all; }
-
 
     {# --- Rate limiting start --- #}
     {%- for rl in declaration.location.apigateway.rate_limit -%}
@@ -186,13 +158,13 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {# --- Cache end --- #}
 
-    {%- if declaration.location.apigateway.api_gateway.strip_uri -%}
+    {% if declaration.location.apigateway.api_gateway.strip_uri -%}
     rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
-    {%- endif %}
+    {% endif %}
 
     {% if declaration.location.apigateway.api_gateway.server_url -%}
     proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
-    {%- endif %}
+    {% endif -%}
 
     proxy_pass {{ destination_server }}$uri$is_args$args;
 }
