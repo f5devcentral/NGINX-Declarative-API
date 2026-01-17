@@ -15,8 +15,8 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
   - `.output.license.ssl_verify` set to `false` to trust all SSL certificates (not recommended). Useful for reporting to NGINX Instance Manager without a local PKI.
   - `.output.license.grace_period` Set to 'true' to begin the 180-day reporting enforcement grace period. Reporting must begin or resume before the end of the grace period to ensure continued operation
   - `.output.license.proxy` The optional explicit forward proxy `IP_address:port` or `FQDN:port` for usage reporting
-  - `.output.license.grace_period` The optional explicit forward proxy authentication username for usage reporting
-  - `.output.license.grace_period` The optional explicit forward proxy authentication password for usage reporting
+  - `.output.license.proxy_username` The optional explicit forward proxy authentication username for usage reporting
+  - `.output.license.proxy_password` The optional explicit forward proxy authentication password for usage reporting
 - `.output.type` defines how NGINX configuration will be returned:
   - *nms* - NGINX configuration is published as a Staged Config to NGINX Instance Manager
     - `.output.nms.url` the NGINX Instance Manager URL
