@@ -1,19 +1,22 @@
-# Usage for NGINX Declarative API v5.3
+# Usage for NGINX Declarative API v5.5
 
-Version 5.3 supports:
+Version 5.5 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-management-suite/nim/) 2.14+. Version 2.18+ is required for NGINX R33 and above
-- [NGINX One Console](https://docs.nginx.com/nginx-one/)
-- [NGINX Plus](https://docs.nginx.com/nginx/) R31+
-- [NGINX App Protect WAF](https://docs.nginx.com/nginx-app-protect-waf/) v4 or v5 with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
+- [NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/ 2.20+
+- [NGINX One Console](https://docs.nginx.com/nginx-one-console/)
+- [NGINX Plus](https://docs.nginx.com/nginx/) R33+
+- [F5 WAF for NGINX](https://docs.nginx.com/waf/) with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
 
 The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman) for usage examples
 
 - `.output.license` defines the JWT license to use for NGINX Plus R33+
-  - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address can be used here
+  - `.output.license.endpoint` the usage reporting endpoint (defaults to `product.connect.nginx.com`). NGINX Instance Manager address or FQDN can be used here
   - `.output.license.token` the JWT license token. If this field is omitted, it is assumed that a `/etc/nginx/license.jwt` token already exists on the instance and it won't be replaced
   - `.output.license.ssl_verify` set to `false` to trust all SSL certificates (not recommended). Useful for reporting to NGINX Instance Manager without a local PKI.
   - `.output.license.grace_period` Set to 'true' to begin the 180-day reporting enforcement grace period. Reporting must begin or resume before the end of the grace period to ensure continued operation
+  - `.output.license.proxy` The optional explicit forward proxy `IP_address:port` or `FQDN:port` for usage reporting
+  - `.output.license.proxy_username` The optional explicit forward proxy authentication username for usage reporting
+  - `.output.license.proxy_password` The optional explicit forward proxy authentication password for usage reporting
 - `.output.type` defines how NGINX configuration will be returned:
   - *nms* - NGINX configuration is published as a Staged Config to NGINX Instance Manager
     - `.output.nms.url` the NGINX Instance Manager URL
@@ -48,15 +51,6 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.output.nginxone.certificates[].type` the item type ('certificate', 'key', 'chain')
       - `.output.nginxone.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
       - `.output.nginxone.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
-    - `.output.nginxone.policies[]` an optional array of NGINX App Protect security policies
-      - `.output.nginxone.policies[].type` the policy type ('app_protect')
-      - `.output.nginxone.policies[].name` the policy name (ie. 'prod-policy')
-      - `.output.nginxone.policies[].active_tag` the policy tag to enable among all available versions (ie. 'v1')
-      - `.output.nginxone.policies[].versions[]` array with all available policy versions
-      - `.output.nginxone.policies[].versions[].tag` the policy version's tag name
-      - `.output.nginxone.policies[].versions[].displayName` the policy version's display name
-      - `.output.nginxone.policies[].versions[].description` the policy version's description
-      - `.output.nginxone.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
 - `.declaration` describes the NGINX configuration to be created
   - `.declaration.http[]` NGINX HTTP definitions
   - `.declaration.layer4[]` NGINX TCP/UDP definitions
@@ -64,13 +58,13 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
 
 ### API endpoints
 
-- `POST /v5.3/config/` - Publish a new declaration
-- `PATCH /v5.3/config/{config_uid}` - Update an existing declaration
+- `POST /v5.5/config/` - Publish a new declaration
+- `PATCH /v5.5/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
-- `GET /v5.3/config/{configUid}/submission/{submissionUid}` - Retrieve a submission (asynchronous `PATCH` request) status
-- `GET /v5.3/config/{config_uid}` - Retrieve an existing declaration
-- `DELETE /v5.3/config/{config_uid}` - Delete an existing declaration
+- `GET /v5.5/config/{configUid}/submission/{submissionUid}` - Retrieve a submission (asynchronous `PATCH` request) status
+- `GET /v5.5/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v5.5/config/{config_uid}` - Delete an existing declaration

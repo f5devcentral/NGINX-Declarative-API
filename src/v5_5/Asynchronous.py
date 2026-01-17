@@ -4,11 +4,11 @@ Asynchronous declarations support
 import json
 import pickle
 
-import v5_3.MiscUtils
+import v5_5.MiscUtils
 from NcgRedis import NcgRedis
 
 # pydantic models
-from V5_3_NginxConfigDeclaration import ConfigDeclaration
+from V5_5_NginxConfigDeclaration import ConfigDeclaration
 
 #
 # Check if the incoming request is asynchronous
@@ -21,7 +21,7 @@ def checkIfAsynch(declaration: ConfigDeclaration, method: str, apiVersion: str, 
         return None, None
 
     # Asynchronous declaration, submit to FIFO queue
-    submissionUid = str(v5_3.MiscUtils.getuniqueid())
+    submissionUid = str(v5_5.MiscUtils.getuniqueid())
     submissionPayload = {'declaration': declaration, 'method': method, 'configUid': configUid, "apiVersion": apiVersion, "submissionUid": submissionUid}
     NcgRedis.asyncQueue.put(submissionPayload)
 

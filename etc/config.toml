@@ -3,7 +3,7 @@
 # Main variables
 [main]
 banner = "NGINX Declarative API"
-version = "5.4.0"
+version = "5.5.0"
 url = "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 # Templates
@@ -15,6 +15,7 @@ license = "nginx-conf/license-key.tmpl"
 
 httpconf = "http.tmpl"
 apigwconf = "apigateway.tmpl"
+apigwmapsconf = "apigateway-maps.tmpl"
 visibility_root = "visibility"
 streamconf = "stream.tmpl"
 configmap = "configmap.tmpl"
@@ -52,19 +53,13 @@ host = "devportal"
 port = 5000
 uri = "/v1/devportal"
 
-# NGINX App Protect
-[nap]
-cookie_protection_seed = "tBjtd3WXKqoKp27pfEBc"
-compiler_host = "nap-compiler"
-compiler_port = 5000
-compiler_uri = "/v1/compile/policy"
-
 # Staged configuration directories
 [nms]
 config_dir = '/etc/nginx'
 certs_dir = '/etc/nginx/ssl'
 acme_dir = '/etc/nginx/acme'
 apigw_dir = '/etc/nginx/apigateway'
+apigw_maps_dir = '/etc/nginx/apigateway/maps'
 visibility_dir = '/etc/nginx/visibility'
 devportal_dir = '/etc/nginx/devportal'
 auth_client_dir = '/etc/nginx/authn/client'

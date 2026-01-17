@@ -19,9 +19,37 @@ js_import {{ njsp.name | replace(" ", "_") }} from {{ njsp.name | replace(" ", "
 {% endfor %}
 {% endif %}
 
+{# --- DNS resolver --- #}
+{% if declaration.resolver -%}
+include "{{ ncgconfig.nms.resolver_dir }}/{{ declaration.resolver | replace(" ", "_") }}.conf";
+{% endif -%}
+
+{# --- OpenID Connect providers --- #}
+# OpenID Connect profiles
+include "{{ ncgconfig.nms.auth_client_dir }}/oidc/*.conf";
+
+{# --- ACME issuers shared zone --- #}
+{% if declaration.acme_issuers %}
+# ACME issuers shared memory zone
+acme_shared_zone zone=ngx_acme_shared:1M;
+
+{%- for i in declaration.acme_issuers -%}
+include "{{ ncgconfig.nms.acme_dir }}/{{ i.name | replace(" ", "_") }}.conf";
+{%- endfor -%}
+
+server {
+  # listener on port 80 is required to process ACME HTTP-01 challenges
+  listen 80;
+
+  location / {
+    return 404;
+  }
+}
+{%- endif -%}
+
 {# --- Maps section --- #}
 
-{% if declaration.maps %}
+{%- if declaration.maps %}
 {% for m in declaration.maps %}
 
 map {{ m.match }} {{ m.variable }} {
@@ -38,11 +66,18 @@ map {{ m.match }} {{ m.variable }} {
 
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
+# Authorization profiles
 variables_hash_bucket_size 512;
+map_hash_bucket_size 256;
 {% for authzprofile in declaration.authorization -%}
 include "{{ ncgconfig.nms.authz_client_dir }}/{{ authzprofile.name | replace(" ", "_") }}.maps.conf";
 {% endfor -%}
 {%- endif -%}
+
+{# --- Maps section for API Gateway parameters enforcement --- #}
+
+# API Gateway parameter enforcement maps
+include "{{ ncgconfig.nms.apigw_maps_dir }}/*.conf";
 
 {# --- Snippets section --- #}
 {% if declaration.snippet and declaration.snippet.content %}{{ declaration.snippet.content | b64decode }}{% endif %}
@@ -72,7 +107,7 @@ limit_req_zone {{ rl.key }} zone={{ rl.name | replace(' ', '_') }}:{{ rl.size }}
 {% for c in declaration.cache %}
 proxy_cache_path {{ c.basepath }}/{{ c.name | replace(' ', '_') }} levels=1:2 keys_zone={{ c.name | replace(' ', '_') }}:{{ c.ttl }}  max_size={{ c.size }};
 {% endfor %}
-{% endif %}
+{% endif -%}
 
 {# --- Visibility integration section --- #}
 # Visibility integrations

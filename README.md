@@ -44,7 +44,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🚀 Supported releases
 
-- [F5 NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-instance-manager/)
+- [F5 NGINX Instance Manager 2.20+](https://docs.nginx.com/nginx-instance-manager/)
 - [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [F5 NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - [F5 WAF for NGINX](https://docs.nginx.com/waf/)
@@ -203,8 +203,8 @@ end
 
 ## 🧾 Output formats
 
-- [X] Output to F5 NGINX Instance Manager 2.14+ imperative REST API (instance group)
-- [X] Output to F5 NGINX One Console REST API (config sync group)
+- [X] Output to [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) 2.20+ imperative REST API (instance group)
+- [X] Output to [F5 NGINX One Console](https://docs.nginx.com/nginx-one-console/) REST API (config sync group)
 
 ## 🌟 Supported features
 
@@ -214,8 +214,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.4](/USAGE-v5.4.md) - latest
-- [API v5.3](/USAGE-v5.3.md) - stable
+- [API v5.5](/USAGE-v5.5.md) - latest
+- [API v5.4](/USAGE-v5.4.md) - stable
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
