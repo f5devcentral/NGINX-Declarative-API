@@ -607,32 +607,15 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
                         status, apiGatewayConfigDeclaration, openAPISchemaJSON = v5_4.APIGateway.createAPIGateway(locationDeclaration = loc, authProfiles = loc['apigateway']['openapi_schema']['authentication'])
 
-                        if status!=200:
-                            return {"status_code": 412,
-                                    "message": {"status_code": status, "message":
-                                        {"code": status,
-                                         "content": f"OpenAPI schema fetch failed for {loc['apigateway']['openapi_schema']['content']}"}}}
-
                         # API Gateway configuration template rendering
                         if apiGatewayConfigDeclaration:
-                            # API Gateway server / locations file
                             apiGatewaySnippet = j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
-                                declaration=apiGatewayConfigDeclaration, server=server['names'][0], enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
+                                declaration=apiGatewayConfigDeclaration, enabledVisibility=apiGwVisibilityIntegrations, ncgconfig=NcgConfig.config)
                             apiGatewaySnippetb64 = base64.b64encode(bytes(apiGatewaySnippet, 'utf-8')).decode('utf-8')
 
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
                                                                             '/' + server['names'][0] +
                                                                             loc['uri'] + ".conf" }
-                            auxFiles['files'].append(newAuxFile)
-
-                            # API Gateway maps file for parameters enforcement
-                            apiGatewayMapsSnippet = j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
-                                declaration=apiGatewayConfigDeclaration, server=server['names'][0], ncgconfig=NcgConfig.config)
-                            apiGatewayMapsSnippetb64 = base64.b64encode(bytes(apiGatewayMapsSnippet, 'utf-8')).decode('utf-8')
-
-                            newAuxFile = {'contents': apiGatewayMapsSnippetb64, 'name': NcgConfig.config['nms']['apigw_maps_dir'] +
-                                                                            '/' + server['names'][0] +
-                                                                            loc['uri'].replace('/', '_') + ".conf" }
                             auxFiles['files'].append(newAuxFile)
 
                     # API Gateway Developer portal provisioning

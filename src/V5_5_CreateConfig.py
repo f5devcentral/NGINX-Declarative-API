@@ -22,7 +22,7 @@ import v5_5.MiscUtils
 import v5_5.NIMOutput
 import v5_5.NGINXOneOutput
 
-# NGINX App Protect helper functions
+# F5 WAF for NGINX helper functions
 import v5_5.NIMNAPUtils
 import v5_5.NIMUtils
 
@@ -837,7 +837,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     # Handle policy updates
     d_policies = v5_5.MiscUtils.getDictKey(declarationToPatch, 'output.nms.policies')
     if d_policies is not None:
-        # NGINX App Protect WAF policy updates
+        # F5 WAF for NGINX policy updates
         for p in d_policies:
             currentDeclaration = v5_5.DeclarationPatcher.patchNAPPolicies(
                 sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
