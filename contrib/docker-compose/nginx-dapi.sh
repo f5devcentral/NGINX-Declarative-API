@@ -9,12 +9,18 @@ This script is used to deploy/undeploy NGINX Declarative API using docker-compos
 === Usage:\n\n
 $0 [options]\n\n
 === Options:\n\n
--h\t\t\t- This help\n
--c [start|stop|build]\t- Deployment command\n\n
+-h\t\t\t\t- This help\n
+-c [start|stop|build]\t\t- Deployment command\n
+-a <port>\t\t\t- Custom port for NGINX Declarative API (default: 5000)\n
+-d <port>\t\t\t- Custom port for Developer Portal (default: 5001)\n
+-r <port>\t\t\t- Custom port for Redis (default: 6379)\n\n
 === Examples:\n\n
-Deploy NGINX Declarative API:\t$0 -c start\n
-Remove NGINX Declarative API:\t$0 -c stop\n
-Build docker images:\t\t$0 -c build\n
+Deploy NGINX Declarative API:\t\t\t$0 -c start\n
+Deploy with custom Declarative API port:\t$0 -c start -a 8080\n
+Deploy with custom DevPortal port:\t\t$0 -c start -d 8081\n
+Deploy with all custom ports:\t\t\t$0 -c start -a 8080 -d 8081 -r 6380\n
+Remove NGINX Declarative API:\t\t\t$0 -c stop\n
+Build docker images:\t\t\t\t$0 -c build\n
 "
 
 echo -e $BANNER 2>&1
@@ -30,8 +36,14 @@ nginx_dapi_start() {
 USERNAME=`whoami`
 export USERID=`id -u $USERNAME`
 export USERGROUP=`id -g $USERNAME`
+export DAPI_PORT=${DAPI_PORT:-5000}
+export DEVPORTAL_PORT=${DEVPORTAL_PORT:-5001}
+export REDIS_PORT=${REDIS_PORT:-6379}
 
 echo "-> Deploying NGINX Declarative API"
+echo "   NGINX Declarative API port: $DAPI_PORT"
+echo "   Developer Portal port: $DEVPORTAL_PORT"
+echo "   Redis port: $REDIS_PORT"
 COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML up -d --remove-orphans
 }
 
@@ -71,7 +83,7 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 DOCKER_COMPOSE_YAML="docker-compose.yaml"
 PROJECT_NAME="nginx-dapi"
 
-while getopts 'hc:' OPTION
+while getopts 'hc:a:d:r:' OPTION
 do
   case "$OPTION" in
     h)
@@ -80,10 +92,19 @@ do
     c)
       ACTION=$OPTARG
     ;;
+    a)
+      DAPI_PORT=$OPTARG
+    ;;
+    d)
+      DEVPORTAL_PORT=$OPTARG
+    ;;
+    r)
+      REDIS_PORT=$OPTARG
+    ;;
   esac
 done
 
-if [ -z "${ACTION}" ] || [[ ! "${ACTION}" == +(start|stop|build) ]]
+if [ -z "${ACTION}" ] || [[ ! "${ACTION}" =~ ^(start|stop|build)$ ]]
 then
   usage
 fi

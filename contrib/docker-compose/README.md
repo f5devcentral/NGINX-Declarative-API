@@ -23,14 +23,20 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 
  === Options:
 
- -h                     - This help
- -c [start|stop|build]  - Deployment command
+ -h                             - This help
+ -c [start|stop|build]          - Deployment command
+ -a <port>                      - Custom port for NGINX Declarative API (default: 5000)
+ -d <port>                      - Custom port for Developer Portal (default: 5001)
+ -r <port>                      - Custom port for Redis (default: 6379)
 
  === Examples:
 
- Deploy NGINX Declarative API:  ./nginx-dapi.sh -c start
- Remove NGINX Declarative API:  ./nginx-dapi.sh -c stop
- Build docker images:           ./nginx-dapi.sh -c build
+ Deploy NGINX Declarative API:                  ./nginx-dapi.sh -c start
+ Deploy with custom Declarative API port:       ./nginx-dapi.sh -c start -a 8080
+ Deploy with custom DevPortal port:             ./nginx-dapi.sh -c start -d 8081
+ Deploy with all custom ports:                  ./nginx-dapi.sh -c start -a 8080 -d 8081 -r 6380
+ Remove NGINX Declarative API:                  ./nginx-dapi.sh -c stop
+ Build docker images:                           ./nginx-dapi.sh -c build
 
 ```
 
@@ -60,6 +66,25 @@ Starting:
 ```commandline
 $ ./nginx-dapi.sh -c start
 -> Deploying NGINX Declarative API
+   NGINX Declarative API port: 5000
+   Developer Portal port: 5001
+   Redis port: 6379
+[+] Building 0.0s (0/0)
+[+] Running 4/4
+ ✔ Network nginx-dapi_dapi-network  Created 
+ ✔ Container redis                  Started 
+ ✔ Container devportal              Started 
+ ✔ Container nginx-dapi             Started 
+```
+
+Starting with custom ports (useful when default ports are in use):
+
+```commandline
+$ ./nginx-dapi.sh -c start -a 8080 -d 8081 -r 6380
+-> Deploying NGINX Declarative API
+   NGINX Declarative API port: 8080
+   Developer Portal port: 8081
+   Redis port: 6380
 [+] Building 0.0s (0/0)
 [+] Running 4/4
  ✔ Network nginx-dapi_dapi-network  Created 
