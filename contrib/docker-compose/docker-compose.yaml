@@ -7,7 +7,7 @@ services:
     container_name: "redis"
     restart: always
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     networks:
       - dapi-network
     volumes:
@@ -22,7 +22,7 @@ services:
     container_name: "devportal"
     restart: always
     ports:
-      - "5001:5000"
+      - "${DEVPORTAL_PORT:-5001}:5000"
     networks:
       - dapi-network
 
@@ -37,7 +37,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "5000:5000"
+      - "${DAPI_PORT:-5000}:5000"
     networks:
       - dapi-network
 
