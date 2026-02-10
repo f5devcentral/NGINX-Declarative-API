@@ -2,7 +2,7 @@
 
 Version 5.5 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/ 2.20+
+- [NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) 2.20+
 - [NGINX One Console](https://docs.nginx.com/nginx-one-console/)
 - [NGINX Plus](https://docs.nginx.com/nginx/) R33+
 - [F5 WAF for NGINX](https://docs.nginx.com/waf/) with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
