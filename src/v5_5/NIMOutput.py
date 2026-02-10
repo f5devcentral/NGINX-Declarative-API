@@ -295,12 +295,12 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
             checkJson = json.loads(deploymentCheck.text)
 
-            if not checkJson['details']['pending']:
+            if deploymentCheck.status_code == 404 or ('details' in checkJson and not checkJson['details']['pending']):
                 isPending = False
 
-        if len(checkJson['details']['failure']) > 0:
+        if 'details' not in checkJson or len(checkJson['details']['failure']) > 0:
             # Staged config publish to NIM failed
-            jsonResponse = checkJson['details']['failure'][0]
+            jsonResponse = checkJson['details']['failure'][0] if 'details' in checkJson else {}
             deploymentCheck.status_code = 422
         else:
             # Staged config publish to NIM succeeded
