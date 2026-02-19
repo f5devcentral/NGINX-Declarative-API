@@ -1,0 +1,56 @@
+{{- if and .Values.nginxDapi.enabled .Values.nginxDapi.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  minReplicas: {{ .Values.nginxDapi.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.nginxDapi.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.nginxDapi.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.nginxDapi.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.nginxDapi.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+{{- if and .Values.devportal.enabled .Values.devportal.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-devportal
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.devportal.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "nginx-declarative-api.fullname" . }}-devportal
+  minReplicas: {{ .Values.devportal.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.devportal.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.devportal.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

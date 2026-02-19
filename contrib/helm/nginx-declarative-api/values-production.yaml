@@ -1,0 +1,91 @@
+# values-production.yaml
+# Production-hardened overrides.
+# Usage:
+#   helm install nginx-dapi ./nginx-declarative-api \
+#     -f values-production.yaml \
+#     --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
+#     --set nginxDapi.image.tag=5.5.0 \
+#     --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
+#     --set devportal.image.tag=5.5.0 \
+#     -n nginx-dapi --create-namespace
+
+nginxDapi:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: nginx-dapi
+            topologyKey: kubernetes.io/hostname
+
+redis:
+  image:
+    tag: "7.2-alpine"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 5Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+devportal:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  host: nginx-dapi.example.com
+  tls: []
+  # tls:
+  #   - secretName: nginx-dapi-tls
+  #     hosts:
+  #       - nginx-dapi.example.com
+
+networkPolicy:
+  enabled: true
+
+global:
+  imagePullSecrets: []
+  # imagePullSecrets:
+  #   - name: registry-credentials

@@ -1,0 +1,59 @@
+🎉 NGINX Declarative API has been deployed!
+
+Release name : {{ .Release.Name }}
+Namespace    : {{ include "nginx-declarative-api.namespace" . }}
+Chart version: {{ .Chart.Version }}
+App version  : {{ include "nginx-declarative-api.appVersion" . }} (nginx-dapi image tag)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Components deployed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.nginxDapi.enabled }}
+✅ nginx-dapi   → {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi:{{ .Values.nginxDapi.service.port }}
+{{- else }}
+⬜ nginx-dapi   → disabled
+{{- end }}
+{{- if .Values.redis.enabled }}
+✅ redis        → {{ include "nginx-declarative-api.fullname" . }}-redis:{{ .Values.redis.service.port }}
+{{- else }}
+⬜ redis        → disabled
+{{- end }}
+{{- if .Values.devportal.enabled }}
+✅ devportal    → {{ include "nginx-declarative-api.fullname" . }}-devportal:{{ .Values.devportal.service.port }}
+{{- else }}
+⬜ devportal    → disabled
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Accessing the API
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+The API is exposed via Ingress:
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/
+
+  Swagger UI  : http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/docs
+  ReDoc       : http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/redoc
+  OpenAPI JSON: http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/openapi.json
+{{- else }}
+Port-forward to access the API:
+
+  kubectl port-forward --namespace {{ include "nginx-declarative-api.namespace" . }} \
+    svc/{{ include "nginx-declarative-api.fullname" . }}-nginx-dapi 5000:{{ .Values.nginxDapi.service.port }}
+
+  Then open: http://localhost:5000/docs
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Useful commands
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Check pod status
+kubectl get pods -n {{ include "nginx-declarative-api.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+# Stream nginx-dapi logs
+kubectl logs -n {{ include "nginx-declarative-api.namespace" . }} -l app.kubernetes.io/component=nginx-dapi -f
+
+# Upgrade the release
+helm upgrade {{ .Release.Name }} ./nginx-declarative-api -n {{ include "nginx-declarative-api.namespace" . }}
+
+# Uninstall
+helm uninstall {{ .Release.Name }} -n {{ include "nginx-declarative-api.namespace" . }}

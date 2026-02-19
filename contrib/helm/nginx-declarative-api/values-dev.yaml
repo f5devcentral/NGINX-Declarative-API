@@ -1,0 +1,39 @@
+# values-dev.yaml
+# Lightweight dev/local overrides.
+# Usage:
+#   helm install nginx-dapi ./nginx-declarative-api \
+#     -f values-dev.yaml \
+#     -n nginx-dapi --create-namespace
+
+nginxDapi:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
+    tag: "5.5.1"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+redis:
+  image:
+    tag: "7.2-alpine"
+  persistence:
+    enabled: false
+
+devportal:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
+    tag: "5.5.1"
+
+ingress:
+  enabled: true
+  className: nginx
+  host: nginx-dapi.example.com
+  tls: []
+
+networkPolicy:
+  enabled: false
