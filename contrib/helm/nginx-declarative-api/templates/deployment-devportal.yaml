@@ -1,0 +1,91 @@
+{{- if .Values.devportal.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-devportal
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.devportal.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.devportal.autoscaling.enabled }}
+  replicas: {{ .Values.devportal.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 8 }}
+        {{- with .Values.global.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/values: {{ toYaml .Values.devportal | sha256sum }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "nginx-declarative-api.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "nginx-declarative-api.devportal.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.devportal.podSecurityContext | nindent 8 }}
+      containers:
+        - name: devportal
+          image: "{{ .Values.devportal.image.repository }}:{{ .Values.devportal.image.tag }}"
+          imagePullPolicy: {{ .Values.devportal.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.devportal.containerPort }}
+              protocol: TCP
+          {{- with .Values.devportal.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.devportal.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.devportal.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.devportal.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.devportal.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.devportal.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.devportal.persistence.enabled .Values.devportal.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.devportal.persistence.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
+            {{- with .Values.devportal.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.devportal.persistence.enabled .Values.devportal.extraVolumes }}
+      volumes:
+        {{- if .Values.devportal.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ if .Values.devportal.persistence.existingClaim }}{{ .Values.devportal.persistence.existingClaim }}{{ else }}{{ include "nginx-declarative-api.fullname" . }}-devportal{{ end }}
+        {{- end }}
+        {{- with .Values.devportal.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.devportal.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.devportal.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.devportal.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

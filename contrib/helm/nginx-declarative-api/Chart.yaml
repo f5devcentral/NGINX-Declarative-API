@@ -1,0 +1,21 @@
+apiVersion: v2
+name: nginx-declarative-api
+description: >
+  A Helm chart for the F5 NGINX Declarative API — a declarative REST API
+  and GitOps automation layer for NGINX Plus, NGINX Instance Manager, and
+  NGINX One Console.
+type: application
+version: 1.0.0
+appVersion: "5.5.1"
+home: https://github.com/f5devcentral/NGINX-Declarative-API
+sources:
+  - https://github.com/f5devcentral/NGINX-Declarative-API
+keywords:
+  - nginx
+  - declarative-api
+  - api-gateway
+  - gitops
+  - f5
+maintainers:
+  - name: f5devcentral
+    url: https://github.com/f5devcentral

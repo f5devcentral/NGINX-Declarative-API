@@ -1,0 +1,344 @@
+# ==============================================================================
+# App version
+# ------------------------------------------------------------------------------
+# This single value is used as the default image tag for ALL components and
+# is also written into Chart.yaml before install/upgrade by the helm.sh wrapper
+# so that "helm list" shows the correct APP VERSION.
+# Override at deploy time with:  --set appVersion=5.5.1
+# ==============================================================================
+appVersion: "5.5.1"
+
+# ==============================================================================
+# Global settings
+# ==============================================================================
+global:
+  # Override the namespace (defaults to .Release.Namespace)
+  namespaceOverride: ""
+  # Image pull secrets applied to all pods
+  imagePullSecrets: []
+  # Extra labels added to every pod
+  podLabels: {}
+  # Extra annotations added to every pod
+  podAnnotations: {}
+
+# ==============================================================================
+# NGINX Declarative API
+# ==============================================================================
+nginxDapi:
+  enabled: true
+
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  containerPort: 5000
+
+  service:
+    type: ClusterIP
+    port: 5000
+    # nodePort: 30000   # only used when type=NodePort
+    annotations: {}
+
+  # REDIS_HOST and REDIS_PORT are automatically injected by the deployment
+  # template using the release-scoped Redis service name. You can add
+  # additional environment variables here, or override REDIS_HOST/REDIS_PORT
+  # if you are using an external Redis instance.
+  env: []
+  # env:
+  #   - name: LOG_LEVEL
+  #     value: "INFO"
+  #   # Override to point at an external Redis:
+  #   - name: REDIS_HOST
+  #     value: "my-external-redis.example.com"
+  #   - name: REDIS_PORT
+  #     value: "6379"
+
+  # Load env vars from ConfigMaps or Secrets
+  envFrom: []
+  # envFrom:
+  #   - secretRef:
+  #       name: nginx-dapi-secrets
+  #   - configMapRef:
+  #       name: nginx-dapi-config
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  livenessProbe:
+    httpGet:
+      path: /docs
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /docs
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    existingClaim: ""
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    # maxUnavailable: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    automountServiceAccountToken: false
+
+# ==============================================================================
+# Redis
+# ==============================================================================
+redis:
+  enabled: true
+
+  image:
+    repository: redis
+    tag: "7.2-alpine"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  containerPort: 6379
+
+  service:
+    type: ClusterIP
+    port: 6379
+    annotations: {}
+
+  # redis-server command-line arguments
+  args:
+    - redis-server
+    - "--save"
+    - ""
+    - "--appendonly"
+    - "no"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  livenessProbe:
+    exec:
+      command:
+        - redis-cli
+        - ping
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    failureThreshold: 3
+    timeoutSeconds: 3
+
+  readinessProbe:
+    exec:
+      command:
+        - redis-cli
+        - ping
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 3
+
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    existingClaim: ""
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    fsGroup: 999
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  serviceAccount:
+    create: false
+    name: ""
+    annotations: {}
+    automountServiceAccountToken: false
+
+# ==============================================================================
+# Developer Portal
+# ==============================================================================
+devportal:
+  enabled: true
+
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  containerPort: 5000
+
+  service:
+    type: ClusterIP
+    port: 5000
+    annotations: {}
+
+  env: []
+  envFrom: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Devportal health path is not publicly documented; TCP probe confirms
+  # the port is open without requiring a specific HTTP route.
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    existingClaim: ""
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    automountServiceAccountToken: false
+
+# ==============================================================================
+# Ingress
+# ==============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  #  nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  #  cert-manager.io/cluster-issuer: letsencrypt-prod
+
+  # Single hostname for the nginx-declarative-api service.
+  # All URIs are forwarded to it automatically — no path config needed.
+  # Override at install time with:
+  #   --set ingress.host=nginx-dapi.example.com
+  host: nginx-dapi.k8s.example.com
+
+  tls: []
+  # - secretName: nginx-dapi-tls
+  #   hosts:
+  #     - nginx-dapi.k8s.example.com
+
+# ==============================================================================
+# Network Policy
+# ==============================================================================
+networkPolicy:
+  enabled: false
+  extraIngress: []
+  extraEgress: []

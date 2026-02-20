@@ -1,0 +1,75 @@
+{{- if .Values.nginxDapi.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
+  {{- with .Values.nginxDapi.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.nginxDapi.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.nginxDapi.service.port }}
+      targetPort: http
+      protocol: TCP
+      {{- if and (eq .Values.nginxDapi.service.type "NodePort") .Values.nginxDapi.service.nodePort }}
+      nodePort: {{ .Values.nginxDapi.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "nginx-declarative-api.nginxDapi.selectorLabels" . | nindent 4 }}
+{{- end }}
+{{- if .Values.redis.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # Fixed name "redis" — the app reads config.toml which hardcodes this hostname.
+  name: {{ include "nginx-declarative-api.redis.serviceName" . }}
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.redis.labels" . | nindent 4 }}
+  {{- with .Values.redis.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "nginx-declarative-api.redis.selectorLabels" . | nindent 4 }}
+{{- end }}
+{{- if .Values.devportal.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # Fixed name "devportal" — the app uses this hardcoded hostname to reach the
+  # developer portal service.
+  name: {{ include "nginx-declarative-api.devportal.serviceName" . }}
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.devportal.labels" . | nindent 4 }}
+  {{- with .Values.devportal.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.devportal.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.devportal.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 4 }}
+{{- end }}
