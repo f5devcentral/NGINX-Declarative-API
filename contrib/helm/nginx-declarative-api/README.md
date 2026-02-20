@@ -58,23 +58,23 @@ Each component can be independently enabled, disabled, scaled, and configured. A
 
 ```
                          ┌─────────────────────────────────┐
-                         │         Kubernetes Cluster        │
-                         │                                   │
+                         │         Kubernetes Cluster      │
+                         │                                 │
   External Traffic ──▶  Ingress (nginx-dapi.example.com)    │
-                         │         │                         │
-                         │         ▼                         │
-                         │   ┌───────────┐                   │
-                         │   │ nginx-dapi│ (:5000)           │
-                         │   └─────┬─────┘                   │
-                         │         │                         │
-                         │    ┌────┴─────┐                   │
-                         │    │          │                   │
-                         │    ▼          ▼                   │
+                         │         │                       │
+                         │         ▼                       │
+                         │   ┌───────────┐                 │
+                         │   │ nginx-dapi│ (:5000)         │
+                         │   └─────┬─────┘                 │
+                         │         │                       │
+                         │    ┌────┴─────┐                 │
+                         │    │          │                 │
+                         │    ▼          ▼                 │
                          │  ┌─────┐  ┌──────────┐           │
                          │  │Redis│  │devportal │           │
                          │  │:6379│  │  :5000   │           │
                          │  └─────┘  └──────────┘           │
-                         └─────────────────────────────────┘
+                         └──────────────────────────────────┘
 ```
 
 When `networkPolicy.enabled: true`, traffic between components is enforced at the Kubernetes network layer — only `nginx-dapi` can reach `redis` and `devportal`, and Redis is fully isolated from external access.
