@@ -1,0 +1,91 @@
+{{- if .Values.nginxDapi.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.nginxDapi.autoscaling.enabled }}
+  replicas: {{ .Values.nginxDapi.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.nginxDapi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-declarative-api.nginxDapi.selectorLabels" . | nindent 8 }}
+        {{- with .Values.global.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/values: {{ toYaml .Values.nginxDapi | sha256sum }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "nginx-declarative-api.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "nginx-declarative-api.nginxDapi.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.nginxDapi.podSecurityContext | nindent 8 }}
+      containers:
+        - name: nginx-dapi
+          image: "{{ .Values.nginxDapi.image.repository }}:{{ .Values.nginxDapi.image.tag }}"
+          imagePullPolicy: {{ .Values.nginxDapi.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.nginxDapi.containerPort }}
+              protocol: TCP
+          {{- with .Values.nginxDapi.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.nginxDapi.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.nginxDapi.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.nginxDapi.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.nginxDapi.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.nginxDapi.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.nginxDapi.persistence.enabled .Values.nginxDapi.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.nginxDapi.persistence.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
+            {{- with .Values.nginxDapi.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.nginxDapi.persistence.enabled .Values.nginxDapi.extraVolumes }}
+      volumes:
+        {{- if .Values.nginxDapi.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ if .Values.nginxDapi.persistence.existingClaim }}{{ .Values.nginxDapi.persistence.existingClaim }}{{ else }}{{ include "nginx-declarative-api.fullname" . }}-nginx-dapi{{ end }}
+        {{- end }}
+        {{- with .Values.nginxDapi.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nginxDapi.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nginxDapi.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nginxDapi.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

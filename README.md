@@ -220,7 +220,11 @@ A sample Postman collection and usage instructions can be found [here](/contrib/
 
 ## 🏃 How to run
 
-NGINX Declarative API can be deployed on a Linux virtual machine using [docker-compose](/contrib/docker-compose) or on [Kubernetes](/contrib/kubernetes)
+NGINX Declarative API can be deployed on:
+
+- Linux virtual machine using [docker-compose](/contrib/docker-compose)
+- Kubernetes using [manifests](/contrib/kubernetes)
+- Kubernetes through [Helm chart](/contrib/helm/nginx-declarative-api)
 
 ## 🐳 Building Docker images
 
