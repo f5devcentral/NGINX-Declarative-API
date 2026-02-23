@@ -29,10 +29,24 @@ devportal:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
     tag: "5.5.1"
 
+webui:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
+    tag: "5.5.1"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
 ingress:
   enabled: true
   className: nginx
   host: nginx-dapi.example.com
+  webuiHost: nginx-dapi-ui.example.com
   tls: []
 
 networkPolicy:

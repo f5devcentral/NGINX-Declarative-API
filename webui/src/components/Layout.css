@@ -15,13 +15,13 @@
 .page-title {
   font-size: 2rem;
   margin-bottom: 2rem;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .card {
-  background: rgba(10, 26, 15, 0.6);
+  background: var(--surface-card);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 150, 57, 0.1);
+  border: 1px solid var(--border-accent-1);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 1.5rem;
@@ -30,7 +30,7 @@
 .card-title {
   font-size: 1.25rem;
   margin-bottom: 1rem;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .form-group {
@@ -41,16 +41,16 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-88);
 }
 
 .form-input, .form-textarea {
   width: 100%;
   padding: 0.75rem;
   border-radius: 8px;
-  border: 1px solid rgba(0, 150, 57, 0.2);
-  background: rgba(10, 26, 15, 0.4);
-  color: #fff;
+  border: 1px solid var(--border-accent-2);
+  background: var(--surface-form-input);
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.95rem;
   transition: all 0.2s;
@@ -58,8 +58,8 @@
 
 .form-input:focus, .form-textarea:focus {
   outline: none;
-  border-color: #009639;
-  background: rgba(10, 26, 15, 0.6);
+  border-color: var(--accent);
+  background: var(--surface-form-input-focus);
 }
 
 .form-textarea {
@@ -89,19 +89,19 @@
 }
 
 .btn-secondary {
-  background: rgba(0, 150, 57, 0.1);
-  border: 1px solid rgba(0, 150, 57, 0.3);
-  color: #009639;
+  background: var(--border-accent-1);
+  border: 1px solid var(--border-accent-3);
+  color: var(--accent);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(0, 150, 57, 0.2);
+  background: var(--border-accent-2);
 }
 
 .btn-danger {
   background: rgba(255, 59, 48, 0.1);
   border: 1px solid rgba(255, 59, 48, 0.3);
-  color: #ff3b30;
+  color: var(--danger);
 }
 
 .btn-danger:hover:not(:disabled) {

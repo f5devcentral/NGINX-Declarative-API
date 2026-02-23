@@ -127,6 +127,50 @@ spec:
   type: ClusterIP
 
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webui
+  namespace: nginx-dapi
+  labels:
+    app: webui
+spec:
+  selector:
+    matchLabels:
+      app: webui
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: webui
+    spec:
+      containers:
+      - name: webui
+        image: YOUR_REGISTRY_HERE/nginx-declarative-api-webui:latest
+        ports:
+        - name: http
+          containerPort: 80
+        env:
+        - name: DAPI_PORT
+          value: "5000"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webui
+  namespace: nginx-dapi
+  labels:
+    app: webui
+spec:
+  ports:
+  - name: http
+    port: 80
+  selector:
+    app: webui
+  type: ClusterIP
+
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -147,3 +191,13 @@ spec:
                 name: nginx-dapi
                 port:
                   number: 5000
+    - host: nginx-dapi-webui.k8s.f5.ff.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: webui
+                port:
+                  number: 80

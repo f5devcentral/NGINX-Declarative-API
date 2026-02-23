@@ -2,15 +2,161 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ── Accent (same in both modes) ───────────────────────────── */
+  --accent:       #009639;
+  --accent-light: #00bf47;
+  --danger:       #ff3b30;
+
+  /* ── Dark mode defaults ─────────────────────────────────────── */
+  color-scheme: dark;
+  --body-bg:    linear-gradient(135deg, #0a1a0f 0%, #0d2616 100%);
+  --body-color: rgba(255, 255, 255, 0.87);
+
+  /* Text */
+  --text-primary:      #ffffff;
+  --text-88:           rgba(255, 255, 255, 0.88);
+  --text-85:           rgba(255, 255, 255, 0.85);
+  --text-70:           rgba(255, 255, 255, 0.70);
+  --text-65:           rgba(255, 255, 255, 0.65);
+  --text-60:           rgba(255, 255, 255, 0.60);
+  --text-45:           rgba(255, 255, 255, 0.45);
+  --text-dim:          #c8c8c8;
+  --text-muted:        #666;
+  --text-hint:         #565656;
+  --text-placeholder:  #464646;
+  --text-toggle:       #b8b8b8;
+  --text-card-title:   #d8d8d8;
+  --text-card-meta:    #505050;
+  --text-card-caret:   #555;
+  --text-card-em:      #4a4a4a;
+  --text-row-num:      #444;
+  --text-empty:        #4a4a4a;
+
+  /* Surfaces */
+  --surface-header:             rgba(10, 26, 15, 0.8);
+  --surface-card:               rgba(10, 26, 15, 0.6);
+  --surface-form-input:         rgba(10, 26, 15, 0.4);
+  --surface-form-input-focus:   rgba(10, 26, 15, 0.6);
+  --surface-mode-toggle:        #1a1a1a;
+  --surface-confirm:            #0f1f14;
+  --surface-overlay:            rgba(0, 0, 0, 0.6);
+  --cf-surface-section:         #1a1a1a;
+  --cf-surface-card:            #1e1e1e;
+  --cf-surface-row:             #1c1c1c;
+  --cf-surface-input:           #242424;
+  --cf-surface-input-focus:     #272727;
+  --cf-surface-select-option:   #1e1e1e;
+  --cf-surface-type-card:       #212121;
+  --cf-surface-type-card-hover: #252525;
+
+  /* Borders — accent */
+  --border-accent-1: rgba(0, 150, 57, 0.10);
+  --border-accent-2: rgba(0, 150, 57, 0.20);
+  --border-accent-3: rgba(0, 150, 57, 0.30);
+  --border-accent-4: rgba(0, 150, 57, 0.40);
+  /* Borders — neutral */
+  --border-n1: #2a2a2a;
+  --border-n2: #252525;
+  --border-n3: #272727;
+  --border-n4: #2e2e2e;
+  --border-n5: #3a3a3a;
+  --border-n6: #333;
+  --border-confirm:      rgba(0, 150, 57, 0.35);
+  --border-mode-toggle:  #333;
+
+  /* Global inputs */
+  --input-border: #444;
+  --input-bg:     #2a2a2a;
+  --input-color:  #fff;
+
+  /* Buttons */
+  --btn-bg:     #1a1a1a;
+  --btn-border: transparent;
+
+  /* Template cards */
+  --template-bg:        rgba(0, 150, 57, 0.05);
+  --template-bg-hover:  rgba(0, 150, 57, 0.10);
+  --template-bg-active: rgba(0, 150, 57, 0.15);
+  --template-border:    rgba(0, 150, 57, 0.20);
+
+  /* Form/JSON mode toggle */
+  --mode-btn-color:       #888;
+  --mode-btn-hover-color: #ccc;
+}
+
+/* ── Light mode overrides ───────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+  --body-bg:    linear-gradient(135deg, #f0f7f2 0%, #e0f0e6 100%);
+  --body-color: rgba(13, 31, 18, 0.87);
+
+  --text-primary:     #0d1f12;
+  --text-88:          rgba(13, 31, 18, 0.88);
+  --text-85:          rgba(13, 31, 18, 0.85);
+  --text-70:          rgba(13, 31, 18, 0.70);
+  --text-65:          rgba(13, 31, 18, 0.65);
+  --text-60:          rgba(13, 31, 18, 0.60);
+  --text-45:          rgba(13, 31, 18, 0.45);
+  --text-dim:         #444;
+  --text-muted:       #888;
+  --text-hint:        #777;
+  --text-placeholder: #aaa;
+  --text-toggle:      #555;
+  --text-card-title:  #222;
+  --text-card-meta:   #888;
+  --text-card-caret:  #999;
+  --text-card-em:     #999;
+  --text-row-num:     #bbb;
+  --text-empty:       #aaa;
+
+  --surface-header:             rgba(255, 255, 255, 0.85);
+  --surface-card:               rgba(255, 255, 255, 0.82);
+  --surface-form-input:         rgba(240, 247, 242, 0.8);
+  --surface-form-input-focus:   rgba(255, 255, 255, 0.95);
+  --surface-mode-toggle:        #e8f4ec;
+  --surface-confirm:            #f8fdf9;
+  --surface-overlay:            rgba(0, 0, 0, 0.4);
+  --cf-surface-section:         #f5f7f5;
+  --cf-surface-card:            #ffffff;
+  --cf-surface-row:             #f8faf8;
+  --cf-surface-input:           #fafcfa;
+  --cf-surface-input-focus:     #ffffff;
+  --cf-surface-select-option:   #ffffff;
+  --cf-surface-type-card:       #f9fbf9;
+  --cf-surface-type-card-hover: #f0f6f1;
+
+  --border-accent-1: rgba(0, 130, 50, 0.15);
+  --border-accent-2: rgba(0, 130, 50, 0.25);
+  --border-accent-3: rgba(0, 130, 50, 0.35);
+  --border-accent-4: rgba(0, 130, 50, 0.50);
+  --border-n1: #e5e5e5;
+  --border-n2: #ebebeb;
+  --border-n3: #e8e8e8;
+  --border-n4: #e0e0e0;
+  --border-n5: #d5d5d5;
+  --border-n6: #d0d0d0;
+  --border-confirm:      rgba(0, 130, 50, 0.35);
+  --border-mode-toggle:  #c5dfc9;
+
+  --input-border: #c5dfc9;
+  --input-bg:     #f8fdf9;
+  --input-color:  #0d1f12;
+
+  --btn-bg:     #e8f4ec;
+  --btn-border: #c5dfc9;
+
+  --template-bg:        rgba(0, 150, 57, 0.04);
+  --template-bg-hover:  rgba(0, 150, 57, 0.08);
+  --template-bg-active: rgba(0, 150, 57, 0.12);
+  --template-border:    rgba(0, 140, 50, 0.25);
+
+  --mode-btn-color:       #555;
+  --mode-btn-hover-color: #222;
 }
 
 * {
@@ -21,7 +167,8 @@
 
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a1a0f 0%, #0d2616 100%);
+  background: var(--body-bg);
+  color: var(--body-color);
 }
 
 #root {
@@ -30,18 +177,19 @@ body {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--btn-bg);
+  color: var(--text-primary);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 
 button:hover {
-  border-color: #009639;
+  border-color: var(--accent);
 }
 
 button:focus,
@@ -54,25 +202,25 @@ input, textarea {
   font-size: 1em;
   padding: 0.6em;
   border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #2a2a2a;
-  color: #fff;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--input-color);
   transition: border-color 0.25s;
 }
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: #009639;
+  border-color: var(--accent);
 }
 
 a {
   font-weight: 500;
-  color: #009639;
+  color: var(--accent);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #00bf47;
+  color: var(--accent-light);
 }
 
 h1, h2, h3, h4, h5, h6 {

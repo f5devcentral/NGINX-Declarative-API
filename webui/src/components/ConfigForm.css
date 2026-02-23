@@ -11,8 +11,8 @@
 
 /* ─── Sections ─────────────────────────────────────────────── */
 .cf-section {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
+  background: var(--cf-surface-section);
+  border: 1px solid var(--border-n1);
   border-radius: 9px;
   padding: 1rem 1.1rem 1.1rem;
   display: flex;
@@ -42,13 +42,13 @@
 .cf-section-title {
   font-size: 0.82rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--text-88);
   letter-spacing: 0.01em;
 }
 
 .cf-section-sub {
   font-size: 0.7rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* ─── Sub-groups within a section ──────────────────────────── */
@@ -56,7 +56,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-top: 1px solid #252525;
+  border-top: 1px solid var(--border-n2);
   padding-top: 0.75rem;
 }
 .cf-group:first-of-type {
@@ -76,7 +76,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-45);
 }
 
 /* ─── Output type cards ─────────────────────────────────────── */
@@ -92,16 +92,16 @@
   gap: 0.2rem;
   padding: 0.75rem 0.9rem;
   border-radius: 7px;
-  border: 1px solid #2e2e2e;
-  background: #212121;
+  border: 1px solid var(--border-n4);
+  background: var(--cf-surface-type-card);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.15s, background 0.15s;
   font-family: inherit;
 }
 .cf-type-card:hover:not(.active) {
-  border-color: #3a3a3a;
-  background: #252525;
+  border-color: var(--border-n5);
+  background: var(--cf-surface-type-card-hover);
 }
 .cf-type-card.active {
   border-color: rgba(0, 180, 70, 0.45);
@@ -111,14 +111,14 @@
 .cf-type-card-title {
   font-size: 0.82rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-85);
 }
 .cf-type-card.active .cf-type-card-title {
   color: rgba(0, 220, 90, 0.95);
 }
 .cf-type-card-sub {
   font-size: 0.7rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* ─── Grid layouts ──────────────────────────────────────────── */
@@ -148,7 +148,7 @@
 .cf-label {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #c8c8c8;
+  color: var(--text-dim);
   letter-spacing: 0.01em;
 }
 .cf-required {
@@ -158,7 +158,7 @@
 }
 .cf-hint {
   font-size: 0.69rem;
-  color: #565656;
+  color: var(--text-hint);
   line-height: 1.45;
   margin: 0;
 }
@@ -169,10 +169,10 @@
 
 /* ─── Inputs ────────────────────────────────────────────────── */
 .cf-input {
-  background: #242424;
-  border: 1px solid #3a3a3a;
+  background: var(--cf-surface-input);
+  border: 1px solid var(--border-n5);
   border-radius: 5px;
-  color: #e2e2e2;
+  color: var(--text-88);
   font-size: 0.83rem;
   padding: 0.4rem 0.6rem;
   outline: none;
@@ -181,12 +181,12 @@
   width: 100%;
   box-sizing: border-box;
 }
-.cf-input:focus { border-color: rgba(0, 200, 80, 0.4); background: #272727; }
-.cf-input::placeholder { color: #464646; }
+.cf-input:focus { border-color: rgba(0, 200, 80, 0.4); background: var(--cf-surface-input-focus); }
+.cf-input::placeholder { color: var(--text-placeholder); }
 .cf-mono { font-family: 'JetBrains Mono', 'Fira Mono', 'Cascadia Code', monospace; font-size: 0.8rem; }
 .cf-input-sm { width: 80px; }
 select.cf-input { cursor: pointer; }
-select.cf-input option { background: #1e1e1e; }
+select.cf-input option { background: var(--cf-surface-select-option); }
 
 /* ─── Toggles / Checkboxes ──────────────────────────────────── */
 .cf-toggle {
@@ -194,7 +194,7 @@ select.cf-input option { background: #1e1e1e; }
   align-items: center;
   gap: 0.45rem;
   font-size: 0.78rem;
-  color: #b8b8b8;
+  color: var(--text-toggle);
   cursor: pointer;
   padding: 0.15rem 0;
 }
@@ -216,15 +216,15 @@ select.cf-input option { background: #1e1e1e; }
 
 /* ─── Collapsible cards ─────────────────────────────────────── */
 .cf-card {
-  background: #1e1e1e;
-  border: 1px solid #272727;
+  background: var(--cf-surface-card);
+  border: 1px solid var(--border-n3);
   border-radius: 7px;
   overflow: hidden;
   transition: border-color 0.15s;
   margin-bottom: 0.45rem;
 }
 .cf-card:last-child { margin-bottom: 0; }
-.cf-card.cf-card-open { border-color: #333; }
+.cf-card.cf-card-open { border-color: var(--border-n6); }
 
 .cf-card-header {
   display: flex;
@@ -237,14 +237,14 @@ select.cf-input option { background: #1e1e1e; }
 }
 .cf-card-header:hover { background: rgba(255,255,255,0.03); }
 
-.cf-card-caret { font-size: 0.65rem; color: #555; width: 10px; flex-shrink: 0; }
-.cf-card-title { font-size: 0.84rem; font-weight: 500; color: #d8d8d8; flex: 1; }
-.cf-card-title em { color: #4a4a4a; font-weight: 400; }
-.cf-card-meta { font-size: 0.71rem; color: #505050; font-family: 'JetBrains Mono', monospace; }
+.cf-card-caret { font-size: 0.65rem; color: var(--text-card-caret); width: 10px; flex-shrink: 0; }
+.cf-card-title { font-size: 0.84rem; font-weight: 500; color: var(--text-card-title); flex: 1; }
+.cf-card-title em { color: var(--text-card-em); font-weight: 400; }
+.cf-card-meta { font-size: 0.71rem; color: var(--text-card-meta); font-family: 'JetBrains Mono', monospace; }
 
 .cf-card-body {
   padding: 0.8rem 0.95rem 0.95rem;
-  border-top: 1px solid #272727;
+  border-top: 1px solid var(--border-n3);
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -263,7 +263,7 @@ select.cf-input option { background: #1e1e1e; }
   flex-direction: column;
   gap: 0.4rem;
   padding-top: 0.25rem;
-  border-top: 1px solid #252525;
+  border-top: 1px solid var(--border-n2);
 }
 
 .cf-subsection-tls { border-top: none; }
@@ -288,12 +288,12 @@ select.cf-input option { background: #1e1e1e; }
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  background: #1c1c1c;
-  border: 1px solid #2a2a2a;
+  background: var(--cf-surface-row);
+  border: 1px solid var(--border-n1);
   border-radius: 6px;
   padding: 0.65rem 0.75rem;
 }
-.cf-row-num { font-size: 0.68rem; color: #444; padding-top: 0.55rem; width: 20px; flex-shrink: 0; text-align: right; }
+.cf-row-num { font-size: 0.68rem; color: var(--text-row-num); padding-top: 0.55rem; width: 20px; flex-shrink: 0; text-align: right; }
 .cf-row-fields { flex: 1; display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
 
 /* ─── Origin rows ───────────────────────────────────────────── */
@@ -301,8 +301,8 @@ select.cf-input option { background: #1e1e1e; }
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.55rem;
-  background: #1c1c1c;
-  border: 1px solid #272727;
+  background: var(--cf-surface-row);
+  border: 1px solid var(--border-n3);
   border-radius: 6px;
   padding: 0.65rem 0.7rem;
 }
@@ -364,7 +364,7 @@ select.cf-input option { background: #1e1e1e; }
 /* ─── Empty states ──────────────────────────────────────────── */
 .cf-empty {
   font-size: 0.74rem;
-  color: #4a4a4a;
+  color: var(--text-empty);
   font-style: italic;
   margin: 0;
 }

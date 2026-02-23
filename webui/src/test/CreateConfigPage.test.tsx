@@ -53,10 +53,10 @@ describe('CreateConfigPage', () => {
       clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
 
-    global.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock');
-    global.URL.revokeObjectURL = vi.fn();
+    globalThis.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock');
+    globalThis.URL.revokeObjectURL = vi.fn();
 
-    global.fetch = vi.fn().mockResolvedValue({ ok: false });
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false });
   });
 
   afterEach(() => {

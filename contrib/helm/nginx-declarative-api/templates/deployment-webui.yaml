@@ -1,0 +1,93 @@
+{{- if .Values.webui.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-webui
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.webui.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.webui.autoscaling.enabled }}
+  replicas: {{ .Values.webui.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.webui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-declarative-api.webui.selectorLabels" . | nindent 8 }}
+        {{- with .Values.global.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/values: {{ toYaml .Values.webui | sha256sum }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "nginx-declarative-api.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "nginx-declarative-api.webui.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.webui.podSecurityContext | nindent 8 }}
+      containers:
+        - name: webui
+          image: "{{ .Values.webui.image.repository }}:{{ .Values.webui.image.tag }}"
+          imagePullPolicy: {{ .Values.webui.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.webui.containerPort }}
+              protocol: TCP
+          env:
+            - name: DAPI_PORT
+              value: {{ .Values.nginxDapi.service.port | quote }}
+            {{- with .Values.webui.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.webui.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.webui.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.webui.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.webui.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.webui.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.webui.persistence.enabled .Values.webui.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.webui.persistence.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
+            {{- with .Values.webui.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.webui.persistence.enabled .Values.webui.extraVolumes }}
+      volumes:
+        {{- if .Values.webui.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ if .Values.webui.persistence.existingClaim }}{{ .Values.webui.persistence.existingClaim }}{{ else }}{{ include "nginx-declarative-api.fullname" . }}-webui{{ end }}
+        {{- end }}
+        {{- with .Values.webui.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.webui.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webui.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webui.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -13,7 +13,7 @@
   margin-bottom: 1.5rem;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(0, 150, 57, 0.2);
+  border: 1px solid var(--border-accent-2);
 }
 
 /* ── Mode toggle ── */
@@ -21,8 +21,8 @@
 .mode-toggle {
   display: flex;
   gap: 0.25rem;
-  background: #1a1a1a;
-  border: 1px solid #333;
+  background: var(--surface-mode-toggle);
+  border: 1px solid var(--border-mode-toggle);
   border-radius: 7px;
   padding: 3px;
 }
@@ -35,7 +35,7 @@
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: #888;
+  color: var(--mode-btn-color);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
@@ -44,17 +44,17 @@
 }
 
 .mode-btn:hover {
-  color: #ccc;
+  color: var(--mode-btn-hover-color);
 }
 
 .mode-btn.active {
-  background: rgba(0, 150, 57, 0.2);
+  background: var(--border-accent-2);
   color: rgba(0, 220, 90, 0.95);
-  border: 1px solid rgba(0, 150, 57, 0.4);
+  border: 1px solid var(--border-accent-4);
 }
 
 .info-message {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-60);
   font-style: italic;
 }
 
@@ -66,8 +66,8 @@
 }
 
 .template-card {
-  background: rgba(0, 150, 57, 0.05);
-  border: 1px solid rgba(0, 150, 57, 0.2);
+  background: var(--template-bg);
+  border: 1px solid var(--template-border);
   border-radius: 8px;
   padding: 1.5rem;
   cursor: pointer;
@@ -75,24 +75,24 @@
 }
 
 .template-card:hover {
-  background: rgba(0, 150, 57, 0.1);
-  border-color: #009639;
+  background: var(--template-bg-hover);
+  border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 150, 57, 0.3);
 }
 
 .template-card:active {
   transform: translateY(0);
-  background: rgba(0, 150, 57, 0.15);
+  background: var(--template-bg-active);
 }
 
 .template-card h4 {
-  color: #fff;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .template-card p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-70);
   font-size: 0.9rem;
 }
 
@@ -105,29 +105,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--surface-overlay);
   backdrop-filter: blur(4px);
 }
 
 .confirm-dialog {
-  background: #0f1f14;
-  border: 1px solid rgba(0, 150, 57, 0.35);
+  background: var(--surface-confirm);
+  border: 1px solid var(--border-confirm);
   border-radius: 12px;
   padding: 2rem;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 150, 57, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-accent-1);
 }
 
 .confirm-title {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
 
 .confirm-body {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-65);
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 1.5rem;

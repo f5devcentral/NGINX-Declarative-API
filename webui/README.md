@@ -18,9 +18,7 @@ Modern React TypeScript web interface for the NGINX Declarative API v5.5.
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
 - **React Router** - Client-side routing
-- **TanStack Query** - Server state management
-- **Zustand** - Client state management
-- **Axios** - HTTP client
+- **Monaco Editor** - JSON editor with schema validation
 - **Vitest** - Testing framework
 - **React Testing Library** - Component testing
 
@@ -112,10 +110,10 @@ VITE_DAPI_PORT=8080
 
 ```bash
 # Run tests once
-npm test
+npx vitest run
 
 # Run tests in watch mode
-npm run test
+npm test
 
 # Run tests with UI
 npm run test:ui
@@ -216,14 +214,10 @@ In production, NGINX handles the proxy configuration (see `nginx.conf`).
 ```text
 webui/
 ├── src/
-│   ├── api/           # API service layer
 │   ├── components/    # Reusable components
-│   ├── hooks/         # Custom React hooks
 │   ├── pages/         # Page components
-│   ├── store/         # State management (Zustand)
 │   ├── test/          # Test files
 │   ├── types/         # TypeScript type definitions
-│   ├── lib/           # Utility libraries
 │   ├── App.tsx        # Main app component
 │   ├── main.tsx       # Entry point
 │   └── index.css      # Global styles
