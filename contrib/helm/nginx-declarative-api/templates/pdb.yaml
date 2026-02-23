@@ -1,0 +1,49 @@
+{{- if and .Values.nginxDapi.enabled .Values.nginxDapi.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.nginxDapi.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.nginxDapi.podDisruptionBudget.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ .Values.nginxDapi.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.nginxDapi.selectorLabels" . | nindent 6 }}
+{{- end }}
+{{- if and .Values.redis.enabled .Values.redis.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-redis
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.redis.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.redis.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.redis.selectorLabels" . | nindent 6 }}
+{{- end }}
+{{- if and .Values.devportal.enabled .Values.devportal.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-devportal
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.devportal.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.devportal.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 6 }}
+{{- end }}

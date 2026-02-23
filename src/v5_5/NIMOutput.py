@@ -287,6 +287,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
         # Wait for either NIM success or failure after pushing a staged config
         isPending = True
+        jsonResponse = {}
         while isPending:
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
             deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
@@ -295,12 +296,16 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
             checkJson = json.loads(deploymentCheck.text)
 
-            if not checkJson['details']['pending']:
+            if deploymentCheck.status_code == 404:
+                jsonResponse = {"message": f"deployment not found at {publishResponse['links']['rel']}"}
                 isPending = False
 
-        if len(checkJson['details']['failure']) > 0:
+            if 'details' in checkJson and not checkJson['details']['pending']:
+                isPending = False
+
+        if 'details' not in checkJson or len(checkJson['details']['failure']) > 0:
             # Staged config publish to NIM failed
-            jsonResponse = checkJson['details']['failure'][0]
+            jsonResponse = checkJson['details']['failure'][0] if 'details' in checkJson else jsonResponse
             deploymentCheck.status_code = 422
         else:
             # Staged config publish to NIM succeeded

@@ -19,8 +19,8 @@ Thumbs.db
 ###################
 =======
 /.idea/
+/venv/
 /src/__pycache__/
 /src/v5_4/__pycache__/
 /src/v5_5/__pycache__/
 /contrib/devportal/redocly/src/__pycache__/
-/venv/
