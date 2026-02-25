@@ -15,13 +15,14 @@ This tool is ideal for managing NGINX in **modern, dynamic infrastructures** suc
 
 ### ➡️ Why Use the NGINX Declarative API?
 
-- ✅ **Declarative Simplicity**: Express configurations as a single, high-level JSON object.
-- ✅ **Automation-First Design**: Integrate configurations into CI/CD pipelines with minimal effort.
-- ✅ **Error Reduction**: Built-in validation for accurate and optimized configurations.
-- ✅ **Dynamic Updates**: Handle frequent configuration changes in highly dynamic environments.
-- ✅ **Seamless Scalability**: Simplifies managing NGINX setups in high-scale distributed architectures.
+- ✅ **Declarative Simplicity:** Express configurations as a single, high-level JSON object.
+- ✅ **Automation-First Design:** Integrate configurations into CI/CD pipelines with minimal effort.
+- ✅ **Error Reduction:** Built-in validation for accurate and optimized configurations.
+- ✅ **Dynamic Updates:** Handle frequent configuration changes in highly dynamic environments.
+- ✅ **Seamless Scalability:** Simplifies managing NGINX setups in high-scale distributed architectures.
+- ✅ **Web UI:** A built-in web interface provides a visual way to manage and interact with the API, no command line required.
 
-GitOps integration is supported: source of truth is checked for updates (F5 WAF for NGINX policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
+GitOps integration is supported: the source of truth is checked for updates (F5 WAF for NGINX policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
 
 ### 📝 Use Cases
 
