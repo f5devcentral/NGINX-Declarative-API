@@ -577,10 +577,10 @@ function OutputSection({ output, onChange }: {
       {output.type === 'nms' && (
         <div className="cf-grid-2">
           <Field label="NMS URL" required
-            hint="Base URL of your NGINX Management Suite instance. Include scheme and port. Example: https://nms.example.com:443">
+            hint="Base URL of your NGINX Instance Manager instance. Include scheme and port. Example: https://nms.example.com:443">
             <TextInput value={nms.url} onChange={v => onChange({ ...output, nms: { ...nms, url: v } })} placeholder="https://nms.example.com" mono />
           </Field>
-          <Field label="Username" required hint="API username for the NGINX Management Suite. Usually 'admin' for initial setup.">
+          <Field label="Username" required hint="API username for the NGINX Instance Manager. Usually 'admin' for initial setup.">
             <TextInput value={nms.username} onChange={v => onChange({ ...output, nms: { ...nms, username: v } })} placeholder="admin" />
           </Field>
           <Field label="Password" required hint="Password for the NMS API user. Stored only in your local session — never sent to this UI's server.">
