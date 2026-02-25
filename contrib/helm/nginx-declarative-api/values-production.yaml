@@ -68,6 +68,21 @@ devportal:
     enabled: true
     minAvailable: 1
 
+webui:
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+
 ingress:
   enabled: true
   className: nginx
@@ -76,6 +91,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
     # cert-manager.io/cluster-issuer: letsencrypt-prod
   host: nginx-dapi.example.com
+  webuiHost: nginx-dapi-ui.example.com
   tls: []
   # tls:
   #   - secretName: nginx-dapi-tls

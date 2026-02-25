@@ -9,7 +9,7 @@ This project supports [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-i
 
 ## 📚 Overview
 
-At its core, the NGINX Declarative API supports **declarative configuration management** by letting users define what the state of NGINX *should be*, rather than how to get there. It eliminates the need for procedural changes by processing user-defined JSON payloads into valid and optimized NGINX configurations. 
+At its core, the NGINX Declarative API supports **declarative configuration management** by letting users define what the state of NGINX *should be*, rather than how to get there. It eliminates the need for procedural changes by processing user-defined JSON payloads into valid and optimized NGINX configurations.
 
 This tool is ideal for managing NGINX in **modern, dynamic infrastructures** such as CI/CD environments, containerized applications (like Kubernetes), or large-scale proxy server setups.
 
@@ -20,7 +20,6 @@ This tool is ideal for managing NGINX in **modern, dynamic infrastructures** suc
 - ✅ **Error Reduction**: Built-in validation for accurate and optimized configurations.
 - ✅ **Dynamic Updates**: Handle frequent configuration changes in highly dynamic environments.
 - ✅ **Seamless Scalability**: Simplifies managing NGINX setups in high-scale distributed architectures.
-
 
 GitOps integration is supported: source of truth is checked for updates (F5 WAF for NGINX policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
 
