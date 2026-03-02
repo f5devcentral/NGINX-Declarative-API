@@ -9,9 +9,9 @@
 #   ./helm.sh install nginx-dapi . \
 #       --namespace nginx-dapi --create-namespace \
 #       --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-#       --set nginxDapi.image.tag=5.5.1 \
+#       --set nginxDapi.image.tag=5.5.2 \
 #       --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
-#       --set devportal.image.tag=5.5.1
+#       --set devportal.image.tag=5.5.2
 #
 #   ./helm.sh upgrade nginx-dapi . \
 #       --namespace nginx-dapi \
