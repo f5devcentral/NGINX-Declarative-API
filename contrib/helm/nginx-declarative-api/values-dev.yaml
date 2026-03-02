@@ -8,7 +8,7 @@
 nginxDapi:
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
-    tag: "5.5.1"
+    tag: "5.5.2"
   replicaCount: 1
   resources:
     requests:
@@ -27,12 +27,12 @@ redis:
 devportal:
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
-    tag: "5.5.1"
+    tag: "5.5.2"
 
 webui:
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
-    tag: "5.5.1"
+    tag: "5.5.2"
   replicaCount: 1
   resources:
     requests:

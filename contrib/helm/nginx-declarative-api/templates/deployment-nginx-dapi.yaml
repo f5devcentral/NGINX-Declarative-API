@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  name: nginx-dapi
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}

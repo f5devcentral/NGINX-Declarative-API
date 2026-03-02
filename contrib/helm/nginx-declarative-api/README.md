@@ -1,697 +1,453 @@
-# nginx-declarative-api Helm Chart
+# NGINX Declarative API — Helm Chart
 
-A production-grade Helm chart for the [F5 NGINX Declarative API](https://github.com/f5devcentral/NGINX-Declarative-API) — a declarative REST API and GitOps automation layer for NGINX Plus, NGINX Instance Manager, and NGINX One Console.
+This Helm chart deploys the [NGINX Declarative API](https://github.com/f5devcentral/NGINX-Declarative-API) on Kubernetes, together with its optional **Developer Portal** service, **Web UI**, and **Redis** dependency.
 
-![Chart Version](https://img.shields.io/badge/chart-v1.0.0-blue)
-![App Version](https://img.shields.io/badge/app-v5.5.1-green)
-![Kubernetes](https://img.shields.io/badge/kubernetes-%3E%3D1.24-informational)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Chart Structure](#chart-structure)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-  - [Global](#global)
-  - [NGINX Declarative API (nginxDapi)](#nginx-declarative-api-nginxdapi)
-  - [Redis (redis)](#redis-redis)
-  - [Developer Portal (devportal)](#developer-portal-devportal)
-  - [Ingress](#ingress)
-  - [Network Policy](#network-policy)
-- [Environment Profiles](#environment-profiles)
-- [Advanced Usage](#advanced-usage)
-  - [TLS / HTTPS](#tls--https-with-cert-manager)
-  - [Horizontal Pod Autoscaling](#horizontal-pod-autoscaling)
-  - [Pod Anti-Affinity](#pod-anti-affinity)
-  - [Image Pull Secrets](#image-pull-secrets)
-  - [Loading config from a Secret](#loading-config-from-a-secret)
-  - [Redis Persistent Volume](#redis-persistent-volume)
-  - [External Redis](#external-redis)
-- [Upgrading](#upgrading)
-- [Uninstalling](#uninstalling)
-- [Accessing the API](#accessing-the-api)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
-
----
-
-## Overview
-
-This chart deploys three components as a cohesive stack:
-
-| Component | Description | Default Port |
-|-----------|-------------|:------------:|
-| **nginx-dapi** | Core declarative REST API service | `5000` |
-| **redis** | In-memory data store for request queuing and GitOps state | `6379` |
-| **devportal** | Developer portal service (Redocly / Backstage integration) | `5000` |
-
-Each component can be independently enabled, disabled, scaled, and configured. All resource names are release-scoped so multiple instances can coexist in the same cluster without conflict.
-
----
-
-## Architecture
-
-```
-                         ┌─────────────────────────────────┐
-                         │         Kubernetes Cluster      │
-                         │                                 │
-  External Traffic ──▶  Ingress (nginx-dapi.example.com)  │
-                         │         │                       │
-                         │         ▼                       │
-                         │   ┌───────────┐                 │
-                         │   │ nginx-dapi│ (:5000)         │
-                         │   └─────┬─────┘                 │
-                         │         │                       │
-                         │    ┌────┴─────┐                 │
-                         │    │          │                 │
-                         │    ▼          ▼                 │
-                         │  ┌─────┐  ┌──────────┐          │
-                         │  │Redis│  │devportal │          │
-                         │  │:6379│  │  :5000   │          │
-                         │  └─────┘  └──────────┘          │
-                         └─────────────────────────────────┘
-```
-
-When `networkPolicy.enabled: true`, traffic between components is enforced at the Kubernetes network layer — only `nginx-dapi` can reach `redis` and `devportal`, and Redis is fully isolated from external access.
-
----
+NGINX Declarative API is a declarative REST API and GitOps automation layer for F5 NGINX Plus, NGINX Instance Manager, and NGINX One Console.
 
 ## Prerequisites
 
-- Kubernetes **≥ 1.24**
-- Helm **≥ 3.10**
-- A container registry hosting the `nginx-declarative-api` and `nginx-declarative-api-devportal` images (see the upstream [project README](https://github.com/f5devcentral/NGINX-Declarative-API) for build instructions)
-- An NGINX Ingress Controller deployed in the cluster (if `ingress.enabled: true`)
-- [cert-manager](https://cert-manager.io/) *(optional, for automatic TLS provisioning)*
+- Kubernetes 1.23+
+- Helm 3.10+
+- A running [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) or [F5 NGINX One Console](https://docs.nginx.com/nginx-one/) reachable from the cluster
 
----
+## Installing the chart
 
-## Chart Structure
-
-```
-nginx-declarative-api/
-├── Chart.yaml
-├── README.md
-├── values.yaml                        # Full default configuration
-├── values-dev.yaml                    # Lightweight dev/local overrides
-├── values-production.yaml             # Production-hardened overrides
-└── templates/
-    ├── _helpers.tpl                   # Named template helpers
-    ├── NOTES.txt                      # Post-install instructions
-    ├── serviceaccount.yaml            # ServiceAccounts for dapi + devportal
-    ├── deployment-nginx-dapi.yaml     # Main API deployment
-    ├── deployment-redis.yaml          # Redis deployment
-    ├── deployment-devportal.yaml      # Developer portal deployment
-    ├── service.yaml                   # ClusterIP services for all 3 components
-    ├── ingress.yaml                   # Ingress with optional TLS + path routing
-    ├── hpa.yaml                       # HorizontalPodAutoscalers
-    ├── pdb.yaml                       # PodDisruptionBudgets
-    ├── pvc.yaml                       # PersistentVolumeClaims
-    └── networkpolicy.yaml             # NetworkPolicies for traffic isolation
-```
-
----
-
-## Quick Start
-
-### 1. Set your image registries
-
-Before deploying, set the image repositories either in `values.yaml` or via `--set`:
-
-```yaml
-nginxDapi:
-  image:
-    repository: "registry.example.com/nginx-declarative-api"
-    tag: "5.5.0"
-
-devportal:
-  image:
-    repository: "registry.example.com/nginx-declarative-api-devportal"
-    tag: "5.5.0"
-```
-
-### 2. Install the chart
-
+With the core API only:
 ```bash
-helm install nginx-dapi ./nginx-declarative-api \
+helm install nginx-dapi . \
   --namespace nginx-dapi \
   --create-namespace \
-  --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-  --set nginxDapi.image.tag=5.5.1 \
-  --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
-  --set devportal.image.tag=5.5.1 \
-  --set ingress.host=nginx-dapi.example.com
+  --set nginxDapi.enabled=true \
+  --set nginxDapi.image.repository=nginx-declarative-api \
+  --set nginxDapi.image.tag=5.5.2
 ```
 
-### 3. Verify the deployment
-
+With all components (API + Developer Portal + Web UI):
 ```bash
-kubectl get pods -n nginx-dapi -l app.kubernetes.io/instance=nginx-dapi
+helm install nginx-dapi . \
+  --namespace nginx-dapi \
+  --create-namespace \
+  --set nginxDapi.enabled=true \
+  --set nginxDapi.image.repository=nginx-declarative-api \
+  --set nginxDapi.image.tag=5.5.2 \
+  --set devportal.enabled=true \
+  --set devportal.image.repository=nginx-declarative-api-devportal \
+  --set devportal.image.tag=5.5.2 \
+  --set webui.enabled=true \
+  --set webui.image.repository=nginx-declarative-api-webui \
+  --set webui.image.tag=5.5.2 \
+  --set ingress.host=nginx-dapi.example.com \
+  --set ingress.webuiHost=nginx-dapi-ui.example.com
 ```
 
-Expected output:
-
-```
-NAME                                           READY   STATUS    RESTARTS   AGE
-nginx-dapi-nginx-dapi-7d9f4b8c6-xkp2m         1/1     Running   0          45s
-nginx-dapi-redis-6b4d9f7c5-tn8qr              1/1     Running   0          45s
-nginx-dapi-devportal-5c8b6d9f4-mp3wz          1/1     Running   0          45s
-```
-
-### 4. Access the API docs
-
+## Upgrading
 ```bash
-kubectl port-forward -n nginx-dapi svc/nginx-dapi-nginx-dapi 5000:5000
+helm upgrade <release-name> . --namespace <namespace> -f my-values.yaml
 ```
 
-Then open:
+## Uninstalling
+```bash
+helm uninstall <release-name> --namespace <namespace>
+```
 
-| Endpoint | URL |
-|----------|-----|
-| Swagger UI | http://localhost:5000/docs |
-| ReDoc | http://localhost:5000/redoc |
-| OpenAPI spec | http://localhost:5000/openapi.json |
+---
+
+## Architecture overview
+
+The chart can deploy up to four components. All communicate in-cluster over ClusterIP Services:
+```
+                          ┌──────────────────────────────────────────────┐
+                          │  Kubernetes Namespace                        │
+                          │                                              │
+ Browser / CI/CD ────────▶│  ┌─────────────┐     ┌───────────────────┐   │
+                          │  │  Web UI     │     │  NGINX Decl. API  │   │
+                          │  │  :80        │────▶│  :5000            │   │
+                          │  └─────────────┘     └─────────┬─────────┘   │
+                          │                                │             │
+                          │                      ┌─────────▼──────────┐  │
+                          │                      │  Developer Portal  │  │
+                          │                      │  :5000             │  │
+                          │                      └────────────────────┘  │
+                          │                                              │
+                          │                      ┌────────────────────┐  │
+                          │                      │  Redis             │  │
+                          │                      │  :6379             │  │
+                          │                      └────────────────────┘  │
+                          └──────────────────────────────────────────────┘
+```
+
+| Component | Purpose | External access needed? |
+|-----------|---------|------------------------|
+| **NGINX Declarative API** (`nginxDapi`) | Core REST API — processes declarative JSON and publishes NGINX configs to NGINX Instance Manager / NGINX One Console | Yes |
+| **Developer Portal** (`devportal`) | Internal service called by the API to generate Redocly and Backstage developer portal definitions | No — in-cluster only |
+| **Web UI** (`webui`) | Browser-based interface for interacting with the API | Yes |
+| **Redis** | Queue and state store for the API | No — in-cluster only |
 
 ---
 
 ## Configuration
 
-### Global
+### Core API (`nginxDapi`)
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `global.namespaceOverride` | Override the target namespace for all resources | `""` |
-| `global.imagePullSecrets` | Image pull secrets applied to every pod | `[]` |
-| `global.podLabels` | Extra labels added to all pod specs | `{}` |
-| `global.podAnnotations` | Extra annotations added to all pod specs | `{}` |
-
----
-
-### NGINX Declarative API (`nginxDapi`)
-
-#### Core
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.enabled` | Deploy the nginx-dapi component | `true` |
-| `nginxDapi.replicaCount` | Number of replicas (ignored when HPA is enabled) | `1` |
-| `nginxDapi.containerPort` | Port the container listens on | `5000` |
-| `nginxDapi.image.repository` | Container image repository | `YOUR_REGISTRY_HERE/nginx-declarative-api` |
-| `nginxDapi.image.tag` | Image tag | `latest` |
+| `nginxDapi.enabled` | Enable the NGINX Declarative API deployment | `true` |
+| `nginxDapi.replicaCount` | Number of API pod replicas | `1` |
+| `nginxDapi.image.repository` | Container image repository | `nginx-declarative-api` |
+| `nginxDapi.image.tag` | Image tag (defaults to `.Chart.AppVersion`) | `""` |
 | `nginxDapi.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-
-#### Service
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.service.type` | Service type (`ClusterIP`, `NodePort`, `LoadBalancer`) | `ClusterIP` |
+| `nginxDapi.service.type` | Kubernetes Service type | `ClusterIP` |
 | `nginxDapi.service.port` | Service port | `5000` |
-| `nginxDapi.service.nodePort` | NodePort number (only when `type: NodePort`) | `""` |
-| `nginxDapi.service.annotations` | Annotations on the Service | `{}` |
-
-#### Environment
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.env` | List of extra environment variables to inject | `[]` |
-| `nginxDapi.envFrom` | Load env vars from ConfigMaps or Secrets | `[]` |
-
-> **Note:** The app reads its Redis connection details from `config.toml` baked into the Docker image (default: `redis:6379`). The bundled Redis Service is named `redis` to match this exactly. If you use an external Redis you will need to mount a custom `config.toml` — see [External Redis](#external-redis).
-
-#### Resources, Probes & Security
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.resources` | CPU/memory requests and limits | See `values.yaml` |
-| `nginxDapi.livenessProbe` | Liveness probe (HTTP GET `/docs`) | See `values.yaml` |
-| `nginxDapi.readinessProbe` | Readiness probe (HTTP GET `/docs`) | See `values.yaml` |
-| `nginxDapi.podSecurityContext` | Pod-level security context | `runAsNonRoot: true`, `runAsUser: 1000` |
-| `nginxDapi.containerSecurityContext` | Container security context | `allowPrivilegeEscalation: false`, caps dropped |
-
-#### Scheduling
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.nodeSelector` | Node selector | `{}` |
-| `nginxDapi.tolerations` | Tolerations | `[]` |
-| `nginxDapi.affinity` | Affinity rules | `{}` |
-
-#### Persistence
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.persistence.enabled` | Mount a PersistentVolumeClaim | `false` |
-| `nginxDapi.persistence.storageClass` | StorageClass (`""` = cluster default) | `""` |
-| `nginxDapi.persistence.accessMode` | PVC access mode | `ReadWriteOnce` |
-| `nginxDapi.persistence.size` | PVC size | `1Gi` |
-| `nginxDapi.persistence.existingClaim` | Use a pre-existing PVC | `""` |
-
-#### Autoscaling
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.autoscaling.enabled` | Enable HPA | `false` |
-| `nginxDapi.autoscaling.minReplicas` | Minimum replicas | `1` |
-| `nginxDapi.autoscaling.maxReplicas` | Maximum replicas | `5` |
-| `nginxDapi.autoscaling.targetCPUUtilizationPercentage` | Target CPU % | `80` |
-| `nginxDapi.autoscaling.targetMemoryUtilizationPercentage` | Target memory % (optional) | `""` |
-
-#### Pod Disruption Budget
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.podDisruptionBudget.enabled` | Create a PDB | `false` |
-| `nginxDapi.podDisruptionBudget.minAvailable` | Minimum available pods | `1` |
-| `nginxDapi.podDisruptionBudget.maxUnavailable` | Maximum unavailable (alternative) | `""` |
-
-#### ServiceAccount
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nginxDapi.serviceAccount.create` | Create a dedicated ServiceAccount | `true` |
-| `nginxDapi.serviceAccount.name` | Override the ServiceAccount name | `""` |
-| `nginxDapi.serviceAccount.annotations` | ServiceAccount annotations | `{}` |
-| `nginxDapi.serviceAccount.automountServiceAccountToken` | Auto-mount API token | `false` |
-
----
-
-### Redis (`redis`)
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `redis.enabled` | Deploy Redis | `true` |
-| `redis.image.repository` | Redis image | `redis` |
-| `redis.image.tag` | Redis tag | `7.2-alpine` |
-| `redis.replicaCount` | Replicas (keep at `1` for standalone) | `1` |
-| `redis.containerPort` | Redis port | `6379` |
-| `redis.args` | Command-line args passed to `redis-server` | persistence disabled |
-| `redis.resources` | CPU/memory requests and limits | See `values.yaml` |
-| `redis.persistence.enabled` | Mount a PVC for Redis data | `false` |
-| `redis.persistence.size` | PVC size | `2Gi` |
-| `redis.podDisruptionBudget.enabled` | Create a PDB | `false` |
-
-> **Note:** Redis persistence is disabled by default because it is primarily used for ephemeral request queuing. Enable it if you rely on Redis for GitOps state that must survive pod restarts.
-
----
+| `nginxDapi.ingress.enabled` | Enable Ingress for the API | `false` |
+| `nginxDapi.ingress.className` | Ingress class name | `""` |
+| `nginxDapi.ingress.annotations` | Ingress annotations | `{}` |
+| `nginxDapi.ingress.hosts` | Ingress host rules | `[]` |
+| `nginxDapi.ingress.tls` | Ingress TLS configuration | `[]` |
+| `nginxDapi.resources` | CPU/memory resource requests and limits | `{}` |
+| `nginxDapi.nodeSelector` | Node selector labels | `{}` |
+| `nginxDapi.tolerations` | Pod tolerations | `[]` |
+| `nginxDapi.affinity` | Pod affinity rules | `{}` |
 
 ### Developer Portal (`devportal`)
 
-The devportal component exposes the same parameters as `nginxDapi`. Key values:
+The Developer Portal service generates API developer portal definitions (Redocly and Backstage are supported) on behalf of the NGINX Declarative API. It is the Kubernetes equivalent of the `devportal` container in the docker-compose setup (where it runs on internal port 5000, mapped to 5001 externally).
+
+The API calls it automatically whenever a declarative configuration includes `developer_portal.enabled: true` inside an `apigateway` location block. **No additional API-side configuration is required** — the chart wires service discovery between the two automatically.
+
+> **This is a backend-only service.** It has no externally accessible interface and does not need an Ingress.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `devportal.enabled` | Deploy the devportal | `true` |
-| `devportal.image.repository` | Image repository | `YOUR_REGISTRY_HERE/nginx-declarative-api-devportal` |
-| `devportal.image.tag` | Image tag | `latest` |
-| `devportal.replicaCount` | Replicas | `1` |
-| `devportal.autoscaling.enabled` | Enable HPA | `false` |
-| `devportal.autoscaling.maxReplicas` | HPA max replicas | `3` |
-| `devportal.podDisruptionBudget.enabled` | Create a PDB | `false` |
+| `devportal.enabled` | Enable the Developer Portal service deployment | `false` |
+| `devportal.replicaCount` | Number of Developer Portal pod replicas | `1` |
+| `devportal.image.repository` | Container image repository | `nginx-declarative-api-devportal` |
+| `devportal.image.tag` | Image tag (defaults to `.Chart.AppVersion`) | `""` |
+| `devportal.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `devportal.service.type` | Kubernetes Service type | `ClusterIP` |
+| `devportal.service.port` | Service port | `5000` |
+| `devportal.resources` | CPU/memory resource requests and limits | `{}` |
+| `devportal.nodeSelector` | Node selector labels | `{}` |
+| `devportal.tolerations` | Pod tolerations | `[]` |
+| `devportal.affinity` | Pod affinity rules | `{}` |
+| `devportal.podAnnotations` | Annotations added to Developer Portal pods | `{}` |
+| `devportal.extraLabels` | Extra labels added to all Developer Portal resources | `{}` |
 
----
+### Web UI (`webui`)
 
-### Ingress
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.enabled` | Create an Ingress resource | `true` |
-| `ingress.className` | `ingressClassName` | `nginx` |
-| `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.host` | Hostname for the nginx-declarative-api service | `nginx-dapi.k8s.example.com` |
-| `ingress.tls` | TLS configuration | `[]` |
-
-Set the hostname at install time — all URIs are automatically forwarded to the nginx-declarative-api service:
-
-```bash
---set ingress.host=nginx-dapi.example.com
-```
-
-Or in `values.yaml`:
-
-```yaml
-ingress:
-  host: nginx-dapi.example.com
-```
-
----
-
-### Network Policy
+The Web UI runs an nginx reverse proxy that forwards API calls from the browser to the NGINX Declarative API.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `networkPolicy.enabled` | Create NetworkPolicy resources | `false` |
-| `networkPolicy.extraIngress` | Extra ingress rules for nginx-dapi | `[]` |
-| `networkPolicy.extraEgress` | Extra egress rules for nginx-dapi | `[]` |
-
-When enabled: `redis` and `devportal` are only reachable from `nginx-dapi`, and all pods allow DNS egress on port 53.
-
----
-
-## Environment Profiles
-
-### Development
-
-```bash
-helm install nginx-dapi ./nginx-declarative-api \
-  -f values-dev.yaml \
-  -n nginx-dapi --create-namespace \
-  --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-  --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal
-```
-
-### Production
-
-```bash
-helm install nginx-dapi ./nginx-declarative-api \
-  -f values-production.yaml \
-  -n nginx-dapi --create-namespace \
-  --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-  --set nginxDapi.image.tag=5.5.1 \
-  --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
-  --set devportal.image.tag=5.5.1 \
-  --set ingress.host=nginx-dapi.example.com
-```
-
-The production profile enables HPA, PodDisruptionBudgets, pod anti-affinity, Redis persistence, and NetworkPolicies.
+| `webui.enabled` | Enable the Web UI deployment | `false` |
+| `webui.replicaCount` | Number of Web UI pod replicas | `1` |
+| `webui.image.repository` | Container image repository | `nginx-declarative-api-webui` |
+| `webui.image.tag` | Image tag (defaults to `.Chart.AppVersion`) | `""` |
+| `webui.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `webui.env` | Environment variables injected into the Web UI container | `[]` |
+| `webui.service.type` | Kubernetes Service type | `ClusterIP` |
+| `webui.service.port` | Service port | `80` |
+| `webui.service.targetPort` | Container port the Web UI listens on | `80` |
+| `webui.ingress.enabled` | Enable Ingress for the Web UI | `false` |
+| `webui.ingress.className` | Ingress class name | `""` |
+| `webui.ingress.annotations` | Ingress annotations | `{}` |
+| `webui.ingress.hosts` | Ingress host rules | `[]` |
+| `webui.ingress.tls` | Ingress TLS configuration | `[]` |
+| `webui.resources` | CPU/memory resource requests and limits | `{}` |
+| `webui.nodeSelector` | Node selector labels | `{}` |
+| `webui.tolerations` | Pod tolerations | `[]` |
+| `webui.affinity` | Pod affinity rules | `{}` |
+| `webui.podAnnotations` | Annotations added to Web UI pods | `{}` |
+| `webui.extraLabels` | Extra labels added to all Web UI resources | `{}` |
 
 ---
 
-## Advanced Usage
+## Deploying the Developer Portal
 
-### TLS / HTTPS with cert-manager
-
-```yaml
-ingress:
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: nginx-dapi.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: nginx-dapi-tls
-      hosts:
-        - nginx-dapi.example.com
-```
-
-### Horizontal Pod Autoscaling
-
-```yaml
-nginxDapi:
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 70
-```
-
-> Requires [metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster.
-
-### Pod Anti-Affinity
-
-```yaml
-nginxDapi:
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/component: nginx-dapi
-            topologyKey: kubernetes.io/hostname
-```
-
-### Image Pull Secrets
-
+### Enabling the service
 ```bash
-kubectl create secret docker-registry registry-credentials \
-  --docker-server=registry.example.com \
-  --docker-username=<user> \
-  --docker-password=<token> \
-  -n nginx-dapi
+helm install nginx-dapi . \
+  --namespace nginx-dapi --create-namespace \
+  --set nginxDapi.enabled=true \
+  --set nginxDapi.image.repository=nginx-declarative-api \
+  --set nginxDapi.image.tag=5.5.2 \
+  --set devportal.enabled=true \
+  --set devportal.image.repository=nginx-declarative-api-devportal \
+  --set devportal.image.tag=5.5.2
 ```
 
-```yaml
-global:
-  imagePullSecrets:
-    - name: registry-credentials
+### In-cluster service name
+
+When `devportal.enabled=true`, the chart creates a Service named:
+```
+<release-name>-nginx-declarative-api-devportal
 ```
 
-### Loading config from a Secret
-
-```yaml
-nginxDapi:
-  envFrom:
-    - secretRef:
-        name: nginx-dapi-secrets
+For example, with release name `nginx-dapi`:
+```
+nginx-dapi-nginx-declarative-api-devportal
 ```
 
-### Redis Persistent Volume
+The NGINX Declarative API resolves this automatically via in-cluster DNS. No extra configuration is needed.
 
-By default Redis runs with no persistence — data is lost if the pod restarts. This is fine for ephemeral request queuing, but if you rely on Redis for GitOps autosync state you should enable a PersistentVolumeClaim.
+### Triggering developer portal generation
 
-#### Option 1 — Let the chart create the PVC (recommended)
-
-Set `redis.persistence.enabled: true` and the chart will automatically create a PVC named `<release>-nginx-declarative-api-redis` and mount it at `/data` inside the Redis container.
-
-```yaml
-redis:
-  persistence:
-    enabled: true
-    size: 5Gi                # volume size
-    accessMode: ReadWriteOnce
-    storageClass: ""         # "" uses the cluster default StorageClass
+Set `developer_portal.enabled: true` in the `apigateway` block of your declarative JSON. Both `redocly` and `backstage` portal types are supported:
+```json
+{
+  "declaration": {
+    "http": {
+      "servers": [
+        {
+          "locations": [
+            {
+              "uri": "/petstore",
+              "apigateway": {
+                "openapi_schema": "https://petstore3.swagger.io/api/v3/openapi.json",
+                "api_gateway": {
+                  "enabled": true,
+                  "strip_uri": true,
+                  "server_url": "https://petstore3.swagger.io/api/v3"
+                },
+                "developer_portal": {
+                  "enabled": true,
+                  "type": "redocly",
+                  "uri": "/petstore-devportal.html"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 ```
 
-Or pass the same values via `--set` at install time:
+The API calls the Developer Portal service to generate the portal definition, then publishes it to NGINX via NGINX Instance Manager or NGINX One Console as part of the normal config push.
+
+### Verifying the Developer Portal is running
+```bash
+# Pod is Running
+kubectl get pods -n nginx-dapi -l app.kubernetes.io/component=devportal
+
+# Service exists
+kubectl get svc -n nginx-dapi | grep devportal
+
+# Tail logs to confirm requests from the API are received
+kubectl logs -n nginx-dapi -l app.kubernetes.io/component=devportal -f
+```
+
+---
+
+## Deploying the Web UI
+
+### Determining the correct API service name
+
+The API service name follows this pattern:
+```
+<release-name>-nginx-declarative-api-nginx-dapi
+```
+
+With release name `nginx-dapi` it is:
+```
+nginx-dapi-nginx-declarative-api-nginx-dapi
+```
+
+Confirm after installation:
+```bash
+kubectl get svc -n nginx-dapi
+```
+
+### Enabling the Web UI
 
 ```bash
 helm install nginx-dapi . \
   --namespace nginx-dapi --create-namespace \
-  --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-  --set nginxDapi.image.tag=5.5.1 \
-  --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
-  --set devportal.image.tag=5.5.1 \
-  --set redis.persistence.enabled=true \
-  --set redis.persistence.size=5Gi
+  --set nginxDapi.enabled=true \
+  --set nginxDapi.image.repository=nginx-declarative-api \
+  --set nginxDapi.image.tag=5.5.2 \
+  --set webui.enabled=true \
+  --set webui.image.repository=nginx-declarative-api-webui \
+  --set webui.image.tag=5.5.2
 ```
 
-Confirm the PVC was created and is bound before the pod starts:
-
-```bash
-kubectl get pvc -n nginx-dapi
-# NAME                                          STATUS   VOLUME   CAPACITY   ...
-# nginx-dapi-nginx-declarative-api-redis        Bound    pvc-...  5Gi        ...
-```
-
-#### Option 2 — Use a specific StorageClass
-
-If your cluster has multiple StorageClasses (e.g. `fast-ssd`, `standard`), specify the one you want:
-
+Or via values file (recommended):
 ```yaml
-redis:
-  persistence:
-    enabled: true
-    storageClass: "fast-ssd"
-    size: 5Gi
+webui:
+  enabled: true
+  image:
+    repository: nginx-declarative-api-webui
+    tag: "5.5.2"
 ```
 
-#### Option 3 — Use a pre-existing PVC
-
-If you have already created a PVC manually (e.g. to migrate data), reference it by name and the chart will skip PVC creation:
-
-```bash
-# Create the PVC manually first
-kubectl apply -n nginx-dapi -f - <<EOF
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: my-redis-data
-  namespace: nginx-dapi
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 5Gi
-EOF
-```
-
+### Exposing the Web UI via Ingress
 ```yaml
-redis:
-  persistence:
+webui:
+  enabled: true
+  image:
+    repository: nginx-declarative-api-webui
+    tag: "5.5.2"
+  ingress:
     enabled: true
-    existingClaim: "my-redis-data"
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: nginx-declarative-api-ui.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nginx-declarative-api-ui-tls
+        hosts:
+          - nginx-declarative-api-ui.example.com
 ```
 
-#### Enabling persistence on an already-running release
-
-If Redis is already deployed without persistence, upgrade in place:
-
+### Port-forwarding for local testing
 ```bash
-helm upgrade nginx-dapi . \
-  --namespace nginx-dapi \
-  --set redis.persistence.enabled=true \
-  --set redis.persistence.size=5Gi
+kubectl port-forward -n nginx-dapi \
+  svc/nginx-dapi-nginx-declarative-api-webui 8080:80
 ```
 
-> **Warning:** This will restart the Redis pod. Any in-memory data that was not previously persisted will be lost on this one restart. All subsequent restarts will retain data on the volume.
-
-#### Verifying data survives a pod restart
-
-```bash
-# Write a test key
-kubectl exec -n nginx-dapi deploy/nginx-dapi-nginx-declarative-api-redis \
-  -- redis-cli set helm-test "persistence-works"
-
-# Delete the pod (it will be recreated by the Deployment)
-kubectl delete pod -n nginx-dapi -l app.kubernetes.io/component=redis
-
-# Wait for it to come back, then read the key
-kubectl exec -n nginx-dapi deploy/nginx-dapi-nginx-declarative-api-redis \
-  -- redis-cli get helm-test
-# Expected output: persistence-works
-```
+Open `http://localhost:8080` in your browser.
 
 ---
 
-### External Redis
+## Accessing the API documentation
 
-To disable the bundled Redis and point the app at an external instance, you need to supply a custom `config.toml` that overrides the default Redis hostname. Mount it as a volume:
+| Path | Description |
+|------|-------------|
+| `/docs` | Interactive Swagger UI |
+| `/redoc` | Redoc documentation |
+| `/openapi.json` | Raw OpenAPI specification |
 
+Port-forward to access locally:
+```bash
+kubectl port-forward -n nginx-dapi \
+  svc/nginx-dapi-nginx-declarative-api-nginx-dapi 5000:5000
+```
+
+Then open `http://localhost:5000/docs`.
+
+---
+
+## Full production example
 ```yaml
-redis:
-  enabled: false   # disable the bundled Redis Deployment and Service
+# production-values.yaml
 
 nginxDapi:
-  extraVolumes:
-    - name: config
-      configMap:
-        name: nginx-dapi-config
+  enabled: true
+  image:
+    repository: nginx-declarative-api
+    tag: "5.5.2"
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: nginx-declarative-api.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nginx-declarative-api-tls
+        hosts:
+          - nginx-declarative-api.example.com
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
-  extraVolumeMounts:
-    - name: config
-      mountPath: /app/etc/config.toml
-      subPath: config.toml
+devportal:
+  enabled: true
+  image:
+    repository: nginx-declarative-api-devportal
+    tag: "5.5.2"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+webui:
+  enabled: true
+  image:
+    repository: nginx-declarative-api-webui
+    tag: "5.5.2"
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: nginx-declarative-api-ui.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nginx-declarative-api-ui-tls
+        hosts:
+          - nginx-declarative-api-ui.example.com
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
 ```
-
-Create the ConfigMap with your Redis connection details before installing:
-
 ```bash
-kubectl create configmap nginx-dapi-config \
-  --from-literal=config.toml='
-[redis]
-host = "my-external-redis.example.com"
-port = 6379
-' \
-  -n nginx-dapi
+helm install nginx-dapi . \
+  --namespace nginx-dapi --create-namespace \
+  -f production-values.yaml
 ```
-
----
-
-## Upgrading
-
-```bash
-helm upgrade nginx-dapi ./nginx-declarative-api \
-  -n nginx-dapi \
-  -f values-production.yaml \
-  --set nginxDapi.image.tag=5.5.1
-```
-
-Every Deployment template includes a `checksum/values` annotation that automatically triggers a rolling restart when the corresponding values section changes.
-
-Preview changes before applying:
-
-```bash
-# Requires the helm-diff plugin
-helm diff upgrade nginx-dapi ./nginx-declarative-api -n nginx-dapi -f values-production.yaml
-```
-
----
-
-## Uninstalling
-
-```bash
-helm uninstall nginx-dapi -n nginx-dapi
-```
-
-> **Note:** PersistentVolumeClaims are **not** deleted automatically to prevent data loss. Remove them manually if needed:
->
-> ```bash
-> kubectl delete pvc -n nginx-dapi -l app.kubernetes.io/instance=nginx-dapi
-> ```
-
----
-
-## Accessing the API
-
-| Endpoint | Path |
-|----------|------|
-| Swagger UI (interactive docs) | `/docs` |
-| ReDoc documentation | `/redoc` |
-| OpenAPI specification | `/openapi.json` |
 
 ---
 
 ## Troubleshooting
 
-**Helm reports `deployed` but no pods exist**
+### Developer Portal not generating portals
 
-Ensure you used `--create-namespace` or pre-created the namespace before installing. Do not create the namespace inside `values.yaml` — this causes a conflict with Helm's namespace management.
+1. Confirm the pod is Running: `kubectl get pods -n nginx-dapi -l app.kubernetes.io/component=devportal`
+2. Confirm the service exists: `kubectl get svc -n nginx-dapi | grep devportal`
+3. Confirm `developer_portal.enabled: true` is set in the declarative JSON payload
+4. Check API logs for connection errors to the devportal: `kubectl logs -n nginx-dapi -l app.kubernetes.io/component=nginx-dapi`
 
+### Checking all deployed services
 ```bash
-helm install nginx-dapi ./nginx-declarative-api -n nginx-dapi --create-namespace
+kubectl get pods,svc -n nginx-dapi
 ```
 
-**`ImagePullBackOff`**
-
-Verify the image repository and tag, and confirm `global.imagePullSecrets` is set for private registries:
-
-```bash
-kubectl describe pod -n nginx-dapi <pod-name> | grep -A 10 "Events:"
+Expected with all components enabled (release name `nginx-dapi`):
 ```
+NAME                                                                    READY   STATUS
+pod/nginx-dapi-nginx-declarative-api-devportal-<hash>                  1/1     Running
+pod/nginx-dapi-nginx-declarative-api-nginx-dapi-<hash>                 1/1     Running
+pod/nginx-dapi-nginx-declarative-api-redis-<hash>                      1/1     Running
+pod/nginx-dapi-nginx-declarative-api-webui-<hash>                      1/1     Running
 
-**`nginx-dapi` can't reach Redis**
-
-The app connects to Redis using the hostname `redis` hardcoded in its `config.toml`. Confirm the Redis Service exists with that exact name and is running:
-
-```bash
-kubectl get svc -n nginx-dapi
-kubectl logs -n nginx-dapi deploy/nginx-dapi-nginx-declarative-api-nginx-dapi | grep -i redis
-```
-
-**Liveness probe failing on startup**
-
-Increase `initialDelaySeconds` if the app takes longer than 15 seconds to start:
-
-```yaml
-nginxDapi:
-  livenessProbe:
-    initialDelaySeconds: 30
-```
-
-**Render templates without installing**
-
-```bash
-helm template nginx-dapi ./nginx-declarative-api -f values-dev.yaml
-```
-
-**Lint the chart**
-
-```bash
-helm lint ./nginx-declarative-api
+NAME                                                     TYPE        PORT(S)
+service/nginx-dapi-nginx-declarative-api-devportal       ClusterIP   5000/TCP
+service/nginx-dapi-nginx-declarative-api-nginx-dapi      ClusterIP   5000/TCP
+service/nginx-dapi-nginx-declarative-api-redis           ClusterIP   6379/TCP
+service/nginx-dapi-nginx-declarative-api-webui           ClusterIP   80/TCP
 ```
 
 ---
 
-## License
+## Related resources
 
-This Helm chart is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-
-The upstream NGINX Declarative API project is also Apache 2.0 licensed. See the [upstream repository](https://github.com/f5devcentral/NGINX-Declarative-API/blob/main/LICENSE.md) for details.
+- [NGINX Declarative API source](https://github.com/f5devcentral/NGINX-Declarative-API)
+- [Developer Portal source](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/redocly/devportal)
+- [Web UI source](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/webui)
+- [API usage guide v5.5](https://github.com/f5devcentral/NGINX-Declarative-API/blob/main/USAGE-v5.5.md)
+- [Docker Compose deployment](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/docker-compose)
+- [Postman collection](https://github.com/f5devcentral/NGINX-Declarative-API/tree/main/contrib/postman)
+- [F5 NGINX Instance Manager docs](https://docs.nginx.com/nginx-instance-manager/)
+- [F5 NGINX One Console docs](https://docs.nginx.com/nginx-one/)

@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+  name: nginx-dapi
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
@@ -78,7 +78,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-webui
+  name: webui
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.webui.labels" . | nindent 4 }}

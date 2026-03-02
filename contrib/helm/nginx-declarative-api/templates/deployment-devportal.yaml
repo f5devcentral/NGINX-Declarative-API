@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-devportal
+  name: devportal
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.devportal.labels" . | nindent 4 }}

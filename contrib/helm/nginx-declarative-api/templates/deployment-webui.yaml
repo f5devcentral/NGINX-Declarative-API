@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-webui
+  name: webui
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.webui.labels" . | nindent 4 }}
