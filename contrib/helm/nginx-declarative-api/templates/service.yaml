@@ -73,3 +73,29 @@ spec:
   selector:
     {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 4 }}
 {{- end }}
+{{- if .Values.webui.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-webui
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.webui.labels" . | nindent 4 }}
+  {{- with .Values.webui.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.webui.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.webui.service.port }}
+      targetPort: http
+      protocol: TCP
+      {{- if and (eq .Values.webui.service.type "NodePort") .Values.webui.service.nodePort }}
+      nodePort: {{ .Values.webui.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "nginx-declarative-api.webui.selectorLabels" . | nindent 4 }}
+{{- end }}

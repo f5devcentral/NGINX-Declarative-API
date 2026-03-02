@@ -30,4 +30,16 @@ spec:
                 name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
                 port:
                   number: {{ .Values.nginxDapi.service.port }}
+    {{- if and .Values.webui.enabled .Values.ingress.webuiHost }}
+    - host: {{ .Values.ingress.webuiHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "nginx-declarative-api.fullname" . }}-webui
+                port:
+                  number: {{ .Values.webui.service.port }}
+    {{- end }}
 {{- end }}

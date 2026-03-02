@@ -41,21 +41,5 @@ services:
     networks:
       - dapi-network
 
-  webui:
-    image: nginx-declarative-api-webui
-    build:
-      context: ../../webui
-      dockerfile: Dockerfile
-    container_name: "nginx-dapi-webui"
-    restart: always
-    depends_on:
-      - nginx-dapi
-    environment:
-      - DAPI_PORT=5000
-    ports:
-      - "${WEBUI_PORT:-3000}:80"
-    networks:
-      - dapi-network
-
 networks:
   dapi-network:

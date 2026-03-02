@@ -315,6 +315,99 @@ devportal:
     automountServiceAccountToken: false
 
 # ==============================================================================
+# Web UI
+# ==============================================================================
+webui:
+  enabled: true
+
+  image:
+    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
+    tag: "5.5.1"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  # The webui container listens on port 80 (nginx serving the React build).
+  containerPort: 80
+
+  service:
+    type: ClusterIP
+    port: 80
+    # nodePort: 30001   # only used when type=NodePort
+    annotations: {}
+
+  # DAPI_PORT is automatically injected from nginxDapi.service.port by the
+  # deployment template. Add extra environment variables here if needed.
+  env: []
+  envFrom: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    existingClaim: ""
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: false
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    automountServiceAccountToken: false
+
+# ==============================================================================
 # Ingress
 # ==============================================================================
 ingress:
@@ -324,11 +417,14 @@ ingress:
   #  nginx.ingress.kubernetes.io/proxy-body-size: "10m"
   #  cert-manager.io/cluster-issuer: letsencrypt-prod
 
-  # Single hostname for the nginx-declarative-api service.
-  # All URIs are forwarded to it automatically — no path config needed.
-  # Override at install time with:
-  #   --set ingress.host=nginx-dapi.example.com
+  # Hostname for the nginx-declarative-api (backend) service.
+  # Override at install time with:  --set ingress.host=nginx-dapi.example.com
   host: nginx-dapi.k8s.example.com
+
+  # Optional separate hostname for the Web UI.
+  # Leave empty to disable the webui ingress rule.
+  # Override at install time with:  --set ingress.webuiHost=nginx-dapi-ui.example.com
+  webuiHost: ""
 
   tls: []
   # - secretName: nginx-dapi-tls

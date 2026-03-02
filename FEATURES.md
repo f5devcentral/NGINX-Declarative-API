@@ -1,6 +1,6 @@
-## Supported features
+# Supported features
 
-### NGINX Control plane support
+## NGINX Control plane support
 
 NGINX Declarative API has been tested with the following NGINX control plane releases:
 
@@ -8,7 +8,6 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 |---------------------------|----------------------|----------------------|--------|
 | NGINX Instance Manager    | 2.18+                | 2.20+                |        |
 | NGINX One Console         | General availability | General availability |        |
-
 
 ### NGINX `http` and `stream` servers
 
@@ -31,7 +30,6 @@ NGINX Declarative API has been tested with the following NGINX control plane rel
 | HTTP access logging formats | X        | X        | Customizable HTTP access logging formats                                                                                                                                                                  |
 | NGINX Plus REST API access  | X        | X        |                                                                                                                                                                                                           |
 | NGINX App Protect WAF       | X        | X        | NGINX Instance Manager only<li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
-
 
 ### HTTP Locations
 
@@ -115,7 +113,7 @@ See the [Postman collection](/contrib/) for usage examples
 #### Examples
 
 ACME issuer profiles to be defined under `.declaration.http.acme_issuers[]`
-For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme_module.html 
+For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme_module.html
 
 ```json
 {
@@ -458,6 +456,7 @@ Example hooks:
     }
 ]
 ```
+
 - `js_periodic` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_periodic
 
 ```json
@@ -543,11 +542,11 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
 |-----------------|----------|----------|-------|
 | Logging formats | X        | X        |       |
 
-
 #### Examples
 
 Access and error logging available in `.declaration.http.servers[].log` and `.declaration.http.servers[].locations[].log`
 See:
+
 * Access log: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
 * Logging to syslog: https://nginx.org/en/docs/syslog.html
 * Error log: https://nginx.org/en/docs/ngx_core_module.html#error_log
@@ -568,6 +567,7 @@ See:
 
 Access logging formats to be defined in `.declaration.http.logformats[]`
 See:
+
 * Access log format: https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
 
 ```json

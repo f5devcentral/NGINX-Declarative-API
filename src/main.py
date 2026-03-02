@@ -62,7 +62,6 @@ def runAsynchronousWorker():
 
         redis.asyncQueue.task_done()
 
-
 # Submit declaration using v5.4 API
 @app.post("/v5.4/config", status_code=200, response_class=PlainTextResponse)
 def post_config_v5_4(d: V5_4_NginxConfigDeclaration.ConfigDeclaration, response: Response):
@@ -275,6 +274,13 @@ def delete_config(configuid: str = ""):
         content={'code': 200, 'details': {'message': f'declaration {configuid} deleted'}},
         headers={'Content-Type': 'application/json'}
     )
+
+
+# Get JSON schema for the v5.5 ConfigDeclaration - used by the Web UI editor for IntelliSense
+@app.get("/v5.5/schema", status_code=200)
+def get_schema_v5_5():
+    schema = V5_5_NginxConfigDeclaration.ConfigDeclaration.model_json_schema()
+    return JSONResponse(content=schema, headers={'Content-Type': 'application/json'})
 
 
 if __name__ == '__main__':

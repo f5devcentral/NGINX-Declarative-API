@@ -164,3 +164,35 @@ used by the nginx-dapi app when communicating with the developer portal service.
 {{- define "nginx-declarative-api.devportal.serviceName" -}}
 devportal
 {{- end }}
+
+{{/*
+webui selector labels.
+*/}}
+{{- define "nginx-declarative-api.webui.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nginx-declarative-api.name" . }}-webui
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+webui full labels.
+*/}}
+{{- define "nginx-declarative-api.webui.labels" -}}
+{{ include "nginx-declarative-api.labels" . }}
+{{ include "nginx-declarative-api.webui.selectorLabels" . }}
+app.kubernetes.io/component: webui
+app.kubernetes.io/version: {{ .Values.webui.image.tag | quote }}
+{{- with .Values.global.podLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+ServiceAccount name — webui.
+*/}}
+{{- define "nginx-declarative-api.webui.serviceAccountName" -}}
+{{- if .Values.webui.serviceAccount.create }}
+{{- default (printf "%s-webui" (include "nginx-declarative-api.fullname" .)) .Values.webui.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.webui.serviceAccount.name }}
+{{- end }}
+{{- end }}
