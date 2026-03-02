@@ -327,8 +327,8 @@ webui:
 
   replicaCount: 1
 
-  # The webui container listens on port 80 (nginx serving the React build).
-  containerPort: 80
+  # The webui container listens on port 8080 (nginx-unprivileged, non-root).
+  containerPort: 8080
 
   service:
     type: ClusterIP
@@ -379,7 +379,10 @@ webui:
   affinity: {}
 
   podSecurityContext:
-    runAsNonRoot: false
+    runAsNonRoot: true
+    # uid 101 matches the nginx user in nginxinc/nginx-unprivileged
+    runAsUser: 101
+    fsGroup: 101
 
   containerSecurityContext:
     allowPrivilegeEscalation: false
