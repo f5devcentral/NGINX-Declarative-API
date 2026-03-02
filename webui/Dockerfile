@@ -1,5 +1,5 @@
 # Build stage
-FROM node:24-alpine as build
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
@@ -24,8 +24,7 @@ FROM nginxinc/nginx-unprivileged:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy entrypoint script
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+COPY --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
 
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
