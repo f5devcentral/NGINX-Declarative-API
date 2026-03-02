@@ -6,7 +6,7 @@
 # so that "helm list" shows the correct APP VERSION.
 # Override at deploy time with:  --set appVersion=5.5.1
 # ==============================================================================
-appVersion: "5.5.1"
+appVersion: "5.5.2"
 
 # ==============================================================================
 # Global settings
@@ -29,7 +29,7 @@ nginxDapi:
 
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
-    tag: "5.5.1"
+    tag: "5.5.2"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -231,7 +231,7 @@ devportal:
 
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
-    tag: "5.5.1"
+    tag: "5.5.2"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -322,7 +322,7 @@ webui:
 
   image:
     repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
-    tag: "5.5.1"
+    tag: "5.5.2"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
