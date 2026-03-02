@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}-redis
+  name: redis
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.redis.labels" . | nindent 4 }}
