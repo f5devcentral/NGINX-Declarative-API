@@ -3,7 +3,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "nginx-declarative-api.fullname" . }}
+  name: nginx-dapi
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
     {{- include "nginx-declarative-api.nginxDapi.labels" . | nindent 4 }}
@@ -27,7 +27,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "nginx-declarative-api.fullname" . }}-nginx-dapi
+                name: nginx-dapi
                 port:
                   number: {{ .Values.nginxDapi.service.port }}
     {{- if and .Values.webui.enabled .Values.ingress.webuiHost }}
@@ -38,7 +38,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "nginx-declarative-api.fullname" . }}-webui
+                name: webui
                 port:
                   number: {{ .Values.webui.service.port }}
     {{- end }}
