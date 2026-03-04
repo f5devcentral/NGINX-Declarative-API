@@ -7,8 +7,8 @@
 
 nginxDapi:
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api"
+    tag: "latest"
   replicaCount: 1
   resources:
     requests:
@@ -26,13 +26,13 @@ redis:
 
 devportal:
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-devportal"
+    tag: "latest"
 
 webui:
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-webui"
+    tag: "latest"
   replicaCount: 1
   resources:
     requests:
