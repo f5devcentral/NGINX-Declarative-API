@@ -25,21 +25,23 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 
  -h                             - This help
  -c [start|stop|build]          - Deployment command
+ -m [full|dev]                  - Deployment mode: full (with webui container) or dev (backend only for local webui development) (default: full)
  -a <port>                      - Custom port for NGINX Declarative API (default: 5000)
- -w <port>                      - Custom port for Web UI (default: 3000)
+ -w <port>                      - Custom port for Web UI (default: 3000, only for full mode)
  -d <port>                      - Custom port for Developer Portal (default: 5001)
  -r <port>                      - Custom port for Redis (default: 6379)
 
  === Examples:
 
- Deploy NGINX Declarative API:                  ./nginx-dapi.sh -c start
+ Deploy NGINX Declarative API (full):           ./nginx-dapi.sh -c start
+ Deploy in dev mode (no webui container):       ./nginx-dapi.sh -c start -m dev
  Deploy with custom Declarative API port:       ./nginx-dapi.sh -c start -a 8080
+ Deploy dev mode with custom ports:             ./nginx-dapi.sh -c start -m dev -a 8080 -d 8081 -r 6380
  Deploy with custom Web UI port:                ./nginx-dapi.sh -c start -w 8080
  Deploy with custom DevPortal port:             ./nginx-dapi.sh -c start -d 8081
  Deploy with all custom ports:                  ./nginx-dapi.sh -c start -a 8080 -w 8081 -d 8082 -r 6380
  Remove NGINX Declarative API:                  ./nginx-dapi.sh -c stop
  Build docker images:                           ./nginx-dapi.sh -c build
-
 ```
 
 ## Building docker images
@@ -54,8 +56,9 @@ $ ./nginx-dapi.sh -c build
 
 $ docker images
 REPOSITORY                        TAG       IMAGE ID       CREATED          SIZE
-nginx-declarative-api-devportal   latest    e1bd3cf9965a   1 minutes ago    669MB
-nginx-declarative-api             latest    0d76c5a4338b   1 minutes ago    168MB
+nginx-declarative-api-webui       latest    65d93e68ab9f   1 minutes ago    62.4MB
+nginx-declarative-api             latest    baa9086d4779   1 minutes ago    123MB
+nginx-declarative-api-devportal   latest    6df48ac0c209   1 minutes ago    400MB
 ```
 
 ## How to run
