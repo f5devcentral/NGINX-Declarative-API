@@ -57,8 +57,14 @@ spec:
             {{- toYaml .Values.webui.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.webui.containerSecurityContext | nindent 12 }}
-          {{- if or .Values.webui.persistence.enabled .Values.webui.extraVolumeMounts }}
           volumeMounts:
+            # nginx requires writable temp dirs. emptyDir mounts ensure chown is
+            # never needed, allowing the pod to run as a non-root user under any
+            # cluster admission policy.
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
             {{- if .Values.webui.persistence.enabled }}
             - name: data
               mountPath: /data
@@ -66,9 +72,11 @@ spec:
             {{- with .Values.webui.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- end }}
-      {{- if or .Values.webui.persistence.enabled .Values.webui.extraVolumes }}
       volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
         {{- if .Values.webui.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
@@ -77,7 +85,6 @@ spec:
         {{- with .Values.webui.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- end }}
       {{- with .Values.webui.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
