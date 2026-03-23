@@ -28,8 +28,8 @@ nginxDapi:
   enabled: true
 
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api"
+    tag: "latest"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -230,8 +230,8 @@ devportal:
   enabled: true
 
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-devportal"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-devportal"
+    tag: "latest"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -321,8 +321,8 @@ webui:
   enabled: true
 
   image:
-    repository: "YOUR_REGISTRY_HERE/nginx-declarative-api-webui"
-    tag: "5.5.2"
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-webui"
+    tag: "latest"
     pullPolicy: IfNotPresent
 
   replicaCount: 1

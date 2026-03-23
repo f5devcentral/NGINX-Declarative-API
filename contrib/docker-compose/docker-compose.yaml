@@ -14,7 +14,7 @@ services:
       - redis_data:/data:rw
 
   devportal:
-    image: nginx-declarative-api-devportal
+    image: ghcr.io/f5devcentral/nginx-declarative-api-devportal
     build:
       context: ../devportal/redocly
       dockerfile: Dockerfile
@@ -27,7 +27,7 @@ services:
       - dapi-network
 
   nginx-dapi:
-    image: nginx-declarative-api
+    image: ghcr.io/f5devcentral/nginx-declarative-api
     build:
       context: ../../
       dockerfile: Dockerfile
@@ -42,7 +42,7 @@ services:
       - dapi-network
 
   webui:
-    image: nginx-declarative-api-webui
+    image: ghcr.io/f5devcentral/nginx-declarative-api-webui
     build:
       context: ../../webui
       dockerfile: Dockerfile

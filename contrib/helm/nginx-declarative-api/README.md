@@ -18,8 +18,8 @@ helm install nginx-dapi . \
   --namespace nginx-dapi \
   --create-namespace \
   --set nginxDapi.enabled=true \
-  --set nginxDapi.image.repository=nginx-declarative-api \
-  --set nginxDapi.image.tag=5.5.2
+  --set nginxDapi.image.repository=ghcr.io/f5devcentral/nginx-declarative-api \
+  --set nginxDapi.image.tag=latest
 ```
 
 With all components (API + Developer Portal + Web UI):
@@ -28,14 +28,14 @@ helm install nginx-dapi . \
   --namespace nginx-dapi \
   --create-namespace \
   --set nginxDapi.enabled=true \
-  --set nginxDapi.image.repository=nginx-declarative-api \
-  --set nginxDapi.image.tag=5.5.2 \
+  --set nginxDapi.image.repository=ghcr.io/f5devcentral/nginx-declarative-api \
+  --set nginxDapi.image.tag=latest \
   --set devportal.enabled=true \
-  --set devportal.image.repository=nginx-declarative-api-devportal \
-  --set devportal.image.tag=5.5.2 \
+  --set devportal.image.repository=ghcr.io/f5devcentral/nginx-declarative-api-devportal \
+  --set devportal.image.tag=latest \
   --set webui.enabled=true \
-  --set webui.image.repository=nginx-declarative-api-webui \
-  --set webui.image.tag=5.5.2 \
+  --set webui.image.repository=ghcr.io/f5devcentral/nginx-declarative-api-webui \
+  --set webui.image.tag=latest \
   --set ingress.host=nginx-dapi.example.com \
   --set ingress.webuiHost=nginx-dapi-ui.example.com
 ```
