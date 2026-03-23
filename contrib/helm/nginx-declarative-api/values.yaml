@@ -142,7 +142,7 @@ redis:
 
   image:
     repository: redis
-    tag: "7.2-alpine"
+    tag: "8.6"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
