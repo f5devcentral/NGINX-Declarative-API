@@ -52,7 +52,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🛠️ Architecture
 
-```
+```mermaid
 ---
 title: NGINX Declarative API architecture
 ---
@@ -97,7 +97,7 @@ stateDiagram-v2
 
 ## 🤖 GitOps Autosync Mode
 
-```
+```mermaid
 sequenceDiagram
 
 title GitOps autosync operations
@@ -147,7 +147,7 @@ end
 
 ## 🕒 Concurrent access and queuing mode
 
-```
+```mermaid
 sequenceDiagram
 
 title Concurrent access and queueing mode
