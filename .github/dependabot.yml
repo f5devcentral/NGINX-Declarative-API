@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "python"
+
+  # npm dependencies (Web UI)
+  - package-ecosystem: "npm"
+    directory: "/webui"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "javascript"
+
+  # Root Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Web UI Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/webui"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Helm chart
+  - package-ecosystem: "helm"
+    directory: "/contrib/helm/nginx-declarative-api"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "helm"
