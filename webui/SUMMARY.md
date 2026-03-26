@@ -186,7 +186,7 @@ npm run test:coverage
 |Framework|React 19|
 |Language|TypeScript|
 |Build|Vite|
-|Routing|React Router v6|
+|Routing|React Router v7|
 |State|Zustand + TanStack Query|
 |HTTP|Axios|
 |Styling|CSS3 with custom properties|
