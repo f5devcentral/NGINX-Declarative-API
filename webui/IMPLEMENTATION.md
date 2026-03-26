@@ -94,7 +94,7 @@ webui/
 |**Framework**|React 19|UI library|
 |**Language**|TypeScript|Type safety|
 |**Build Tool**|Vite|Fast dev server & build|
-|**Routing**|React Router v6|Client-side routing|
+|**Routing**|React Router v7|Client-side routing|
 |**State Management**|Zustand|Auth state|
 |**Server State**|TanStack Query|API state & caching|
 |**HTTP Client**|Axios|API requests|
