@@ -44,7 +44,17 @@ Expected output:
 
 Open browser: <http://localhost:3000>
 
-### Step 4: Create Your First Configuration
+### Step 4: Login
+
+For development/testing, use any JWT token format:
+
+```text
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+*Note: For production, configure proper JWT validation on the backend.*
+
+### Step 5: Create Your First Configuration
 
 1. Click "Create Config" in navigation
 2. Edit the JSON declaration
@@ -148,6 +158,16 @@ lsof -i :3000
    ./nginx-dapi.sh -c start
    ```
 
+### Authentication Fails
+
+**Issue:** "Authentication failed" on login
+
+**Check:**
+
+1. Ensure JWT token is not empty
+2. For testing, any valid JWT format works
+3. For production, backend must validate the token
+
 ## 📱 Development Setup
 
 Want to modify the Web UI?
@@ -181,6 +201,7 @@ Dev server runs at <http://localhost:3000> with auto-reload.
 
 ## 💡 Tips
 
+- **JWT Token:** For development, you can generate tokens at <https://jwt.io>
 - **API Docs:** Visit <http://localhost:5000/docs> for interactive API documentation
 - **Templates:** Look in `webui/src/pages/CreateConfigPage.tsx` for example configurations
 - **Docker Compose:** See `contrib/docker-compose/docker-compose.yaml` for service configuration
