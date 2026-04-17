@@ -1,6 +1,7 @@
 # NGINX-Declarative-API
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![codecov](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API/branch/main/graph/badge.svg)](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API)
 
 NGINX Declarative API enables users to manage **NGINX configurations** in a modern **declarative style**. Instead of modifying configurations manually or using low-level APIs, this project simplifies operational workflows by allowing users to express desired configurations as a single JSON object.
 The API abstracts the complexity of managing NGINX configurations, empowering developers, operators, and automation systems to integrate seamlessly with NGINX.
@@ -226,6 +227,25 @@ NGINX Declarative API can be deployed on:
 * Linux virtual machine using [docker-compose](/contrib/docker-compose)
 * Kubernetes using [manifests](/contrib/kubernetes)
 * Kubernetes using a [Helm chart](contrib/helm/nginx-declarative-api)
+
+## 🧪 Running unit tests
+
+Python unit tests cover the core utility and configuration-patching modules. Run them from the repository root:
+
+```bash
+pip3 install pytest pyyaml
+python3 -m pytest tests/ -v
+```
+
+WebUI tests use [Vitest](https://vitest.dev/) and can be run from the `webui/` directory:
+
+```bash
+cd webui
+npm install
+npm test -- --run
+```
+
+Both test suites run automatically in GitHub Actions on every pull request and release build.
 
 ## 🐳 Building Docker images
 
