@@ -44,20 +44,10 @@ Expected output:
 
 Open browser: <http://localhost:3000>
 
-### Step 4: Login
+### Step 4: Create Your First Configuration
 
-For development/testing, use any JWT token format:
-
-```text
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-```
-
-*Note: For production, configure proper JWT validation on the backend.*
-
-### Step 5: Create Your First Configuration
-
-1. Click "Create Config" in navigation
-2. Edit the JSON declaration
+1. Fill in the Output section (choose NIM or NGINX One target)
+2. Add HTTP or Layer 4 configuration as needed
 3. Click "Create Configuration"
 
 Example minimal config:
@@ -158,16 +148,6 @@ lsof -i :3000
    ./nginx-dapi.sh -c start
    ```
 
-### Authentication Fails
-
-**Issue:** "Authentication failed" on login
-
-**Check:**
-
-1. Ensure JWT token is not empty
-2. For testing, any valid JWT format works
-3. For production, backend must validate the token
-
 ## 📱 Development Setup
 
 Want to modify the Web UI?
@@ -192,16 +172,13 @@ Dev server runs at <http://localhost:3000> with auto-reload.
 
 ## 🎯 Next Steps
 
-1. ✅ Login to Web UI
-2. ✅ Explore the Dashboard
-3. ✅ Create a test configuration
-4. 📖 Read the API v5.5 usage guide in `/USAGE-v5.5.md` for API details
-5. 📚 Check [Web UI Documentation](README.md)
-6. 🧪 Try the Postman collection in `/contrib/postman`
+1. ✅ Create a test configuration
+2. 📖 Read the API v5.5 usage guide in `/USAGE-v5.5.md` for API details
+3. 📚 Check [Web UI Documentation](README.md)
+4. 🧪 Try the Postman collection in `/contrib/postman`
 
 ## 💡 Tips
 
-- **JWT Token:** For development, you can generate tokens at <https://jwt.io>
 - **API Docs:** Visit <http://localhost:5000/docs> for interactive API documentation
 - **Templates:** Look in `webui/src/pages/CreateConfigPage.tsx` for example configurations
 - **Docker Compose:** See `contrib/docker-compose/docker-compose.yaml` for service configuration

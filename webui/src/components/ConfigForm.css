@@ -369,3 +369,152 @@ select.cf-input option { background: var(--cf-surface-select-option); }
   margin: 0;
 }
 .cf-empty-top { margin-top: -0.25rem; }
+
+/* --- API Gateway Editor ---------------------------------------------------- */
+
+.cf-subsection-agw {
+  border-top: 1px solid var(--border-accent-1);
+  margin-top: 0.875rem;
+  padding-top: 0.75rem;
+}
+
+.cf-agw-card {
+  border: 1px solid var(--border-accent-1);
+  border-radius: 7px;
+  margin-bottom: 0.4rem;
+  overflow: hidden;
+}
+
+.cf-agw-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.875rem;
+  background: var(--surface-form-input);
+}
+
+.cf-agw-card-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-45);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cf-agw-card-body {
+  padding: 0.75rem 0.875rem;
+  border-top: 1px solid var(--border-accent-1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cf-agw-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.25rem;
+}
+
+.cf-agw-item-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.65rem 0.875rem;
+  border-top: 1px solid var(--border-accent-1);
+}
+
+.cf-agw-item-remove {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 1.55rem;
+}
+
+.cf-empty-sm {
+  font-size: 0.74rem;
+  color: var(--text-empty);
+  font-style: italic;
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+}
+
+.cf-textarea-sm {
+  min-height: 62px;
+  font-size: 0.8rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+/* 3-column grid for location basic fields */
+.cf-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+@media (max-width: 900px) {
+  .cf-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .cf-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* OpenAPI schema URL / file mode switcher */
+.cf-agw-schema-mode {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border-accent-1);
+  border-radius: 5px;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.cf-agw-mode-btn {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: var(--surface-form-input);
+  color: var(--text-45);
+  transition: background 0.15s, color 0.15s;
+}
+
+.cf-agw-mode-btn + .cf-agw-mode-btn {
+  border-left: 1px solid var(--border-accent-1);
+}
+
+.cf-agw-mode-btn.active {
+  background: var(--accent-blue, #3b82f6);
+  color: #fff;
+}
+
+.cf-agw-file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cf-agw-file-input {
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+
+.cf-agw-file-ok {
+  font-size: 0.75rem;
+  color: var(--text-success, #22c55e);
+  font-style: italic;
+}
+
+/* Validation */
+.cf-input-error {
+  border-color: #ef4444 !important;
+  outline-color: #ef4444;
+}
+
+.cf-field-error {
+  font-size: 0.72rem;
+  color: #ef4444;
+  margin: 0.15rem 0 0;
+}

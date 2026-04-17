@@ -132,7 +132,7 @@ For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme
 
 | Type | Description          | API v5.4 | API v5.5 | Notes                               |
 |------|----------------------|----------|----------|-------------------------------------|
-| jwt  | Java Web Token (JWT) | X        | X        |                                     |
+| jwt  | JSON Web Token (JWT) | X        | X        |                                     |
 | mtls | Mutual TLS           | X        | X        | <li>Supported for HTTP servers</li> |
 | oidc | OpenID Connect       | X        | X        | <li>Supported for HTTP servers</li> |
 
@@ -210,7 +210,7 @@ For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.h
 
 | Type | Description            | API v5.4 | API v5.5 | Notes                                                                                                                                                                              |
 |------|------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| jwt  | Java Web Token (JWT)   | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
+| jwt  | JSON Web Token (JWT)   | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
 
 #### Examples
 
