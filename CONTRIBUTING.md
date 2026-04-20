@@ -20,6 +20,29 @@ To suggest a feature or enhancement, please create an issue on GitHub with the l
 
 - Fork the repo, create a branch, implement your changes, add any relevant tests, submit a PR when your changes are **tested** and ready for review.
 
+## Running Tests
+
+### Python unit tests
+
+Run from the repository root:
+
+```bash
+pip3 install pytest pyyaml pytest-cov
+python3 -m pytest tests/ -v --cov=src --cov-report=term-missing
+```
+
+### WebUI tests
+
+Run from the `webui/` directory:
+
+```bash
+cd webui
+npm install
+npm test -- --run
+```
+
+Both suites are run automatically in GitHub Actions. A failing test will block CI builds.
+
 ## Code Guidelines
 
 ### Git Guidelines
