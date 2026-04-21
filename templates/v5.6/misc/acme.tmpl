@@ -1,0 +1,21 @@
+# ACME Issuer template
+
+acme_issuer {{ acmeprofile.name | replace(" ", "_") }} {
+  uri {{ acmeprofile.uri }};
+{% if acmeprofile.account_key %}
+  account_key {{ acmeprofile.account_key }};
+{% endif -%}
+{% if acmeprofile.contact %}
+  contact {{ acmeprofile.contact }};
+{% endif %}
+{% if acmeprofile.ssl_trusted_certificate %}
+  ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ acmeprofile.ssl_trusted_certificate }}.crt;
+{% endif %}
+  ssl_verify {% if acmeprofile.ssl_verify == True %}on{% else %}off{% endif %};
+{% if acmeprofile.state_path %}
+  state_path {{ acmeprofile.state_path }};
+{% endif %}
+{% if acmeprofile.accept_terms_of_service %}
+  accept_terms_of_service;
+{% endif -%}
+}
