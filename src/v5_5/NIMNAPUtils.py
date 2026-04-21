@@ -6,7 +6,7 @@ import requests
 import json
 import base64
 
-import v5_4.GitOps
+import v5_5.GitOps
 
 from NcgConfig import NcgConfig
 
@@ -173,7 +173,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v5_4.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v5_5.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                     if status != 200:
                         return JSONResponse(

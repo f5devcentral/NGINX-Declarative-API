@@ -308,7 +308,6 @@ location /v5.5/ {
 - [Web UI README](../webui/README.md) - Detailed Web UI documentation
 - [USAGE-v5.5.md](../USAGE-v5.5.md) - API v5.5 usage guide
 - [Docker Compose README](../contrib/docker-compose/README.md) - Deployment guide
-- [OpenAPI Spec](../openapi.json) - Complete API specification
 
 ## 🤝 Contributing
 
