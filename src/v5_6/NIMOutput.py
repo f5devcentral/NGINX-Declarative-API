@@ -247,7 +247,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
         ### F5 WAF for NGINX policies support - commits policies to control plane
 
-        # Check F5 WAF for NGINX WAF policies configuration sanity
+        # Check WAF policies configuration sanity
         status, description = v5_6.NIMNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
@@ -255,7 +255,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                     "message": {"status_code": status, "message": {"code": status, "content": description}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Provision F5 WAF for NGINX WAF policies to NGINX Instance Manager
+        # Provision WAF policies to NGINX Instance Manager
         ppReply = v5_6.NIMNAPUtils.provisionPolicies(
             nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 
@@ -267,7 +267,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
-        ### / F5 WAF for NGINX policies support
+           ### / F5 WAF for NGINX policies support
 
         ### Publish staged config to instance group
         r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
@@ -285,7 +285,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         # Fetch the deployment status
         publishResponse = json.loads(r.text)
 
-        # Wait for either NIM success or failure after pushing a staged config
+        # Wait for either NGINX Instance Manager success or failure after pushing a staged config
         isPending = True
         jsonResponse = {}
         while isPending:
@@ -331,17 +331,17 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
             # Makes F5 WAF for NGINX policies active
             doWeHavePolicies = v5_6.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                              nmsPassword=nmsPassword,
-                                                              activePolicyUids=activePolicyUids,
-                                                              instanceGroupUid=igUid)
+                                                                 nmsPassword=nmsPassword,
+                                                                 activePolicyUids=activePolicyUids,
+                                                                 instanceGroupUid=igUid)
 
             if doWeHavePolicies:
                 # Clean up F5 WAF for NGINX WAF policies not used anymore
                 # and not defined in the declaration just pushed
                 time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
                 v5_6.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                   nmsPassword=nmsPassword,
-                                                   currentPolicies=provisionedNapPolicies)
+                                                      nmsPassword=nmsPassword,
+                                                      currentPolicies=provisionedNapPolicies)
 
             # If deploying a new configuration in GitOps mode start autosync
             if nmsSynctime == 0:

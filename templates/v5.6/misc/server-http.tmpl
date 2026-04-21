@@ -83,7 +83,7 @@ server {
     {%- if s.app_protect.log -%}
     {%- if s.app_protect.log.enabled == True -%}
     app_protect_security_log_enable on;
-    {%- if s.app_protect.log.profile_name -%}
+    {% if s.app_protect.log.profile_name -%}
     app_protect_security_log "{{ ncgconfig.nms.nap_logformats_dir_pum }}/{{ s.app_protect.log.profile_name }}.tgz" syslog:server={{ s.app_protect.log.destination }};
     {% endif -%}
     {% endif %}

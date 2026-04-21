@@ -69,7 +69,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
         # Pydantic JSON validation
         ConfigDeclaration(**declaration.model_dump())
     except ValidationError as e:
-        print(f'Invalid declaration {e}')
+        print(f"Invalid declaration {e}")
 
     d = declaration.model_dump()
     decltype = d['output']['type']

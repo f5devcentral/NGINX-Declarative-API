@@ -15,7 +15,7 @@ from fastapi.responses import Response, JSONResponse
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
 
-# Define (create/update) a F5 WAF for NGINX policy on NMS.
+# Define (create/update) a F5 WAF for NGINX policy on NGINX Instance Manager.
 # If policyUid is not empty the policy update is performed
 # Returns a tuple {status_code,text}. status_code is 201 if successful
 def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
