@@ -125,7 +125,7 @@ export function Layer4Section({
   onUpstreamsChange: (u: L4Upstreams) => void;
 }) {
   return (
-    <section className="cf-section">
+    <section className="cf-section" id="cf-sec-layer4">
       <SectionTitle title="Layer 4 (TCP/UDP)" sub="Stream proxy servers and upstream groups — optional" />
       <L4ServersSection servers={servers ?? []} onChange={onServersChange} />
       <L4UpstreamsSection upstreams={upstreams ?? []} onChange={onUpstreamsChange} />

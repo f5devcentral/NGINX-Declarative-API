@@ -8,7 +8,8 @@ A React 19 TypeScript single-page application for creating and submitting NGINX 
 
 ### Configuration Form
 
-- Output section — target NIM or NGINX One Console, with policies and license fields
+- Output section — target NGINX Instance Manager or NGINX One Console, with policies, license (JWT token upload, boolean enforce-initial-report toggle), and per-type certificates / log profiles
+- Sticky sidebar navigation with IntersectionObserver-based active-section highlighting
 - HTTP section — profiles (rate limiting, auth, authz, caching, maps, log), servers, and upstreams
 - Layer 4 section — TCP/UDP servers and upstreams
 - API Gateway editor — per-location OpenAPI schema integration (URL / file upload / base64)
@@ -27,8 +28,8 @@ All v5.5 endpoints are integrated:
 ### Testing
 
 - Vitest + React Testing Library
-- 66 tests across 4 files
-- Component tests (ConfigForm API Gateway, validation, profile dropdowns)
+- 91 tests across 5 files
+- Component tests (ConfigForm API Gateway, validation, profile dropdowns, OutputSection)
 - Page-level integration tests (CreateConfigPage)
 - Coverage reporting configured
 
@@ -71,6 +72,7 @@ webui/
 │   │   ├── ConfigForm.agw.test.tsx
 │   │   ├── ConfigForm.agw.validation.test.tsx
 │   │   ├── ConfigForm.agw.profiles.test.tsx
+│   │   ├── ConfigForm.output.test.tsx
 │   │   └── CreateConfigPage.test.tsx
 │   ├── types/                # TypeScript definitions
 │   │   └── index.ts

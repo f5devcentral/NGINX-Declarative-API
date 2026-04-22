@@ -18,7 +18,7 @@ export const emptyNginxOne = (): OutputNGINXOne => ({
 });
 
 export const emptyLicense = (): LicenseConfig => ({
-  endpoint: 'product.connect.nginx.com', token: '', ssl_verify: true, grace_period: '',
+  endpoint: 'product.connect.nginx.com', token: '', ssl_verify: true,
   proxy: '', proxy_username: '', proxy_password: '',
 });
 

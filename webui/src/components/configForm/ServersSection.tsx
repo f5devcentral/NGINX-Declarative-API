@@ -1,6 +1,6 @@
 import type { Server, HttpProfiles } from './types';
 import { emptyServer } from './defaults';
-import { Field, TextInput, Toggle, AddBtn, RemoveBtn, CollapseCard } from './primitives';
+import { Field, TextInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ProfileSelect } from './primitives';
 import { LocationsEditor } from './LocationsEditor';
 import {
   LogEditor, AppProtectEditor, SnippetEditor, HeadersEditor,
@@ -8,12 +8,13 @@ import {
 } from './LocationEditors';
 import { TlsEditor } from './TlsEditor';
 
-export function ServersSection({ servers, onChange, profiles, authServerNames, njsProfileNames }: {
+export function ServersSection({ servers, onChange, profiles, authServerNames, njsProfileNames, resolverNames }: {
   servers: Server[];
   onChange: (s: Server[]) => void;
   profiles?: HttpProfiles;
   authServerNames?: string[];
   njsProfileNames?: string[];
+  resolverNames?: string[];
 }) {
   const update = (i: number, s: Server) => onChange(servers.map((x, idx) => idx === i ? s : x));
   const remove = (i: number) => onChange(servers.filter((_, idx) => idx !== i));
@@ -63,8 +64,8 @@ export function ServersSection({ servers, onChange, profiles, authServerNames, n
                 mono
               />
             </Field>
-            <Field label="Resolver" hint='Name of a resolver profile defined in the Resolvers section.'>
-              <TextInput value={srv.resolver ?? ''} onChange={v => update(i, { ...srv, resolver: v || undefined })} placeholder="my-resolver" />
+            <Field label="Resolver" hint='Select a resolver profile defined in the HTTP Profiles → Resolvers section.'>
+              <ProfileSelect value={srv.resolver ?? ''} onChange={v => update(i, { ...srv, resolver: v || undefined })} options={resolverNames ?? []} />
             </Field>
           </div>
 

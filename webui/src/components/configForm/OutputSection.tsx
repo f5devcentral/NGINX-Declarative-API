@@ -3,7 +3,7 @@ import {
   emptyNms, emptyNginxOne, emptyLicense, emptyCertificate,
   emptyLogProfile, emptyNMSPolicy, emptyNMSPolicyVersion,
 } from './defaults';
-import { Field, TextInput, NumberInput, SelectInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ModulesField, SectionTitle } from './primitives';
+import { Field, TextInput, NumberInput, SelectInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ModulesField } from './primitives';
 
 export function PoliciesEditor({ policies, onChange }: {
   policies: NMSPolicy[];
@@ -132,8 +132,7 @@ export function OutputSection({ output, onChange }: {
   const license = output.license;
 
   return (
-    <section className="cf-section">
-      <SectionTitle title="Output" sub="Where to push the generated NGINX configuration" />
+    <section className="cf-section" id="cf-sec-output">
 
       <div className="cf-type-row">
         <button
@@ -142,7 +141,7 @@ export function OutputSection({ output, onChange }: {
           onClick={() => onChange({ ...output, type: 'nms' })}
         >
           <span className="cf-type-card-title">NGINX Instance Manager</span>
-          <span className="cf-type-card-sub">Push to a NIM instance group</span>
+          <span className="cf-type-card-sub">Push to an instance group</span>
         </button>
         <button
           type="button"
@@ -165,7 +164,7 @@ export function OutputSection({ output, onChange }: {
       </div>
 
       {/* License section */}
-      <div className="cf-subsection cf-subsection-tls">
+      <div className="cf-subsection cf-subsection-tls" id="cf-sec-license">
         <div className="cf-subsection-header">
           <span className="cf-subsection-title">License (NGINX Plus)</span>
           <Toggle checked={license != null} onChange={v => onChange({ ...output, license: v ? emptyLicense() : undefined })} label={license != null ? 'Configured' : 'Not configured'} />
@@ -175,11 +174,25 @@ export function OutputSection({ output, onChange }: {
             <Field label="Endpoint" hint="License server endpoint URL.">
               <TextInput value={license.endpoint ?? 'product.connect.nginx.com'} onChange={v => onChange({ ...output, license: { ...license, endpoint: v } })} placeholder="product.connect.nginx.com" mono />
             </Field>
-            <Field label="JWT token" hint="NGINX Plus license JWT.">
-              <TextInput value={license.token ?? ''} onChange={v => onChange({ ...output, license: { ...license, token: v } })} placeholder="eyJ..." mono />
+            <Field label="JWT token" hint="NGINX Plus license JWT. Paste the token content or upload a .jwt file.">
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <TextInput value={license.token ?? ''} onChange={v => onChange({ ...output, license: { ...license, token: v } })} placeholder="eyJ..." mono />
+                <label className="cf-btn-add" style={{ cursor: 'pointer', whiteSpace: 'nowrap', margin: 0 }} title="Upload JWT file">
+                  <span className="cf-btn-add-icon">↑</span> Upload
+                  <input type="file" accept=".jwt,.txt,text/plain" style={{ display: 'none' }}
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => onChange({ ...output, license: { ...license, token: (ev.target?.result as string ?? '').trim() } });
+                      reader.readAsText(f);
+                      e.target.value = '';
+                    }} />
+                </label>
+              </div>
             </Field>
-            <Field label="Grace period" hint='How long NGINX Plus continues running after license expiry, e.g. "720h".'>
-              <TextInput value={license.grace_period ?? ''} onChange={v => onChange({ ...output, license: { ...license, grace_period: v || undefined } })} placeholder="720h" mono />
+            <Field label="Enforce initial report" hint='When enabled, enforces the initial license report to the licensing server. Controls the enforce_initial_report directive.'>
+              <Toggle checked={license.grace_period ?? false} onChange={v => onChange({ ...output, license: { ...license, grace_period: v } })} label={license.grace_period ? 'Enabled' : 'Disabled'} />
             </Field>
             <Field label="SSL verify">
               <Toggle checked={license.ssl_verify ?? true} onChange={v => onChange({ ...output, license: { ...license, ssl_verify: v } })} label={license.ssl_verify ?? true ? 'Yes' : 'No'} />
@@ -200,17 +213,17 @@ export function OutputSection({ output, onChange }: {
       {output.type === 'nms' && (
         <>
           <div className="cf-grid-2">
-            <Field label="NIM URL" required
+            <Field label="URL" required
               hint="Base URL of your NGINX Instance Manager instance. Include scheme and port. Example: https://nim.example.com:443">
               <TextInput value={nms.url} onChange={v => onChange({ ...output, nms: { ...nms, url: v } })} placeholder="https://nms.example.com" mono />
             </Field>
             <Field label="Username" required hint="API username for NGINX Instance Manager. Usually 'admin' for initial setup.">
               <TextInput value={nms.username} onChange={v => onChange({ ...output, nms: { ...nms, username: v } })} placeholder="admin" />
             </Field>
-            <Field label="Password" required hint="Password for the NIM API user. Stored only in your local session — never sent to this UI's server.">
+            <Field label="Password" required hint="Password for the NGINX Instance Manager API user. Stored only in your local session — never sent to this UI's server.">
               <TextInput value={nms.password} onChange={v => onChange({ ...output, nms: { ...nms, password: v } })} type="password" placeholder="••••••••" />
             </Field>
-            <Field label="Instance group" required hint="Name of the NIM instance group to push configuration to. The group must already exist in NIM.">
+            <Field label="Instance group" required hint="Name of the NGINX Instance Manager instance group to push configuration to. The group must already exist.">
               <TextInput value={nms.instancegroup} onChange={v => onChange({ ...output, nms: { ...nms, instancegroup: v } })} placeholder="production" />
             </Field>
             <Field label="Sync time (seconds)"
@@ -222,18 +235,18 @@ export function OutputSection({ output, onChange }: {
               <ModulesField value={nms.modules ?? []} onChange={v => onChange({ ...output, nms: { ...nms, modules: v } })} />
             </Field>
           </div>
-          <PoliciesEditor
+          <div id="cf-sec-policies"><PoliciesEditor
             policies={nms.policies ?? []}
             onChange={v => onChange({ ...output, nms: { ...nms, policies: v } })}
-          />
+          /></div>
           {/* Certificates for NMS */}
-          <div className="cf-subsection">
+          <div className="cf-subsection" id="cf-sec-certificates">
             <div className="cf-subsection-header">
               <span className="cf-subsection-title">Certificates</span>
               <AddBtn label="Add certificate" onClick={() => onChange({ ...output, nms: { ...nms, certificates: [...(nms.certificates ?? []), emptyCertificate()] } })} />
             </div>
             {(nms.certificates ?? []).length === 0
-              ? <p className="cf-empty cf-empty-sm">No certificates. Add certificate objects to push to NIM alongside the configuration.</p>
+              ? <p className="cf-empty cf-empty-sm">No certificates. Add certificate objects to push to NGINX Instance Manager alongside the configuration.</p>
               : (nms.certificates ?? []).map((cert, ci) => (
                 <CollapseCard key={ci} title={cert.name || <em>cert #{ci + 1}</em>} meta={cert.type} defaultOpen={!cert.name}>
                   <div className="cf-grid-2">
@@ -254,7 +267,7 @@ export function OutputSection({ output, onChange }: {
             }
           </div>
           {/* Log profiles for NMS */}
-          <div className="cf-subsection">
+          <div className="cf-subsection" id="cf-sec-log-profiles">
             <div className="cf-subsection-header">
               <span className="cf-subsection-title">Log Profiles</span>
               <AddBtn label="Add profile" onClick={() => onChange({ ...output, nms: { ...nms, log_profiles: [...(nms.log_profiles ?? []), emptyLogProfile()] } })} />

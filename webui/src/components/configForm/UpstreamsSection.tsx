@@ -1,9 +1,9 @@
 import type { Upstream, Origin } from './types';
 import { emptyUpstream, emptyOrigin } from './defaults';
-import { Field, TextInput, NumberInput, Toggle, AddBtn, RemoveBtn, CollapseCard } from './primitives';
+import { Field, TextInput, NumberInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ProfileSelect } from './primitives';
 import { SnippetEditor } from './LocationEditors';
 
-export function UpstreamsSection({ upstreams, onChange }: { upstreams: Upstream[]; onChange: (u: Upstream[]) => void }) {
+export function UpstreamsSection({ upstreams, onChange, resolverNames }: { upstreams: Upstream[]; onChange: (u: Upstream[]) => void; resolverNames?: string[] }) {
   const update = (i: number, u: Upstream) => onChange(upstreams.map((x, idx) => idx === i ? u : x));
   const remove = (i: number) => onChange(upstreams.filter((_, idx) => idx !== i));
   const updOrigin = (i: number, oi: number, o: Origin) =>
@@ -39,8 +39,8 @@ export function UpstreamsSection({ upstreams, onChange }: { upstreams: Upstream[
               <TextInput value={up.name} onChange={v => update(i, { ...up, name: v })} placeholder="backend" />
             </Field>
             <Field label="Resolver"
-              hint="Optional DNS resolver name (from the resolvers section) for dynamic upstream addresses. Leave empty for static IPs.">
-              <TextInput value={up.resolver ?? ''} onChange={v => update(i, { ...up, resolver: v })} placeholder="my-resolver" />
+              hint="Select a resolver profile (from the HTTP Profiles → Resolvers section) for dynamic upstream addresses. Leave empty for static IPs.">
+              <ProfileSelect value={up.resolver ?? ''} onChange={v => update(i, { ...up, resolver: v || undefined })} options={resolverNames ?? []} />
             </Field>
           </div>
 

@@ -43,10 +43,11 @@ webui/
 │   │   ├── CreateConfigPage.tsx         # Main (and only) page
 │   │   └── CreateConfigPage.css
 │   ├── test/
-│   │   ├── setup.ts                     # Test setup
+│   │   ├── setup.ts                     # Test setup (IntersectionObserver + clipboard polyfills)
 │   │   ├── ConfigForm.agw.test.tsx      # AGW section toggle + OpenAPI schema tests
 │   │   ├── ConfigForm.agw.validation.test.tsx  # AGW field validation tests
 │   │   ├── ConfigForm.agw.profiles.test.tsx    # Profile dropdown tests
+│   │   ├── ConfigForm.output.test.tsx   # OutputSection — type cards, license, resolver, sidebar, clipboard
 │   │   └── CreateConfigPage.test.tsx    # Page-level integration tests
 │   ├── types/index.ts                   # Shared type definitions
 │   ├── App.tsx                          # App entry — single route to CreateConfigPage
@@ -96,9 +97,10 @@ npm run test:coverage
 
 **Create Config** (`/`) — the single page of the application.
 
-- Output section (NGINX Instance Manager or NGINX One Console target)
-- HTTP section (profiles, servers, upstreams)
+- Output section (NGINX Instance Manager or NGINX One Console target, license with JWT upload, policies, certificates, log profiles)
+- HTTP section (profiles, servers, upstreams — resolver field uses a ProfileSelect dropdown)
 - Layer 4 section (TCP/UDP servers and upstreams)
+- Sticky sidebar navigation with active-section highlighting
 - Submit button sends the generated JSON to the API
 
 ### Components
@@ -128,6 +130,11 @@ npm run test:coverage
 - ✅ Profile dropdown population from HTTP-level profiles
 - ✅ Live profile name propagation to API Gateway dropdowns
 - ✅ Page-level integration (submit, JSON editor round-trip)
+- ✅ Output type card labels (NGINX Instance Manager / NGINX One Console)
+- ✅ License section toggle, grace_period boolean, JWT file upload
+- ✅ Resolver ProfileSelect dropdown population and emission
+- ✅ Sidebar navigation rendering and indented subsection links
+- ✅ Clipboard execCommand fallback (non-secure context)
 
 ## 🌐 API Endpoints Used
 

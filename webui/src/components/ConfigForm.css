@@ -2,11 +2,70 @@
    Polished Hardcoded Form — ConfigForm
    ============================================================ */
 
+/* ─── Two-column layout: sidebar + content ──────────────────── */
+.cf-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Sticky sidebar nav */
+.cf-sidenav {
+  flex: 0 0 auto;
+  width: 150px;
+  position: sticky;
+  top: calc(var(--header-height, 5rem) + 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: var(--cf-surface-section, rgba(255,255,255,0.04));
+  border: 1px solid var(--border-n1, rgba(255,255,255,0.1));
+  border-radius: 9px;
+  padding: 0.6rem 0.4rem;
+}
+
+.cf-sidenav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  padding: 0.32rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-45, rgba(255,255,255,0.45));
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-sidenav-item.indent {
+  padding-left: 1.1rem;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.cf-sidenav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--text-88, rgba(255,255,255,0.88));
+}
+
+.cf-sidenav-item.active {
+  background: rgba(0, 150, 57, 0.18);
+  color: #00bf47;
+  font-weight: 600;
+}
+
 .config-form {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  width: 100%;
 }
 
 /* ─── Sections ─────────────────────────────────────────────── */

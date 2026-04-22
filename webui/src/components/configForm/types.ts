@@ -427,7 +427,7 @@ export interface LicenseConfig {
   endpoint?: string;
   token?: string;
   ssl_verify?: boolean;
-  grace_period?: string;
+  grace_period?: boolean;
   proxy?: string;
   proxy_username?: string;
   proxy_password?: string;

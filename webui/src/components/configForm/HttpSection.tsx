@@ -29,6 +29,7 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
 
   const njsProfileNames = njsProfiles.map(p => p.name).filter(Boolean);
   const authServerNames = (authentication.server ?? []).map(s => s.name).filter(Boolean);
+  const resolverNames   = resolvers.map(r => r.name).filter(Boolean);
 
   const profiles: HttpProfiles = {
     rateLimitNames:  rateLimits.map(r => r.name).filter(Boolean),
@@ -39,9 +40,10 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
   };
 
   return (
-    <section className="cf-section">
+    <section className="cf-section" id="cf-sec-http">
       <SectionTitle title="HTTP" sub="Virtual servers and upstream groups for HTTP/S traffic" />
 
+      <div id="cf-sec-http-profiles">
       <ProfilesSection
         rateLimits={rateLimits}
         onRateLimitsChange={v => onChange({ ...http, rate_limit: v })}
@@ -66,19 +68,26 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
         resolvers={resolvers}
         onResolversChange={onResolversChange}
       />
+      </div>
 
+      <div id="cf-sec-http-servers">
       <ServersSection
         servers={servers}
         onChange={v => onChange({ ...http, servers: v })}
         profiles={profiles}
         authServerNames={authServerNames}
         njsProfileNames={njsProfileNames}
+        resolverNames={resolverNames}
       />
+      </div>
 
+      <div id="cf-sec-http-upstreams">
       <UpstreamsSection
         upstreams={upstreams}
         onChange={v => onChange({ ...http, upstreams: v })}
+        resolverNames={resolverNames}
       />
+      </div>
     </section>
   );
 }
