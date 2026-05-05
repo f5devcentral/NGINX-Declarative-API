@@ -54,13 +54,14 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
 
 ### API endpoints
 
-- `POST /v5.5/config/` - Publish a new declaration
-- `PATCH /v5.5/config/{config_uid}` - Update an existing declaration
+- `GET /v5.6/schema` - Get Declarative API JSON schema
+- `POST /v5.6/config/` - Publish a new declaration
+- `PATCH /v5.6/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD
   - Per-Stream server CRUD
   - Per-Stream upstream CRUD
   - Per-NGINX App Protect WAF policy CRUD
-- `GET /v5.5/config/{configUid}/submission/{submissionUid}` - Retrieve a submission (asynchronous `PATCH` request) status
-- `GET /v5.5/config/{config_uid}` - Retrieve an existing declaration
-- `DELETE /v5.5/config/{config_uid}` - Delete an existing declaration
+- `GET /v5.6/config/{configUid}/submission/{submissionUid}` - Retrieve a submission (asynchronous `PATCH` request) status
+- `GET /v5.6/config/{config_uid}` - Retrieve an existing declaration
+- `DELETE /v5.6/config/{config_uid}` - Delete an existing declaration
