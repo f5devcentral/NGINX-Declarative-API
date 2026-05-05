@@ -69,7 +69,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 "headers": {'Content-Type': 'application/json'}}
 
     # Fetch F5 WAF for NGINX WAF policies from source of truth if needed
-    d_policies = v5_6.MiscUtils.getDictKey(d, 'output.nms.policies')
+    d_policies = v5_6.MiscUtils.getDictKey(d, 'output.declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
             if 'versions' in policy:
@@ -261,7 +261,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
         if ppReply.status_code >= 400:
             return {"status_code": ppReply.status_code,
-                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": json.loads(ppReply.body)['details']} }}
 
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']

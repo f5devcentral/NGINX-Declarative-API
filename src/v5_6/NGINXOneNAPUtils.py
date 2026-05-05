@@ -170,57 +170,58 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
     # 'staging-policy': '7b4b850a-ff9e-42a0-85d0-850171474224' }
     all_policy_active_names_and_uids = {}
 
-    for p in declaration['output']['nginxone']['policies']:
-        policy_name = p['name']
-        if policy_name:
-            policy_active_tag = p['active_tag']
+    if 'http' in declaration['declaration'] and 'policies' in declaration['declaration']['http']:
+        for p in declaration['declaration']['http']['policies']:
+            policy_name = p['name']
+            if policy_name:
+                policy_active_tag = p['active_tag']
 
-            # Iterates over all NGINX App Protect policies
-            if p['type'] == 'app_protect':
-                # Iterates over all policy versions
+                # Iterates over all NGINX App Protect policies
+                if p['type'] == 'app_protect':
+                    # Iterates over all policy versions
 
-                # Remove pre-existing policy versions
-                allPoliciesJSON = __getAllPolicies__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
-                polId = __getPolicyId__(allPoliciesJSON = json.loads(allPoliciesJSON.text), policyName=policy_name)
-                if polId != "":
-                    __deletePolicy__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyUids=[polId])
+                    # Remove pre-existing policy versions
+                    allPoliciesJSON = __getAllPolicies__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
+                    polId = __getPolicyId__(allPoliciesJSON = json.loads(allPoliciesJSON.text), policyName=policy_name)
+                    if polId != "":
+                        __deletePolicy__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyUids=[polId])
 
-                # Create all policy versions
-                for policyVersion in p['versions']:
-                    status, policyBody = v5_6.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
+                    # Create all policy versions
+                    for policyVersion in p['versions']:
+                        status, policyBody = v5_6.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
 
-                    if status != 200:
-                        return JSONResponse(
-                            status_code=422,
-                            content={"code": status,
-                                     "details": policyBody['content']}
+                        if status != 200:
+                            return JSONResponse(
+                                status_code=422,
+                                content={"code": status,
+                                         "details": policyBody['content']}
+                            )
+
+                        # Create the NGINX App Protect policy on NGINX One Console
+                        r = __definePolicyOnNGINXOne__(
+                            nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace,
+                            policyJson=policyBody['content']
                         )
 
-                    # Create the NGINX App Protect policy on NGINX One Console
-                    r = __definePolicyOnNGINXOne__(
-                        nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace,
-                        policyJson=policyBody['content']
-                    )
+                        # Check for errors creating NGINX App Protect policy
+                        if r.status_code != 201:
+                            return JSONResponse(
+                                status_code=r.status_code,
+                                content={"code": r.status_code, "details": json.loads(r.text)}
+                            )
+                        else:
+                            # Policy was created, retrieve metadata.uid for each policy version
+                            if policy_name not in all_policy_names_and_versions:
+                                all_policy_names_and_versions[policy_name] = []
 
-                    # Check for errors creating NGINX App Protect policy
-                    if r.status_code != 201:
-                        return JSONResponse(
-                            status_code=r.status_code,
-                            content={"code": r.status_code, "details": json.loads(r.text)}
-                        )
-                    else:
-                        # Policy was created, retrieve metadata.uid for each policy version
-                        if policy_name not in all_policy_names_and_versions:
-                            all_policy_names_and_versions[policy_name] = []
+                            # Stores the policy version
+                            uid = json.loads(r.text)['latest']['object_id']
+                            tag = policyVersion['tag']
 
-                        # Stores the policy version
-                        uid = json.loads(r.text)['latest']['object_id']
-                        tag = policyVersion['tag']
+                            if policy_active_tag == tag:
+                                all_policy_active_names_and_uids[policy_name] = uid
 
-                        if policy_active_tag == tag:
-                            all_policy_active_names_and_uids[policy_name] = uid
-
-                        all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+                            all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
 
     return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
                                                   "all_policy_active_names_and_uids": all_policy_active_names_and_uids})

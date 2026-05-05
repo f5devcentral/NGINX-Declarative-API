@@ -26,19 +26,6 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nms.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX Instance Manager
     - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX Instance Manager successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declarations to be submitted at the same time/from multiple clients. Currently supported for `PATCH` operations only.
     - `.output.nms.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
-    - `.output.nms.certificates` an optional array of TLS certificates/keys/chains to be published
-      - `.output.nms.certificates[].type` the item type ('certificate', 'key', 'chain')
-      - `.output.nms.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
-      - `.output.nms.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
-    - `.output.nms.policies[]` an optional array of NGINX App Protect security policies
-      - `.output.nms.policies[].type` the policy type ('app_protect')
-      - `.output.nms.policies[].name` the policy name (ie. 'prod-policy')
-      - `.output.nms.policies[].active_tag` the policy tag to enable among all available versions (ie. 'v1')
-      - `.output.nms.policies[].versions[]` array with all available policy versions
-      - `.output.nms.policies[].versions[].tag` the policy version's tag name
-      - `.output.nms.policies[].versions[].displayName` the policy version's display name
-      - `.output.nms.policies[].versions[].description` the policy version's description
-      - `.output.nms.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
   - *nginxone* - NGINX configuration is published to a NGINX One Console config sync group
     - `.output.nginxone.url` the NGINX One Console URL
     - `.output.nginxone.namespace` the NGINX One Console namespace
@@ -47,14 +34,23 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nginxone.synctime` **optional**, used for GitOps autosync. When specified and the declaration includes HTTP(S) references to NGINX App Protect policies, TLS certificates/keys/chains, the HTTP(S) endpoints will be checked every `synctime` seconds and if external contents have changed, the updated configuration will automatically be published to NGINX One Cloud Console
     - `.output.nms.synchronous` **optional**, when set to `True` (default) the NGINX Declarative API waits for NGINX One Console successful reply after publishing the NGINX configuration. Setting this to `False` enqueues the request, supporting multiple JSON declarations to be submitted at the same time/from multiple clients. Currently supported for `PATCH` operations only.
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
-    - `.output.nginxone.certificates` an optional array of TLS certificates/keys/chains to be published
-      - `.output.nginxone.certificates[].type` the item type ('certificate', 'key', 'chain')
-      - `.output.nginxone.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
-      - `.output.nginxone.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
 - `.declaration` describes the NGINX configuration to be created
-  - `.declaration.http[]` NGINX HTTP definitions
-  - `.declaration.layer4[]` NGINX TCP/UDP definitions
-  - `.declaration.resolvers[]` DNS resolvers definitions
+  - `.declaration.http` NGINX HTTP definitions
+    - `.declaration.http.certificates` an optional array of TLS certificates/keys/chains to be published
+      - `.declaration.http.certificates[].type` the item type ('certificate', 'key', 'chain')
+      - `.declaration.http.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
+      - `.declaration.http.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
+    - `.declaration.http.policies[]` an optional array of NGINX App Protect security policies
+      - `.declaration.http.policies[].type` the policy type ('app_protect')
+      - `.declaration.http.policies[].name` the policy name (ie. 'prod-policy')
+      - `.declaration.http.policies[].active_tag` the policy tag to enable among all available versions (ie. 'v1')
+      - `.declaration.http.policies[].versions[]` array with all available policy versions
+      - `.declaration.http.policies[].versions[].tag` the policy version's tag name
+      - `.declaration.http.policies[].versions[].displayName` the policy version's display name
+      - `.declaration.http.policies[].versions[].description` the policy version's description
+      - `.declaration.http.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
+  - `.declaration.layer4` NGINX TCP/UDP definitions
+  - `.declaration.resolvers` DNS resolvers definitions
 
 ### API endpoints
 

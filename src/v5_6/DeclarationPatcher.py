@@ -170,14 +170,14 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict):
     if 'policies' not in sourceDeclaration['declaration']['http']:
         return sourceDeclaration
 
-    # NGINX App Protect WAF policies patch
+    # F5 WAF for NGINX policies patch
     for p in sourceDeclaration['declaration']['http']['policies']:
         if 'type' in p and p['type'] == 'app_protect' \
                 and 'name' in p and p['name'] \
                 and p['type'] == patchedNAPPolicies['type'] \
                 and p['name'] == patchedNAPPolicies['name']:
 
-            # Patching an existing NGINX App Protect WAF policy, 'name' is the key
+            # Patching an existing F5 WAF for NGINX policy, 'name' is the key
             if patchedNAPPolicies['versions'] and patchedNAPPolicies['active_tag']:
                 # Patching NAP policy specifying 'versions' and 'active_tag' means updating
                 # If 'versions' and 'active_tag' are missing then it's a deletion

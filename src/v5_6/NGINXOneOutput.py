@@ -70,7 +70,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 "headers": {'Content-Type': 'application/json'}}
 
     # Fetch NGINX App Protect WAF policies from source of truth if needed
-    d_policies = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.policies')
+    d_policies = v5_6.MiscUtils.getDictKey(d, 'declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
             if 'versions' in policy:
@@ -87,7 +87,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     # Check TLS items validity
     all_tls = {'certificate': {}, 'key': {}}
 
-    d_certs = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.certificates')
+    d_certs = v5_6.MiscUtils.getDictKey(d, 'declaration.http.certificates')
     if d_certs is not None:
         for i in range(len(d_certs)):
             if d_certs[i]['name']:
@@ -146,10 +146,10 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                             issuer['name']) +"] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                         }}
 
-    # Add optional certificates specified under output.nginxone.certificates
+    # Add optional certificates specified under declaration.http.certificates
     extensions_map = {'certificate': '.crt', 'key': '.key'}
 
-    d_certificates = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.certificates')
+    d_certificates = v5_6.MiscUtils.getDictKey(d, 'declaration.http.certificates')
     if d_certificates is not None:
         for c in d_certificates:
             status, certContent = v5_6.GitOps.getObjectFromRepo(object=c['contents'],
@@ -163,7 +163,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                                       '/' + c['name'] + extensions_map[c['type']]}
             auxFiles['files'].append(newAuxFile)
 
-    ### / Add optional certificates specified under output.nginxone.certificates
+    ### / Add optional certificates specified under declaration.http.certificates
 
     # NGINX main configuration file through template
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),
@@ -261,7 +261,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
         if ppReply.status_code >= 400:
             return {"status_code": ppReply.status_code,
-                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": ppReply.content} }}
+                    "message": {"status_code": ppReply.status_code, "message": {"code": ppReply.status_code, "content": json.loads(ppReply.body)['details']} }}
 
         napPolicies = json.loads(ppReply.body)
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
