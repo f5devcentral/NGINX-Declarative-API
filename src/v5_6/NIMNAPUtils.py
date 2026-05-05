@@ -246,8 +246,6 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
         r = requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
                           data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
 
-        print(f"WAF policy publish {policyName} {body} -> {r.status_code} {r.text}")
-
     return doWeHavePolicies
 
 

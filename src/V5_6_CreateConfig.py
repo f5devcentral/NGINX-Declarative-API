@@ -101,7 +101,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              'name': configFileName}
 
                 all_resolver_profiles.append(resolver_profile['name'])
-                auxFiles['files'].append(resolverProfileConfigFile)
+                configFiles['files'].append(resolverProfileConfigFile)
 
     if 'http' in d['declaration']:
         if 'snippet' in d['declaration']['http']:
@@ -145,7 +145,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 upstreamProfileConfigFile = {'contents': b64renderedUpstreamProfile,
                                          'name': configFileName}
 
-                auxFiles['files'].append(upstreamProfileConfigFile)
+                configFiles['files'].append(upstreamProfileConfigFile)
                 all_upstreams.append(http['upstreams'][i]['name'])
 
         http = d['declaration']['http']
@@ -194,7 +194,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                               'name': configFileName }
 
                             all_auth_client_profiles.append(auth_profile['name'])
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
                             # Add the rendered authentication configuration snippet as a config file in the staged configuration - jwks template
                             templateName = NcgConfig.config['templates']['auth_client_root']+"/jwks.tmpl"
@@ -206,7 +206,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                               'name': configFileName }
 
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
                         case 'mtls':
                             # Add the rendered authentication configuration snippet as a config file in the staged configuration - mTLS template
@@ -222,7 +222,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                      'name': configFileName}
 
                             all_auth_client_profiles.append(auth_profile['name'])
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
                         case 'oidc':
                             # Add the rendered authentication configuration snippet as a config file in the staged configuration - OpenID Connect template
@@ -238,7 +238,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                      'name': configFileName}
 
                             all_auth_client_profiles.append(auth_profile['name'])
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
             if 'server' in d_auth_profiles:
                 # Render all server authentication profiles
@@ -260,7 +260,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                               'name': configFileName }
 
                             all_auth_server_profiles.append(auth_profile['name'])
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
                         case 'mtls':
                             # Add the rendered authentication configuration snippet as a config file in the staged configuration - mTLS template
@@ -276,7 +276,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                      'name': configFileName}
 
                             all_auth_server_profiles.append(auth_profile['name'])
-                            auxFiles['files'].append(authProfileConfigFile)
+                            configFiles['files'].append(authProfileConfigFile)
 
 
         # Check authorization profiles validity and creates authorization config files
@@ -304,7 +304,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                           'name': configFileName }
 
                         all_authz_client_profiles.append(authz_profile['name'])
-                        auxFiles['files'].append(authProfileConfigFile)
+                        configFiles['files'].append(authProfileConfigFile)
 
                         # Add the rendered authorization configuration snippet as a config file in the staged configuration - jwt template
                         templateName = NcgConfig.config['templates']['authz_client_root'] + "/jwt.tmpl"
@@ -318,7 +318,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                         authProfileConfigFile = {'contents': b64renderedClientAuthProfile,
                                                  'name': configFileName}
 
-                        auxFiles['files'].append(authProfileConfigFile)
+                        configFiles['files'].append(authProfileConfigFile)
 
         # NGINX Javascript profiles
         all_njs_profiles = []
@@ -361,7 +361,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                              'name': configFileName}
 
                 all_acme_issuers.append(acme_issuer['name'])
-                auxFiles['files'].append(acmeProfileConfigFile)
+                configFiles['files'].append(acmeProfileConfigFile)
 
         # HTTP level Javascript hooks
         d_http_njs_hooks = v5_6.MiscUtils.getDictKey(d, 'declaration.http.njs')
@@ -465,7 +465,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 httpServerConfb64 = base64.b64encode(bytes(httpServerConf, 'utf-8')).decode('utf-8')
                 newHttpServerAuxFile = {'contents': httpServerConfb64, 'name': NcgConfig.config['nms']['server_http_dir'] +
                                                                         '/' + server['name'].replace(' ', '_') + ".conf"}
-                auxFiles['files'].append(newHttpServerAuxFile)
+                configFiles['files'].append(newHttpServerAuxFile)
 
                 for loc in server['locations']:
 
@@ -547,7 +547,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                         'visibility_dir'] +
                                                                     loc['uri'] + "-moesif-http.conf"}
 
-                                    auxFiles['files'].append(moesifHTTPConfigFile)
+                                    configFiles['files'].append(moesifHTTPConfigFile)
 
                                     # Add the rendered Moesif visibility configuration snippet as a config file in the staged configuration - server context
                                     templateName = NcgConfig.config['templates'][
@@ -563,7 +563,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                                                                           'visibility_dir'] +
                                                                       loc['uri'] + "-moesif-server.conf"}
 
-                                    auxFiles['files'].append(moesifServerConfigFile)
+                                    configFiles['files'].append(moesifServerConfigFile)
 
                     # API Gateway provisioning
                     if loc['apigateway'] and loc['apigateway']['api_gateway'] and loc['apigateway']['api_gateway']['enabled'] and loc['apigateway']['api_gateway']['enabled'] == True:
@@ -623,7 +623,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             newAuxFile = {'contents': apiGatewaySnippetb64, 'name': NcgConfig.config['nms']['apigw_dir'] +
                                                                             '/' + server['names'][0] +
                                                                             loc['uri'] + ".conf" }
-                            auxFiles['files'].append(newAuxFile)
+                            configFiles['files'].append(newAuxFile)
 
                             # API Gateway maps file for parameters enforcement
                             apiGatewayMapsSnippet = j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
@@ -633,7 +633,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                             newAuxFile = {'contents': apiGatewayMapsSnippetb64, 'name': NcgConfig.config['nms']['apigw_maps_dir'] +
                                                                             '/' + server['names'][0] +
                                                                             loc['uri'].replace('/', '_') + ".conf" }
-                            auxFiles['files'].append(newAuxFile)
+                            configFiles['files'].append(newAuxFile)
 
                     # API Gateway Developer portal provisioning
                     if loc['apigateway'] and loc['apigateway']['developer_portal'] and 'enabled' in loc['apigateway']['developer_portal'] and loc['apigateway']['developer_portal']['enabled'] == True:
@@ -725,7 +725,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 upstreamProfileConfigFile = {'contents': b64renderedUpstreamProfile,
                                          'name': configFileName}
 
-                auxFiles['files'].append(upstreamProfileConfigFile)
+                configFiles['files'].append(upstreamProfileConfigFile)
 
                 all_upstreams.append(d_upstreams[i]['name'])
 
@@ -761,7 +761,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
                 streamServerConfb64 = base64.b64encode(bytes(streamServerConf, 'utf-8')).decode('utf-8')
                 newStreamServerAuxFile = {'contents': streamServerConfb64, 'name': NcgConfig.config['nms']['server_stream_dir'] +
                                                                         '/' + server['name'].replace(' ', '_') + ".conf"}
-                auxFiles['files'].append(newStreamServerAuxFile)
+                configFiles['files'].append(newStreamServerAuxFile)
 
     # HTTP configuration template rendering
     httpConf = j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
