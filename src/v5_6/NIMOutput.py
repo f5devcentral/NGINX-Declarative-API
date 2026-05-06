@@ -86,7 +86,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     # Check TLS items validity
     all_tls = {'certificate': {}, 'key': {}}
 
-    d_certs = v5_6.MiscUtils.getDictKey(d, 'declaration.http.certificates')
+    d_certs = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certs is not None:
         for i in range(len(d_certs)):
             if d_certs[i]['name']:
@@ -145,10 +145,10 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                             issuer['name']) +"] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                         }}
 
-    # Add optional certificates specified under declaration.http.certificates
+    # Add optional certificates specified under declaration.certificates
     extensions_map = {'certificate': '.crt', 'key': '.key'}
 
-    d_certificates = v5_6.MiscUtils.getDictKey(d, 'declaration.http.certificates')
+    d_certificates = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certificates is not None:
         for c in d_certificates:
             status, certContent = v5_6.GitOps.getObjectFromRepo(object=c['contents'],
@@ -162,7 +162,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                                       '/' + c['name'] + extensions_map[c['type']]}
             auxFiles['files'].append(newAuxFile)
 
-    ### / Add optional certificates specified under declaration.http.certificates
+    ### / Add optional certificates specified under declaration.certificates
 
     # NGINX main configuration file through template
     j2_env = Environment(loader=FileSystemLoader(NcgConfig.config['templates']['root_dir'] + '/' + apiversion),

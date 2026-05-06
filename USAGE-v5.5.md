@@ -59,7 +59,7 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
 ### API endpoints
 
 - `GET /v5.5/schema` - Get Declarative API JSON schema
-- `POST /v5.5/config/` - Publish a new declaration
+- `POST /v5.5/config` - Publish a new declaration
 - `PATCH /v5.5/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD

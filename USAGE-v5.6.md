@@ -36,10 +36,6 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
     - `.output.nginxone.modules` an optional array of NGINX module names (ie. 'ngx_http_app_protect_module', 'ngx_http_js_module','ngx_stream_js_module')
 - `.declaration` describes the NGINX configuration to be created
   - `.declaration.http` NGINX HTTP definitions
-    - `.declaration.http.certificates` an optional array of TLS certificates/keys/chains to be published
-      - `.declaration.http.certificates[].type` the item type ('certificate', 'key', 'chain')
-      - `.declaration.http.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
-      - `.declaration.http.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
     - `.declaration.http.policies[]` an optional array of NGINX App Protect security policies
       - `.declaration.http.policies[].type` the policy type ('app_protect')
       - `.declaration.http.policies[].name` the policy name (ie. 'prod-policy')
@@ -51,11 +47,15 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.declaration.http.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
   - `.declaration.layer4` NGINX TCP/UDP definitions
   - `.declaration.resolvers` DNS resolvers definitions
+  - `.declaration.certificates` an optional array of TLS certificates/keys/chains to be published
+    - `.declaration.certificates[].type` the item type ('certificate', 'key', 'chain')
+    - `.declaration.certificates[].name` the certificate/key/chain name with no path/extension (ie. 'test-application')
+    - `.declaration.certificates[].contents` the content: this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
 
 ### API endpoints
 
 - `GET /v5.6/schema` - Get Declarative API JSON schema
-- `POST /v5.6/config/` - Publish a new declaration
+- `POST /v5.6/config` - Publish a new declaration
 - `PATCH /v5.6/config/{config_uid}` - Update an existing declaration
   - Per-HTTP server CRUD
   - Per-HTTP upstream CRUD

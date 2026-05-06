@@ -843,7 +843,7 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
                 sourceDeclaration=currentDeclaration, patchedNAPPolicies=p)
 
     # Handle certificate updates
-    d_certificates = v5_6.MiscUtils.getDictKey(declarationToPatch, 'declaration.http.certificates')
+    d_certificates = v5_6.MiscUtils.getDictKey(declarationToPatch, 'declaration.certificates')
     if d_certificates is not None:
         # TLS certificate/key updates
         for p in d_certificates:

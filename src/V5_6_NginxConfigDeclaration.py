@@ -943,7 +943,6 @@ class Http(BaseModel, extra="forbid"):
     logformats: Optional[List[HttpLogFormat]] = []
     resolver: Optional[str] = ""
     acme_issuers: Optional[List[AcmeIssuers]] = []
-    certificates: Optional[List[TLSCertificate]] = []
     policies: Optional[List[NGINXPolicy]] = []
     log_profiles: Optional[List[LogProfile]] = []
 
@@ -952,6 +951,7 @@ class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
     resolvers: Optional[List[Resolver]] = []
+    certificates: Optional[List[TLSCertificate]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):
