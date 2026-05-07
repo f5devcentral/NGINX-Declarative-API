@@ -24,7 +24,7 @@ import V5_6_CreateConfig
 import V5_6_NginxConfigDeclaration
 import v5_6.Asynchronous
 
-cfg = NcgConfig.NcgConfig(configFile="../etc/config.toml")
+cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
 app = FastAPI(

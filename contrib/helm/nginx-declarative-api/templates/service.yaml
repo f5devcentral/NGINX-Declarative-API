@@ -29,7 +29,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  # Fixed name "redis" — the app reads config.toml which hardcodes this hostname.
+  # Fixed name "redis" — the app reads config.yaml which hardcodes this hostname.
   name: {{ include "nginx-declarative-api.redis.serviceName" . }}
   namespace: {{ include "nginx-declarative-api.namespace" . }}
   labels:
