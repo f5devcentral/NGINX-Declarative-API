@@ -6,7 +6,7 @@ import requests
 import json
 import base64
 
-import v5_4.GitOps
+import v5_5.GitOps
 
 from NcgConfig import NcgConfig
 
@@ -15,7 +15,7 @@ from fastapi.responses import Response, JSONResponse
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
 
-# Define (create/update) a F5 WAF for NGINX policy on NMS.
+# Define (create/update) a F5 WAF for NGINX policy on NGINX Instance Manager.
 # If policyUid is not empty the policy update is performed
 # Returns a tuple {status_code,text}. status_code is 201 if successful
 def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
@@ -173,7 +173,7 @@ def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declarati
             if p['type'] == 'app_protect':
                 # Iterates over all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v5_4.GitOps.getObjectFromRepo(policyVersion['contents'])
+                    status, policyBody = v5_5.GitOps.getObjectFromRepo(policyVersion['contents'])
 
                     if status != 200:
                         return JSONResponse(

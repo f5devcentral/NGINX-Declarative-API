@@ -45,12 +45,12 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🚀 Supported releases
 
-- [F5 NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-instance-manager/)
+- [F5 NGINX Instance Manager 2.20+](https://docs.nginx.com/nginx-instance-manager/)
 - [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [F5 NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - [F5 WAF for NGINX](https://docs.nginx.com/waf/)
 
-**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.4.md) for further details. [Postman collection](/contrib/postman) examples are provided for NGINX Plus R33+.
+**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
 
 ## 🛠️ Architecture
 
@@ -198,15 +198,6 @@ NGINX Declarative API ->> CI/CD Pipeline: Response
 end
 ```
 
-## 🧩 Input formats
-
-- [X] Declarative JSON
-
-## 🧾 Output formats
-
-- [X] Output to F5 NGINX Instance Manager 2.14+ imperative REST API (instance group)
-- [X] Output to F5 NGINX One Console REST API (config sync group)
-
 ## 🌟 Supported features
 
 See the [features list](/FEATURES.md)
@@ -215,8 +206,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.5](/USAGE-v5.5.md) - latest
-- [API v5.4](/USAGE-v5.4.md) - stable
+- [API v5.6](/USAGE-v5.6.md) - latest
+- [API v5.5](/USAGE-v5.5.md) - stable
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

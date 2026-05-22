@@ -1,0 +1,72 @@
+# API Gateway maps file - server {{ server }}
+# OpenAPI version: {{ declaration.version }}
+# Base URI: {{ declaration.location.uri }}
+# Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
+
+{%- for path in declaration.paths -%}
+{%- for method in path.methods %}
+{%- set queryStringParms = namespace(allParams = '') %}
+{%- for parm in method.parameters -%}
+{%- if parm.required | lower == "true" and parm.in | lower == "query" %}
+{%- set queryStringParms.allParams = queryStringParms.allParams + ' ' + parm.name %}
+{%- endif %}
+{%- endfor -%}
+
+
+{% if queryStringParms.allParams != '' %}
+
+
+# Required query string parameters for {{ declaration.location.uri }}{{ path.path }} - method {{ method.method|upper }}
+map "" $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+  default "{{ queryStringParms.allParams | trim }}";
+}
+{%- endif -%}
+
+{% set allParams = namespace(missing = '') -%}
+{% set allParamsValues = namespace(missing = '') -%}
+{% for parm in method.parameters -%}
+{% if parm.required | lower == "true" and parm.in|lower == "query" %}
+
+{% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
+
+# Check query string parameter value and set variable to 0 if the value is among allowed ones in the OpenAPI schema enum, 1 if value is wrong
+{% if parm.schema.enum %}
+map $request_method$host$uri-$arg_{{ parm.name }} $wrongvalue_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }}
+{
+{% for enum in parm.schema.enum %}
+  "{{ method.method|upper }}{{ server }}{{ declaration.location.uri }}{{ path.path }}-{{ enum }}" 0;
+{% set allParamsValues.missing = allParamsValues.missing + "$wrongvalue_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name + "-" + enum %}
+{% endfor %}
+  default 1;
+}
+{% endif %}
+
+# Check query string parameters and set variable to 0 if found, 1 if missing
+map $request_method$host$uri$arg_{{ parm.name }} $missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }}
+{
+  "{{ method.method|upper }}{{ server }}{{ declaration.location.uri }}{{ path.path }}" 1;
+  default 0;
+}
+{% endif -%}
+{%- endfor -%}
+
+
+{% if allParams.missing != '' %}
+
+# Check if all required parameters have been received
+map "{{ allParams.missing | trim }}" $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+  ~1      1;     # if any digit is 1 one or more required query string parameter is missing
+  default 0;     # all required query string parameters present
+}
+{% endif %}
+
+
+# Check if all required parameter values have been received
+map "{{ allParamsValues.missing | trim }}" $any_values_invalid_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+{% if allParamsValues.missing != '' %}
+  ~1      1;     # if any digit is 1 one or more required query string parameter value is invalid
+{% endif %}
+  default 0;     # all required query string parameters have valid values
+}
+{%- endfor %}
+{% endfor %}

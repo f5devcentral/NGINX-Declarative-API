@@ -1,5 +1,5 @@
 """
-JSON declaration structure
+JSON declaration structure - NGINX Declarative API v5.6
 """
 
 from __future__ import annotations
@@ -12,13 +12,13 @@ import re
 alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
 
-class NmsCertificate(BaseModel, extra="forbid"):
+class TLSCertificate(BaseModel, extra="forbid"):
     type: str
     name: str
     contents: Optional[ObjectFromSourceOfTruth] = {}
 
     @model_validator(mode='after')
-    def check_type(self) -> 'NmsCertificate':
+    def check_type(self) -> 'TLSCertificate':
         _type = self.type
 
         valid = ['certificate', 'key']
@@ -108,9 +108,6 @@ class OutputNMS(BaseModel, extra="forbid"):
     instancegroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
-    certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NGINXPolicy]] = []
-    log_profiles: Optional[List[LogProfile]] = []
 
 
 class OutputNGINXOne(BaseModel, extra="forbid"):
@@ -120,9 +117,6 @@ class OutputNGINXOne(BaseModel, extra="forbid"):
     configsyncgroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
-    certificates: Optional[List[NmsCertificate]] = []
-    policies: Optional[List[NGINXPolicy]] = []
-    log_profiles: Optional[List[LogProfile]] = []
 
 
 class License(BaseModel, extra="forbid"):
@@ -130,6 +124,9 @@ class License(BaseModel, extra="forbid"):
     token: Optional[str] = ""
     ssl_verify: bool = True
     grace_period: bool = False
+    proxy: Optional[str] = ""
+    proxy_username: Optional[str] = ""
+    proxy_password: Optional[str] = ""
 
 
 class Output(BaseModel, extra="forbid"):
@@ -749,6 +746,8 @@ class Map(BaseModel, extra="forbid"):
 class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
+    certificates: Optional[List[TLSCertificate]] = []
+    logformats: Optional[List[L4LogFormat]] = []
 
 
 class Resolver(BaseModel, extra="forbid"):
@@ -768,13 +767,29 @@ class Resolver(BaseModel, extra="forbid"):
 
         return self
 
-class LogFormat(BaseModel, extra="forbid"):
+class L4LogFormat(BaseModel, extra="forbid"):
     name: str
     escape: str = "default"
     format: str
 
     @model_validator(mode='after')
-    def check_type(self) -> 'LogFormat':
+    def check_type(self) -> 'L4LogFormat':
+        escape = self.escape
+
+        valid = ['default', 'json', 'none']
+        if escape not in valid:
+            raise ValueError(f"Invalid escape mode [{escape}] must be one of {str(valid)}")
+
+        return self
+
+
+class HttpLogFormat(BaseModel, extra="forbid"):
+    name: str
+    escape: str = "default"
+    format: str
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'HttpLogFormat':
         escape = self.escape
 
         valid = ['default', 'json', 'none']
@@ -925,15 +940,18 @@ class Http(BaseModel, extra="forbid"):
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
     cache: Optional[List[CacheProfile]] = []
-    logformats: Optional[List[LogFormat]] = []
+    logformats: Optional[List[HttpLogFormat]] = []
     resolver: Optional[str] = ""
     acme_issuers: Optional[List[AcmeIssuers]] = []
+    policies: Optional[List[NGINXPolicy]] = []
+    log_profiles: Optional[List[LogProfile]] = []
 
 
 class Declaration(BaseModel, extra="forbid"):
     layer4: Optional[Layer4] = {}
     http: Optional[Http] = {}
     resolvers: Optional[List[Resolver]] = []
+    certificates: Optional[List[TLSCertificate]] = []
 
 
 class API_Gateway(BaseModel, extra="forbid"):

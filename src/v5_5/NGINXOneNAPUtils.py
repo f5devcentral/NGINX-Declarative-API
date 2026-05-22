@@ -6,7 +6,7 @@ import requests
 import json
 import base64
 
-import v5_4.GitOps
+import v5_5.GitOps
 
 from NcgConfig import NcgConfig
 
@@ -187,7 +187,7 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
 
                 # Create all policy versions
                 for policyVersion in p['versions']:
-                    status, policyBody = v5_4.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
+                    status, policyBody = v5_5.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
 
                     if status != 200:
                         return JSONResponse(
