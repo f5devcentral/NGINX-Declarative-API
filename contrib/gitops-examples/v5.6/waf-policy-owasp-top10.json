@@ -1,0 +1,8 @@
+{
+    "policy": {
+        "name": "nginx_waf_owasp_top10_policy",
+        "template": {
+            "name": "POLICY_TEMPLATE_NGINX_BASE"
+        }
+    }
+}

@@ -161,23 +161,23 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict):
 
     haveWePatched = False
 
-    if 'output' not in sourceDeclaration:
+    if 'declaration' not in sourceDeclaration:
         return sourceDeclaration
 
-    if 'nms' not in sourceDeclaration['output']:
+    if 'http' not in sourceDeclaration['declaration']:
         return sourceDeclaration
 
-    if 'policies' not in sourceDeclaration['output']['nms']:
+    if 'policies' not in sourceDeclaration['declaration']['http']:
         return sourceDeclaration
 
-    # NGINX App Protect WAF policies patch
-    for p in sourceDeclaration['output']['nms']['policies']:
+    # F5 WAF for NGINX policies patch
+    for p in sourceDeclaration['declaration']['http']['policies']:
         if 'type' in p and p['type'] == 'app_protect' \
                 and 'name' in p and p['name'] \
                 and p['type'] == patchedNAPPolicies['type'] \
                 and p['name'] == patchedNAPPolicies['name']:
 
-            # Patching an existing NGINX App Protect WAF policy, 'name' is the key
+            # Patching an existing F5 WAF for NGINX policy, 'name' is the key
             if patchedNAPPolicies['versions'] and patchedNAPPolicies['active_tag']:
                 # Patching NAP policy specifying 'versions' and 'active_tag' means updating
                 # If 'versions' and 'active_tag' are missing then it's a deletion
@@ -192,7 +192,7 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict):
         # The NAP policy being patched is a new one, let's add it
         allTargetPolicies.append(patchedNAPPolicies)
 
-    sourceDeclaration['output']['nms']['policies'] = allTargetPolicies
+    sourceDeclaration['declaration']['http']['policies'] = allTargetPolicies
     
     return sourceDeclaration
 
@@ -203,17 +203,17 @@ def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict):
 
     haveWePatched = False
 
-    if 'output' not in sourceDeclaration:
+    if 'declaration' not in sourceDeclaration:
         return sourceDeclaration
 
-    if 'nms' not in sourceDeclaration['output']:
+    if 'http' not in sourceDeclaration['declaration']:
         return sourceDeclaration
 
-    if 'certificates' not in sourceDeclaration['output']['nms']:
+    if 'certificates' not in sourceDeclaration['declaration']['http']:
         return sourceDeclaration
 
     # TLS certificates patch
-    for c in sourceDeclaration['output']['nms']['certificates']:
+    for c in sourceDeclaration['declaration']['http']['certificates']:
         if 'type' in c and c['type'] in ['certificate', 'key'] \
                 and 'name' in c and c['name'] \
                 and c['type'] == patchedCertificates['type'] \
@@ -233,6 +233,6 @@ def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict):
         # The TLS certificate/key being patched is a new one, let's add it
         allTargetCertificates.append(patchedCertificates)
 
-    sourceDeclaration['output']['nms']['certificates'] = allTargetCertificates
+    sourceDeclaration['declaration']['http']['certificates'] = allTargetCertificates
 
     return sourceDeclaration

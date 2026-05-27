@@ -4,14 +4,14 @@
 
 NGINX Declarative API has been tested with the following NGINX control plane releases:
 
-| Control plane             | API v5.4             | API v5.5             | Notes  |
+| Control plane             | API v5.5             | API v5.6             | Notes  |
 |---------------------------|----------------------|----------------------|--------|
 | NGINX Instance Manager    | 2.18+                | 2.20+                |        |
 | NGINX One Console         | General availability | General availability |        |
 
 ### NGINX `http` and `stream` servers
 
-| Feature                     | API v5.4 | API v5.5 | Notes                                                                                                                                                                                                     |
+| Feature                     | API v5.5 | API v5.6 | Notes                                                                                                                                                                                                     |
 |-----------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Upstreams                   | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                                              |
 | HTTP servers                | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                                             |
@@ -43,7 +43,7 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 
 ### NGINX API Gateway use case
 
-| Feature                                                      | API v5.4                                                                      | API v5.5                                                                      | Notes                                         |
+| Feature                                                      | API v5.5                                                                      | API v5.6                                                                      | Notes                                         |
 |--------------------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------|
 | Configuration generation from OpenAPI schema                 | X                                                                             | X                                                                             | OpenAPI 2.0, 3.0, 3.0.1, YAML and JSON format | 
 | HTTP methods enforcement                                     | X                                                                             | X                                                                             |                                               |
@@ -92,21 +92,21 @@ See the [Postman collection](/contrib/) for usage examples
 
 ### NGINX API Gateway use case - Developer Portal
 
-| Type            | API v5.4 | API v5.5 | Notes                                    |
+| Type            | API v5.5 | API v5.6 | Notes                                    |
 |-----------------|----------|----------|------------------------------------------|
 | Redocly         | X        | X        | Developer portal published by NGINX Plus |
 | Backstage.io    | X        | X        | Backstage YAML manifest generated        |
 
 ### NGINX API Gateway use case - Visibility
 
-| Type          | API v5.4 | API v5.5 | Notes                                                                                         |
+| Type          | API v5.5 | API v5.6 | Notes                                                                                         |
 |---------------|----------|----------|-----------------------------------------------------------------------------------------------|
 | Moesif        | X        | X        | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
 
 
 ### TLS
 
-| Type  | Description             | API v5.4 | API v5.5 | Notes |
+| Type  | Description             | API v5.5 | API v5.6 | Notes |
 |-------|-------------------------|----------|----------|-------|
 | ACME  | ACME Protocol support   | X        | X        |       |
 
@@ -130,7 +130,7 @@ For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme
 
 ### Client authentication
 
-| Type | Description          | API v5.4 | API v5.5 | Notes                               |
+| Type | Description          | API v5.5 | API v5.6 | Notes                               |
 |------|----------------------|----------|----------|-------------------------------------|
 | jwt  | JSON Web Token (JWT) | X        | X        |                                     |
 | mtls | Mutual TLS           | X        | X        | <li>Supported for HTTP servers</li> |
@@ -208,7 +208,7 @@ For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.h
 
 ### Client authorization
 
-| Type | Description            | API v5.4 | API v5.5 | Notes                                                                                                                                                                              |
+| Type | Description            | API v5.5 | API v5.6 | Notes                                                                                                                                                                              |
 |------|------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | jwt  | JSON Web Token (JWT)   | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
 
@@ -238,7 +238,7 @@ Client-side authorization profiles to be defined under `.declaration.http.author
 
 ### Upstream and Source of truth authentication
 
-| Type         | Description                                    | API v5.4 | API v5.5 | Notes                                                                                  |
+| Type         | Description                                    | API v5.5 | API v5.6 | Notes                                                                                  |
 |--------------|------------------------------------------------|----------|----------|----------------------------------------------------------------------------------------|
 | Bearer token | Authentication token as Authorization Bearer   | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
 | Basic Auth   | Authentication token as Authorization Basic    | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
@@ -306,7 +306,7 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 
 ### HTTP Headers manipulation
 
-| Type                          | API v5.4 | API v5.5 | Notes                                                                                                                        |
+| Type                          | API v5.5 | API v5.6 | Notes                                                                                                                        |
 |-------------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------|
 | Request (client to server)    | X        | X        | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
 | Response (server to client)   | X        | X        | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
@@ -355,7 +355,7 @@ To be defined under `.declaration.http.servers[].headers` and/or `.declaration.h
 
 ### NGINX Javascript
 
-| Hook type           | API v5.4 | API v5.5 | Notes                                                                                                                          |
+| Hook type           | API v5.5 | API v5.6 | Notes                                                                                                                          |
 |---------------------|----------|----------|--------------------------------------------------------------------------------------------------------------------------------|
 | js_body_filter      | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                  |
 | js_content          | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                  |
@@ -509,7 +509,7 @@ Example hooks:
 
 ### DNS resolvers
 
-|                         | API v5.4 | API v5.5 | Notes                                                                                                                              |
+|                         | API v5.5 | API v5.6 | Notes                                                                                                                              |
 |-------------------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------|
 | DNS resolver profiles   | X        | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreams[]`</li><li>`declaration.layer4.upstreams[]`</li> |
 
@@ -532,13 +532,13 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
 
 #### HTTP Access and error logging
 
-|         | API v5.4 | API v5.5 | Notes                                                                                                                                                                                                                                 |
+|         | API v5.5 | API v5.6 | Notes                                                                                                                                                                                                                                 |
 |---------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Logging | X        | X        | Available in <li>`.declaration.http.servers[].log`</li><li>`.declaration.http.servers[].locations[].log`</li><br>`condition` enables conditional logging. Logging will be disabled if `condition` evaluates to "0" or an empty string |
 
 ### Access logging formats
 
-|                 | API v5.4 | API v5.5 | Notes |
+|                 | API v5.5 | API v5.6 | Notes |
 |-----------------|----------|----------|-------|
 | Logging formats | X        | X        |       |
 

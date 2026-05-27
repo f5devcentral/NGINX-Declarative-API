@@ -1,6 +1,7 @@
 # NGINX-Declarative-API
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![codecov](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API/branch/main/graph/badge.svg)](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API)
 
 NGINX Declarative API enables users to manage **NGINX configurations** in a modern **declarative style**. Instead of modifying configurations manually or using low-level APIs, this project simplifies operational workflows by allowing users to express desired configurations as a single JSON object.
 The API abstracts the complexity of managing NGINX configurations, empowering developers, operators, and automation systems to integrate seamlessly with NGINX.
@@ -44,12 +45,12 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🚀 Supported releases
 
-- [F5 NGINX Instance Manager 2.14+](https://docs.nginx.com/nginx-instance-manager/)
+- [F5 NGINX Instance Manager 2.20+](https://docs.nginx.com/nginx-instance-manager/)
 - [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
 - [F5 NGINX Plus R33+](https://docs.nginx.com/nginx/)
 - [F5 WAF for NGINX](https://docs.nginx.com/waf/)
 
-**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required. See the [usage notes](/USAGE-v5.4.md) for further details. [Postman collection](/contrib/postman) examples are provided for NGINX Plus R33+.
+**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
 
 ## 🛠️ Architecture
 
@@ -197,15 +198,6 @@ NGINX Declarative API ->> CI/CD Pipeline: Response
 end
 ```
 
-## 🧩 Input formats
-
-- [X] Declarative JSON
-
-## 🧾 Output formats
-
-- [X] Output to F5 NGINX Instance Manager 2.14+ imperative REST API (instance group)
-- [X] Output to F5 NGINX One Console REST API (config sync group)
-
 ## 🌟 Supported features
 
 See the [features list](/FEATURES.md)
@@ -214,8 +206,8 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.5](/USAGE-v5.5.md) - latest
-- [API v5.4](/USAGE-v5.4.md) - stable
+- [API v5.6](/USAGE-v5.6.md) - latest
+- [API v5.5](/USAGE-v5.5.md) - stable
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 
@@ -226,6 +218,25 @@ NGINX Declarative API can be deployed on:
 * Linux virtual machine using [docker-compose](/contrib/docker-compose)
 * Kubernetes using [manifests](/contrib/kubernetes)
 * Kubernetes using a [Helm chart](contrib/helm/nginx-declarative-api)
+
+## 🧪 Running unit tests
+
+Python unit tests cover the core utility and configuration-patching modules. Run them from the repository root:
+
+```bash
+pip3 install pytest pyyaml
+python3 -m pytest tests/ -v
+```
+
+WebUI tests use [Vitest](https://vitest.dev/) and can be run from the `webui/` directory:
+
+```bash
+cd webui
+npm install
+npm test -- --run
+```
+
+Both test suites run automatically in GitHub Actions on every pull request and release build.
 
 ## 🐳 Building Docker images
 

@@ -10,7 +10,7 @@ import json
 # Return None if not found
 def getNIMInstanceGroupUid(nmsUrl: str, nmsUsername: str, nmsPassword: str, instanceGroupName: str):
     # Retrieve instance group uid
-    ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups', auth=(nmsUsername, nmsPassword),
+    ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups?limit=100', auth=(nmsUsername, nmsPassword),
                       verify=False)
 
     if ig.status_code != 200:
