@@ -2,28 +2,28 @@
 
 ## Overview
 
-A React 19 TypeScript single-page application for creating and submitting NGINX Declarative API v5.5 configurations. The UI renders a structured form and submits the resulting JSON to the backend API.
+A React 19 TypeScript single-page application for creating and submitting NGINX Declarative API v5.6 configurations. The UI renders a structured form and submits the resulting JSON to the backend API.
 
 ## Features Implemented
 
 ### Configuration Form
 
-- Output section — target NGINX Instance Manager or NGINX One Console, with policies, license (JWT token upload, boolean enforce-initial-report toggle), and per-type certificates / log profiles
+- Output section — target NGINX Instance Manager or NGINX One Console, with license (JWT token upload, boolean enforce-initial-report toggle)
+- HTTP section — policies, TLS certificates, and log profiles (moved to declaration body in v5.6), plus profiles (rate limiting, auth, authz, caching, maps, log), servers, and upstreams
 - Sticky sidebar navigation with IntersectionObserver-based active-section highlighting
-- HTTP section — profiles (rate limiting, auth, authz, caching, maps, log), servers, and upstreams
 - Layer 4 section — TCP/UDP servers and upstreams
 - API Gateway editor — per-location OpenAPI schema integration (URL / file upload / base64)
 
 ### API Integration
 
-All v5.5 endpoints are integrated:
+All v5.6 endpoints are integrated:
 
-- POST /v5.5/config — Create configuration
-- GET /v5.5/config/{configUid} — Retrieve configuration
-- PATCH /v5.5/config/{configUid} — Update configuration
-- DELETE /v5.5/config/{configUid} — Delete configuration
-- GET /v5.5/config/{configUid}/status — Get status
-- GET /v5.5/config/{configUid}/submission/{submissionUid} — Get async submission status
+- POST /v5.6/config — Create configuration
+- GET /v5.6/config/{configUid} — Retrieve configuration
+- PATCH /v5.6/config/{configUid} — Update configuration
+- DELETE /v5.6/config/{configUid} — Delete configuration
+- GET /v5.6/config/{configUid}/status — Get status
+- GET /v5.6/config/{configUid}/submission/{submissionUid} — Get async submission status
 
 ### Testing
 

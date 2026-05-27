@@ -9,7 +9,8 @@ import { Layer4Section } from './configForm/Layer4Section';
 const DEFAULT_CFG: ConfigData = {
   output: { type: 'nms', synchronous: true, nms: emptyNms(), nginxone: emptyNginxOne() },
   declaration: {
-    http: { servers: [], upstreams: [], rate_limit: [], authentication: { client: [] }, authorization: [], cache: [], maps: [], logformats: [], njs: [], njs_profiles: [], acme_issuers: [] },
+    certificates: [],
+    http: { servers: [], upstreams: [], rate_limit: [], authentication: { client: [] }, authorization: [], cache: [], maps: [], logformats: [], njs: [], njs_profiles: [], acme_issuers: [], policies: [], log_profiles: [] },
     layer4: { servers: [], upstreams: [] },
     resolvers: [],
   },
@@ -34,13 +35,13 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'cf-sec-output',         label: 'Output' },
   { id: 'cf-sec-license',        label: 'License',        indent: true },
-  { id: 'cf-sec-policies',       label: 'Policies',       indent: true },
-  { id: 'cf-sec-certificates',   label: 'Certificates',   indent: true },
-  { id: 'cf-sec-log-profiles',   label: 'Log Profiles',   indent: true },
   { id: 'cf-sec-http',           label: 'HTTP' },
   { id: 'cf-sec-http-profiles',  label: 'Profiles',       indent: true },
   { id: 'cf-sec-http-servers',   label: 'Servers',        indent: true },
   { id: 'cf-sec-http-upstreams', label: 'Upstreams',      indent: true },
+  { id: 'cf-sec-certificates',   label: 'Certificates',   indent: true },
+  { id: 'cf-sec-policies',       label: 'Policies',       indent: true },
+  { id: 'cf-sec-log-profiles',   label: 'Log Profiles',   indent: true },
   { id: 'cf-sec-layer4',         label: 'Layer 4' },
 ];
 
@@ -107,6 +108,8 @@ export function ConfigForm({ initialJson, onChange }: ConfigFormProps) {
           onChange={h => update({ ...cfg, declaration: { ...cfg.declaration, http: h } })}
           resolvers={cfg.declaration.resolvers ?? []}
           onResolversChange={v => update({ ...cfg, declaration: { ...cfg.declaration, resolvers: v } })}
+          certificates={cfg.declaration.certificates ?? []}
+          onCertificatesChange={v => update({ ...cfg, declaration: { ...cfg.declaration, certificates: v } })}
         />
         <Layer4Section
           servers={cfg.declaration.layer4?.servers}

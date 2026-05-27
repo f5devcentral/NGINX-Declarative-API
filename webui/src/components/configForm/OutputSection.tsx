@@ -1,7 +1,6 @@
-import type { ConfigData, NMSPolicy, NMSCertificate } from './types';
+import type { ConfigData, NMSPolicy } from './types';
 import {
-  emptyNms, emptyNginxOne, emptyLicense, emptyCertificate,
-  emptyLogProfile, emptyNMSPolicy, emptyNMSPolicyVersion,
+  emptyNms, emptyNginxOne, emptyLicense, emptyNMSPolicy, emptyNMSPolicyVersion,
 } from './defaults';
 import { Field, TextInput, NumberInput, SelectInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ModulesField } from './primitives';
 
@@ -235,68 +234,6 @@ export function OutputSection({ output, onChange }: {
               <ModulesField value={nms.modules ?? []} onChange={v => onChange({ ...output, nms: { ...nms, modules: v } })} />
             </Field>
           </div>
-          <div id="cf-sec-policies"><PoliciesEditor
-            policies={nms.policies ?? []}
-            onChange={v => onChange({ ...output, nms: { ...nms, policies: v } })}
-          /></div>
-          {/* Certificates for NMS */}
-          <div className="cf-subsection" id="cf-sec-certificates">
-            <div className="cf-subsection-header">
-              <span className="cf-subsection-title">Certificates</span>
-              <AddBtn label="Add certificate" onClick={() => onChange({ ...output, nms: { ...nms, certificates: [...(nms.certificates ?? []), emptyCertificate()] } })} />
-            </div>
-            {(nms.certificates ?? []).length === 0
-              ? <p className="cf-empty cf-empty-sm">No certificates. Add certificate objects to push to NGINX Instance Manager alongside the configuration.</p>
-              : (nms.certificates ?? []).map((cert, ci) => (
-                <CollapseCard key={ci} title={cert.name || <em>cert #{ci + 1}</em>} meta={cert.type} defaultOpen={!cert.name}>
-                  <div className="cf-grid-2">
-                    <Field label="Type">
-                      <SelectInput value={cert.type} onChange={v => onChange({ ...output, nms: { ...nms, certificates: (nms.certificates ?? []).map((x, idx) => idx === ci ? { ...x, type: v as NMSCertificate['type'] } : x) } })}
-                        options={[{ value: 'certificate', label: 'Certificate' }, { value: 'key', label: 'Private key' }, { value: 'chain', label: 'Chain' }]} />
-                    </Field>
-                    <Field label="Name" required>
-                      <TextInput value={cert.name} onChange={v => onChange({ ...output, nms: { ...nms, certificates: (nms.certificates ?? []).map((x, idx) => idx === ci ? { ...x, name: v } : x) } })} placeholder="my-cert" />
-                    </Field>
-                    <Field label="Contents / URL" span="full" hint="PEM content, a URL to fetch it from, or leave empty to reference an existing object.">
-                      <TextInput value={cert.contents?.content ?? ''} onChange={v => onChange({ ...output, nms: { ...nms, certificates: (nms.certificates ?? []).map((x, idx) => idx === ci ? { ...x, contents: { content: v } } : x) } })} placeholder="-----BEGIN CERTIFICATE-----" mono />
-                    </Field>
-                  </div>
-                  <div className="cf-card-actions"><RemoveBtn onClick={() => onChange({ ...output, nms: { ...nms, certificates: (nms.certificates ?? []).filter((_, idx) => idx !== ci) } })} /></div>
-                </CollapseCard>
-              ))
-            }
-          </div>
-          {/* Log profiles for NMS */}
-          <div className="cf-subsection" id="cf-sec-log-profiles">
-            <div className="cf-subsection-header">
-              <span className="cf-subsection-title">Log Profiles</span>
-              <AddBtn label="Add profile" onClick={() => onChange({ ...output, nms: { ...nms, log_profiles: [...(nms.log_profiles ?? []), emptyLogProfile()] } })} />
-            </div>
-            {(nms.log_profiles ?? []).length === 0
-              ? <p className="cf-empty cf-empty-sm">No log profiles. Add a log profile to enable security event logging (e.g. App Protect).</p>
-              : (nms.log_profiles ?? []).map((lp, li) => {
-                const ap = lp.app_protect ?? { name: '', format: 'default', type: 'blocked', max_request_size: '2k', max_message_size: '5k' };
-                return (
-                  <CollapseCard key={li} title={ap.name || <em>log profile #{li + 1}</em>} meta={lp.type} defaultOpen={!ap.name}>
-                    <div className="cf-grid-2">
-                      <Field label="Profile name" required>
-                        <TextInput value={ap.name} onChange={v => onChange({ ...output, nms: { ...nms, log_profiles: (nms.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, name: v } } : x) } })} placeholder="blocked-requests" />
-                      </Field>
-                      <Field label="Log format">
-                        <SelectInput value={ap.format ?? 'default'} onChange={v => onChange({ ...output, nms: { ...nms, log_profiles: (nms.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, format: v } } : x) } })}
-                          options={[{ value: 'default', label: 'default' }, { value: 'grpc', label: 'grpc' }, { value: 'arcsight', label: 'arcsight' }, { value: 'splunk', label: 'splunk' }, { value: 'user-defined', label: 'user-defined' }]} />
-                      </Field>
-                      <Field label="Log type">
-                        <SelectInput value={ap.type ?? 'blocked'} onChange={v => onChange({ ...output, nms: { ...nms, log_profiles: (nms.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, type: v } } : x) } })}
-                          options={[{ value: 'blocked', label: 'blocked' }, { value: 'illegal', label: 'illegal' }, { value: 'all', label: 'all' }]} />
-                      </Field>
-                    </div>
-                    <div className="cf-card-actions"><RemoveBtn onClick={() => onChange({ ...output, nms: { ...nms, log_profiles: (nms.log_profiles ?? []).filter((_, idx) => idx !== li) } })} /></div>
-                  </CollapseCard>
-                );
-              })
-            }
-          </div>
         </>
       )}
 
@@ -324,68 +261,6 @@ export function OutputSection({ output, onChange }: {
               hint="Select any additional NGINX dynamic modules required by this configuration.">
               <ModulesField value={no.modules ?? []} onChange={v => onChange({ ...output, nginxone: { ...no, modules: v } })} />
             </Field>
-          </div>
-          <PoliciesEditor
-            policies={no.policies ?? []}
-            onChange={v => onChange({ ...output, nginxone: { ...no, policies: v } })}
-          />
-          {/* Certificates for NGINXOne */}
-          <div className="cf-subsection">
-            <div className="cf-subsection-header">
-              <span className="cf-subsection-title">Certificates</span>
-              <AddBtn label="Add certificate" onClick={() => onChange({ ...output, nginxone: { ...no, certificates: [...(no.certificates ?? []), emptyCertificate()] } })} />
-            </div>
-            {(no.certificates ?? []).length === 0
-              ? <p className="cf-empty cf-empty-sm">No certificates. Add certificate objects to push to NGINX One alongside the configuration.</p>
-              : (no.certificates ?? []).map((cert, ci) => (
-                <CollapseCard key={ci} title={cert.name || <em>cert #{ci + 1}</em>} meta={cert.type} defaultOpen={!cert.name}>
-                  <div className="cf-grid-2">
-                    <Field label="Type">
-                      <SelectInput value={cert.type} onChange={v => onChange({ ...output, nginxone: { ...no, certificates: (no.certificates ?? []).map((x, idx) => idx === ci ? { ...x, type: v as NMSCertificate['type'] } : x) } })}
-                        options={[{ value: 'certificate', label: 'Certificate' }, { value: 'key', label: 'Private key' }, { value: 'chain', label: 'Chain' }]} />
-                    </Field>
-                    <Field label="Name" required>
-                      <TextInput value={cert.name} onChange={v => onChange({ ...output, nginxone: { ...no, certificates: (no.certificates ?? []).map((x, idx) => idx === ci ? { ...x, name: v } : x) } })} placeholder="my-cert" />
-                    </Field>
-                    <Field label="Contents / URL" span="full" hint="PEM content, a URL to fetch it from, or leave empty to reference an existing object.">
-                      <TextInput value={cert.contents?.content ?? ''} onChange={v => onChange({ ...output, nginxone: { ...no, certificates: (no.certificates ?? []).map((x, idx) => idx === ci ? { ...x, contents: { content: v } } : x) } })} placeholder="-----BEGIN CERTIFICATE-----" mono />
-                    </Field>
-                  </div>
-                  <div className="cf-card-actions"><RemoveBtn onClick={() => onChange({ ...output, nginxone: { ...no, certificates: (no.certificates ?? []).filter((_, idx) => idx !== ci) } })} /></div>
-                </CollapseCard>
-              ))
-            }
-          </div>
-          {/* Log profiles for NGINXOne */}
-          <div className="cf-subsection">
-            <div className="cf-subsection-header">
-              <span className="cf-subsection-title">Log Profiles</span>
-              <AddBtn label="Add profile" onClick={() => onChange({ ...output, nginxone: { ...no, log_profiles: [...(no.log_profiles ?? []), emptyLogProfile()] } })} />
-            </div>
-            {(no.log_profiles ?? []).length === 0
-              ? <p className="cf-empty cf-empty-sm">No log profiles. Add a log profile to enable security event logging.</p>
-              : (no.log_profiles ?? []).map((lp, li) => {
-                const ap = lp.app_protect ?? { name: '', format: 'default', type: 'blocked', max_request_size: '2k', max_message_size: '5k' };
-                return (
-                  <CollapseCard key={li} title={ap.name || <em>log profile #{li + 1}</em>} meta={lp.type} defaultOpen={!ap.name}>
-                    <div className="cf-grid-2">
-                      <Field label="Profile name" required>
-                        <TextInput value={ap.name} onChange={v => onChange({ ...output, nginxone: { ...no, log_profiles: (no.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, name: v } } : x) } })} placeholder="blocked-requests" />
-                      </Field>
-                      <Field label="Log format">
-                        <SelectInput value={ap.format ?? 'default'} onChange={v => onChange({ ...output, nginxone: { ...no, log_profiles: (no.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, format: v } } : x) } })}
-                          options={[{ value: 'default', label: 'default' }, { value: 'grpc', label: 'grpc' }, { value: 'arcsight', label: 'arcsight' }, { value: 'splunk', label: 'splunk' }, { value: 'user-defined', label: 'user-defined' }]} />
-                      </Field>
-                      <Field label="Log type">
-                        <SelectInput value={ap.type ?? 'blocked'} onChange={v => onChange({ ...output, nginxone: { ...no, log_profiles: (no.log_profiles ?? []).map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, type: v } } : x) } })}
-                          options={[{ value: 'blocked', label: 'blocked' }, { value: 'illegal', label: 'illegal' }, { value: 'all', label: 'all' }]} />
-                      </Field>
-                    </div>
-                    <div className="cf-card-actions"><RemoveBtn onClick={() => onChange({ ...output, nginxone: { ...no, log_profiles: (no.log_profiles ?? []).filter((_, idx) => idx !== li) } })} /></div>
-                  </CollapseCard>
-                );
-              })
-            }
           </div>
         </>
       )}

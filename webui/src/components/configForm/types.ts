@@ -418,7 +418,7 @@ export interface LogProfile {
 }
 
 export interface NMSCertificate {
-  type: 'certificate' | 'key' | 'chain';
+  type: 'certificate' | 'key';
   name: string;
   contents?: SourceOfTruth;
 }
@@ -458,9 +458,6 @@ export interface OutputNMS {
   instancegroup: string;
   synctime?: number;
   modules?: string[];
-  policies?: NMSPolicy[];
-  certificates?: NMSCertificate[];
-  log_profiles?: LogProfile[];
 }
 
 export interface OutputNGINXOne {
@@ -470,9 +467,6 @@ export interface OutputNGINXOne {
   configsyncgroup: string;
   synctime?: number;
   modules?: string[];
-  certificates?: NMSCertificate[];
-  policies?: NMSPolicy[];
-  log_profiles?: LogProfile[];
 }
 
 export interface ConfigData {
@@ -484,6 +478,7 @@ export interface ConfigData {
     nginxone?: OutputNGINXOne;
   };
   declaration: {
+    certificates?: NMSCertificate[];
     http?: {
       servers?: Server[];
       upstreams?: Upstream[];
@@ -497,6 +492,8 @@ export interface ConfigData {
       njs_profiles?: NjsFile[];
       acme_issuers?: AcmeIssuer[];
       nginx_plus_api?: NginxPlusApi;
+      policies?: NMSPolicy[];
+      log_profiles?: LogProfile[];
     };
     layer4?: {
       servers?: Array<{ name: string; resolver?: string; listen?: { address?: string }; upstream?: string; snippet?: SourceOfTruth }>;

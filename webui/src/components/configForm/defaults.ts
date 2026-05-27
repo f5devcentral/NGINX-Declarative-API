@@ -9,12 +9,10 @@ import type {
 
 export const emptyNms = (): OutputNMS => ({
   url: '', username: '', password: '', instancegroup: '', synctime: 0, modules: [],
-  policies: [], certificates: [], log_profiles: [],
 });
 
 export const emptyNginxOne = (): OutputNGINXOne => ({
   url: '', namespace: '', token: '', configsyncgroup: '', synctime: 0, modules: [],
-  certificates: [], policies: [], log_profiles: [],
 });
 
 export const emptyLicense = (): LicenseConfig => ({
@@ -103,6 +101,7 @@ export function parseConfig(json: string): ConfigData | null {
         nginxone: { ...emptyNginxOne(), ...(p?.output?.nginxone ?? {}) },
       },
       declaration: {
+        certificates: p?.declaration?.certificates ?? [],
         http: {
           servers: p?.declaration?.http?.servers ?? [],
           upstreams: p?.declaration?.http?.upstreams ?? [],
@@ -116,6 +115,8 @@ export function parseConfig(json: string): ConfigData | null {
           njs_profiles: p?.declaration?.http?.njs_profiles ?? [],
           acme_issuers: p?.declaration?.http?.acme_issuers ?? [],
           nginx_plus_api: p?.declaration?.http?.nginx_plus_api ?? undefined,
+          policies: p?.declaration?.http?.policies ?? [],
+          log_profiles: p?.declaration?.http?.log_profiles ?? [],
         },
         layer4: {
           servers: p?.declaration?.layer4?.servers ?? [],
@@ -136,6 +137,9 @@ export function toJson(cfg: ConfigData): string {
   else out.nginxone = cfg.output.nginxone;
 
   const decl: Record<string, unknown> = {};
+  if (cfg.declaration.certificates?.length) {
+    decl.certificates = cfg.declaration.certificates;
+  }
   const http = cfg.declaration.http;
   const httpHasContent = (
     (http?.servers?.length ?? 0) +
@@ -149,7 +153,9 @@ export function toJson(cfg: ConfigData): string {
     (http?.njs?.length ?? 0) +
     (http?.njs_profiles?.length ?? 0) +
     (http?.acme_issuers?.length ?? 0) +
-    (http?.nginx_plus_api ? 1 : 0)
+    (http?.nginx_plus_api ? 1 : 0) +
+    (http?.policies?.length ?? 0) +
+    (http?.log_profiles?.length ?? 0)
   ) > 0;
   if (httpHasContent) {
     decl.http = {
@@ -163,6 +169,8 @@ export function toJson(cfg: ConfigData): string {
       ...(http?.njs_profiles?.length         ? { njs_profiles:   http.njs_profiles }   : {}),
       ...(http?.acme_issuers?.length         ? { acme_issuers:   http.acme_issuers }   : {}),
       ...(http?.nginx_plus_api               ? { nginx_plus_api: http.nginx_plus_api } : {}),
+      ...(http?.policies?.length             ? { policies:       http.policies }       : {}),
+      ...(http?.log_profiles?.length         ? { log_profiles:   http.log_profiles }   : {}),
       ...(http?.servers?.length              ? { servers:        http.servers }        : {}),
       ...(http?.upstreams?.length            ? { upstreams:      http.upstreams }      : {}),
     };

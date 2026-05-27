@@ -97,7 +97,8 @@ npm run test:coverage
 
 **Create Config** (`/`) — the single page of the application.
 
-- Output section (NGINX Instance Manager or NGINX One Console target, license with JWT upload, policies, certificates, log profiles)
+- Output section (NGINX Instance Manager or NGINX One Console target, license with JWT upload)
+- HTTP section includes policies (WAF), TLS certificates, and log profiles (at declaration level per v5.6 schema)
 - HTTP section (profiles, servers, upstreams — resolver field uses a ProfileSelect dropdown)
 - Layer 4 section (TCP/UDP servers and upstreams)
 - Sticky sidebar navigation with active-section highlighting

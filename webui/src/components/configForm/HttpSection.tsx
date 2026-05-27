@@ -1,18 +1,22 @@
 import type {
-  ConfigData, HttpResolver, HttpProfiles,
+  ConfigData, HttpResolver, HttpProfiles, NMSCertificate,
 } from './types';
-import { SectionTitle } from './primitives';
+import { emptyCertificate, emptyLogProfile } from './defaults';
+import { SectionTitle, Field, TextInput, SelectInput, AddBtn, RemoveBtn, CollapseCard } from './primitives';
 import { ProfilesSection } from './ProfilesSection';
 import { ServersSection } from './ServersSection';
 import { UpstreamsSection } from './UpstreamsSection';
+import { PoliciesEditor } from './OutputSection';
 
 type Http = NonNullable<ConfigData['declaration']['http']>;
 
-export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
+export function HttpSection({ http, onChange, resolvers, onResolversChange, certificates, onCertificatesChange }: {
   http: Http;
   onChange: (h: Http) => void;
   resolvers: HttpResolver[];
   onResolversChange: (v: HttpResolver[]) => void;
+  certificates: NMSCertificate[];
+  onCertificatesChange: (v: NMSCertificate[]) => void;
 }) {
   const servers      = http.servers      ?? [];
   const upstreams    = http.upstreams    ?? [];
@@ -26,6 +30,8 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
   const njsProfiles    = http.njs_profiles   ?? [];
   const acmeIssuers    = http.acme_issuers   ?? [];
   const nginxPlusApi   = http.nginx_plus_api;
+  const policies       = http.policies       ?? [];
+  const logProfiles    = http.log_profiles   ?? [];
 
   const njsProfileNames = njsProfiles.map(p => p.name).filter(Boolean);
   const authServerNames = (authentication.server ?? []).map(s => s.name).filter(Boolean);
@@ -87,6 +93,96 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange }: {
         onChange={v => onChange({ ...http, upstreams: v })}
         resolverNames={resolverNames}
       />
+      </div>
+
+      {/* Certificates — declaration-level, referenced by server TLS configs */}
+      <div className="cf-subsection" id="cf-sec-certificates">
+        <div className="cf-subsection-header">
+          <span className="cf-subsection-title">Certificates</span>
+          <AddBtn label="Add certificate" onClick={() => onCertificatesChange([...certificates, emptyCertificate()])} />
+        </div>
+        {certificates.length === 0
+          ? <p className="cf-empty">No certificates — add TLS certificate and key objects to include in the declaration.</p>
+          : certificates.map((cert, ci) => (
+            <CollapseCard key={ci} title={cert.name || <em>cert #{ci + 1}</em>} meta={cert.type} defaultOpen={!cert.name}>
+              <div className="cf-grid-2">
+                <Field label="Type">
+                  <SelectInput
+                    value={cert.type}
+                    onChange={v => onCertificatesChange(certificates.map((x, idx) => idx === ci ? { ...x, type: v as NMSCertificate['type'] } : x))}
+                    options={[{ value: 'certificate', label: 'Certificate' }, { value: 'key', label: 'Private key' }]}
+                  />
+                </Field>
+                <Field label="Name" required>
+                  <TextInput
+                    value={cert.name}
+                    onChange={v => onCertificatesChange(certificates.map((x, idx) => idx === ci ? { ...x, name: v } : x))}
+                    placeholder="my-tls-cert"
+                  />
+                </Field>
+                <Field label="Contents / URL" span="full" hint="PEM content or a URL/path to fetch it from.">
+                  <TextInput
+                    value={cert.contents?.content ?? ''}
+                    onChange={v => onCertificatesChange(certificates.map((x, idx) => idx === ci ? { ...x, contents: { content: v } } : x))}
+                    placeholder="-----BEGIN CERTIFICATE-----"
+                    mono
+                  />
+                </Field>
+              </div>
+              <div className="cf-card-actions"><RemoveBtn onClick={() => onCertificatesChange(certificates.filter((_, idx) => idx !== ci))} /></div>
+            </CollapseCard>
+          ))
+        }
+      </div>
+
+      {/* WAF Policies — declaration.http.policies */}
+      <div id="cf-sec-policies">
+        <PoliciesEditor
+          policies={policies}
+          onChange={v => onChange({ ...http, policies: v })}
+        />
+      </div>
+
+      {/* Log Profiles — declaration.http.log_profiles */}
+      <div className="cf-subsection" id="cf-sec-log-profiles">
+        <div className="cf-subsection-header">
+          <span className="cf-subsection-title">Log Profiles</span>
+          <AddBtn label="Add profile" onClick={() => onChange({ ...http, log_profiles: [...logProfiles, emptyLogProfile()] })} />
+        </div>
+        {logProfiles.length === 0
+          ? <p className="cf-empty">No log profiles — add one to enable App Protect security event logging.</p>
+          : logProfiles.map((lp, li) => {
+            const ap = lp.app_protect ?? { name: '', format: 'default', type: 'blocked', max_request_size: '2k', max_message_size: '5k' };
+            return (
+              <CollapseCard key={li} title={ap.name || <em>log profile #{li + 1}</em>} meta={lp.type} defaultOpen={!ap.name}>
+                <div className="cf-grid-2">
+                  <Field label="Profile name" required>
+                    <TextInput
+                      value={ap.name}
+                      onChange={v => onChange({ ...http, log_profiles: logProfiles.map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, name: v } } : x) })}
+                      placeholder="blocked-requests"
+                    />
+                  </Field>
+                  <Field label="Log format">
+                    <SelectInput
+                      value={ap.format ?? 'default'}
+                      onChange={v => onChange({ ...http, log_profiles: logProfiles.map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, format: v } } : x) })}
+                      options={[{ value: 'default', label: 'default' }, { value: 'grpc', label: 'grpc' }, { value: 'arcsight', label: 'arcsight' }, { value: 'splunk', label: 'splunk' }, { value: 'user-defined', label: 'user-defined' }]}
+                    />
+                  </Field>
+                  <Field label="Log type">
+                    <SelectInput
+                      value={ap.type ?? 'blocked'}
+                      onChange={v => onChange({ ...http, log_profiles: logProfiles.map((x, idx) => idx === li ? { ...x, app_protect: { ...ap, type: v } } : x) })}
+                      options={[{ value: 'blocked', label: 'blocked' }, { value: 'illegal', label: 'illegal' }, { value: 'all', label: 'all' }]}
+                    />
+                  </Field>
+                </div>
+                <div className="cf-card-actions"><RemoveBtn onClick={() => onChange({ ...http, log_profiles: logProfiles.filter((_, idx) => idx !== li) })} /></div>
+              </CollapseCard>
+            );
+          })
+        }
       </div>
     </section>
   );
