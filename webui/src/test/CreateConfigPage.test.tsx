@@ -130,7 +130,7 @@ describe('CreateConfigPage', () => {
       await userEvent.click(screen.getByText('NGINX Instance Manager'));
       const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
       const parsed = JSON.parse(editor.value);
-      expect(parsed.output.type).toBe('nms');
+      expect(parsed.output.type).toBe('nim');
       expect(parsed.output.nms.instancegroup).toBe('production');
     });
 
@@ -140,7 +140,7 @@ describe('CreateConfigPage', () => {
       await userEvent.click(screen.getByText('NGINX One Console'));
       const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
       const parsed = JSON.parse(editor.value);
-      expect(parsed.output.type).toBe('nginxone');
+      expect(parsed.output.type).toBe('n1c');
     });
 
     it('loads the API Gateway template', async () => {
@@ -201,7 +201,7 @@ describe('CreateConfigPage', () => {
       await userEvent.click(screen.getByRole('button', { name: /json/i }));
       const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
       const parsed = JSON.parse(editor.value);
-      expect(parsed.output.type).toBe('nms');
+      expect(parsed.output.type).toBe('nim');
     });
 
     it('resets dirty flag after loading a template via confirm', async () => {

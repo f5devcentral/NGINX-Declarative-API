@@ -10,7 +10,7 @@ import './CreateConfigPage.css';
 
 const nimTemplate: ConfigDeclaration = {
   output: {
-    type: 'nms',
+    type: 'nim',
     nms: {
       url: 'https://nginx-instance-manager.example.com',
       username: 'admin',
@@ -52,7 +52,7 @@ const nimTemplate: ConfigDeclaration = {
 
 const nginxOneTemplate: ConfigDeclaration = {
   output: {
-    type: 'nginxone',
+    type: 'n1c',
     nginxone: {
       url: 'https://nginx-one.example.com',
       namespace: 'default',
@@ -98,7 +98,7 @@ const nginxOneTemplate: ConfigDeclaration = {
 
 const apiGatewayTemplate: ConfigDeclaration = {
   output: {
-    type: 'nms',
+    type: 'nim',
     nms: {
       url: 'https://nginx-instance-manager.example.com',
       username: 'admin',

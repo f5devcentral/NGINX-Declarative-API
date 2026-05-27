@@ -1,7 +1,7 @@
 // API types based on OpenAPI spec
 export interface ConfigDeclaration {
   output?: {
-    type?: 'nms' | 'nginxone';
+    type?: 'nim' | 'n1c';
     license?: LicenseConfig;
     nms?: NMSConfig;
     nginxone?: NginxOneConfig;

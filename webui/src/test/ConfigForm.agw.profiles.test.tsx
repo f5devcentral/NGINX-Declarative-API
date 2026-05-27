@@ -7,7 +7,7 @@ describe('ConfigForm — API Gateway: profile dropdown population', () => {
   beforeEach(() => { mockOnChange = vi.fn(); });
 
   const makeJsonWithProfiles = () => JSON.stringify({
-    output: { type: 'nms' },
+    output: { type: 'nim' },
     declaration: {
       http: {
         rate_limit: [{ name: 'petstore_ratelimit', key: '$binary_remote_addr', size: '10m', rate: '10r/s' }],
@@ -78,7 +78,7 @@ describe('ConfigForm — API Gateway: live profile typing', () => {
   it('populates the rate limit dropdown after the user types a name in ProfilesSection', async () => {
     // Start with an AGW location and one rate limit rule, but NO http.rate_limit profiles yet
     const initialJson = JSON.stringify({
-      output: { type: 'nms' },
+      output: { type: 'nim' },
       declaration: {
         http: {
           servers: [{

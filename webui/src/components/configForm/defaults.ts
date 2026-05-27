@@ -94,7 +94,7 @@ export function parseConfig(json: string): ConfigData | null {
     const p = JSON.parse(json);
     return {
       output: {
-        type: p?.output?.type ?? 'nms',
+        type: p?.output?.type ?? 'nim',
         synchronous: p?.output?.synchronous ?? true,
         license: p?.output?.license ?? undefined,
         nms: { ...emptyNms(), ...(p?.output?.nms ?? {}) },
@@ -133,7 +133,7 @@ export function parseConfig(json: string): ConfigData | null {
 export function toJson(cfg: ConfigData): string {
   const out: Record<string, unknown> = { type: cfg.output.type, synchronous: cfg.output.synchronous ?? true };
   if (cfg.output.license) out.license = cfg.output.license;
-  if (cfg.output.type === 'nms') out.nms = cfg.output.nms;
+  if (cfg.output.type === 'nim') out.nms = cfg.output.nms;
   else out.nginxone = cfg.output.nginxone;
 
   const decl: Record<string, unknown> = {};

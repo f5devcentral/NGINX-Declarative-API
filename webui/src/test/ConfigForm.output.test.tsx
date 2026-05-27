@@ -42,10 +42,10 @@ vi.mock('react-hot-toast', () => ({
 // ── JSON helpers ──────────────────────────────────────────────────────────────
 
 /** Minimal NMS-type config with no license. */
-const nmsJson = () => JSON.stringify({ output: { type: 'nms' } });
+const nmsJson = () => JSON.stringify({ output: { type: 'nim' } });
 
 /** Minimal NGINX One config. */
-const nginxoneJson = () => JSON.stringify({ output: { type: 'nginxone' } });
+const nginxoneJson = () => JSON.stringify({ output: { type: 'n1c' } });
 
 /**
  * NMS config with the license block present.
@@ -54,7 +54,7 @@ const nginxoneJson = () => JSON.stringify({ output: { type: 'nginxone' } });
 const licensedJson = (gracePeriod?: boolean) =>
   JSON.stringify({
     output: {
-      type: 'nms',
+      type: 'nim',
       license: {
         endpoint: 'product.connect.nginx.com',
         token: '',
@@ -70,7 +70,7 @@ const licensedJson = (gracePeriod?: boolean) =>
  */
 const resolverJson = () =>
   JSON.stringify({
-    output: { type: 'nms' },
+    output: { type: 'nim' },
     declaration: {
       resolvers: [
         { name: 'local-resolver', address: '192.168.2.13', ipv4: true, ipv6: false, timeout: '30s' },
@@ -134,7 +134,7 @@ describe('OutputSection — output type switching', () => {
     const onChange = vi.fn();
     render(<ConfigForm initialJson={nmsJson()} onChange={onChange} />);
     await userEvent.click(screen.getByText('NGINX One Console'));
-    expect(lastOutput(onChange).output.type).toBe('nginxone');
+    expect(lastOutput(onChange).output.type).toBe('n1c');
   });
 
   it('switches back to NIM fields when "NGINX Instance Manager" is clicked', async () => {
@@ -147,7 +147,7 @@ describe('OutputSection — output type switching', () => {
     const onChange = vi.fn();
     render(<ConfigForm initialJson={nginxoneJson()} onChange={onChange} />);
     await userEvent.click(screen.getByText('NGINX Instance Manager'));
-    expect(lastOutput(onChange).output.type).toBe('nms');
+    expect(lastOutput(onChange).output.type).toBe('nim');
   });
 });
 
@@ -239,7 +239,7 @@ describe('OutputSection — license section', () => {
 describe('OutputSection — resolver ProfileSelect', () => {
   it('shows "— no profiles defined —" when no resolver profiles exist', () => {
     const json = JSON.stringify({
-      output: { type: 'nms' },
+      output: { type: 'nim' },
       declaration: {
         http: { servers: [{ name: 'web', listen: { address: '0.0.0.0:80' }, locations: [] }] },
       },

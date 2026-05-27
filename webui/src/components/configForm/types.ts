@@ -471,7 +471,7 @@ export interface OutputNGINXOne {
 
 export interface ConfigData {
   output: {
-    type: 'nms' | 'nginxone';
+    type: 'nim' | 'n1c';
     synchronous?: boolean;
     license?: LicenseConfig;
     nms?: OutputNMS;

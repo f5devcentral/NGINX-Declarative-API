@@ -7,7 +7,7 @@ import { HttpSection } from './configForm/HttpSection';
 import { Layer4Section } from './configForm/Layer4Section';
 
 const DEFAULT_CFG: ConfigData = {
-  output: { type: 'nms', synchronous: true, nms: emptyNms(), nginxone: emptyNginxOne() },
+  output: { type: 'nim', synchronous: true, nms: emptyNms(), nginxone: emptyNginxOne() },
   declaration: {
     certificates: [],
     http: { servers: [], upstreams: [], rate_limit: [], authentication: { client: [] }, authorization: [], cache: [], maps: [], logformats: [], njs: [], njs_profiles: [], acme_issuers: [], policies: [], log_profiles: [] },
@@ -110,6 +110,7 @@ export function ConfigForm({ initialJson, onChange }: ConfigFormProps) {
           onResolversChange={v => update({ ...cfg, declaration: { ...cfg.declaration, resolvers: v } })}
           certificates={cfg.declaration.certificates ?? []}
           onCertificatesChange={v => update({ ...cfg, declaration: { ...cfg.declaration, certificates: v } })}
+          outputType={cfg.output.type}
         />
         <Layer4Section
           servers={cfg.declaration.layer4?.servers}

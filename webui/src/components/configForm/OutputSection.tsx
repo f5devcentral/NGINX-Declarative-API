@@ -4,12 +4,16 @@ import {
 } from './defaults';
 import { Field, TextInput, NumberInput, SelectInput, Toggle, AddBtn, RemoveBtn, CollapseCard, ModulesField } from './primitives';
 
-export function PoliciesEditor({ policies, onChange }: {
+export function PoliciesEditor({ policies, onChange, outputType }: {
   policies: NMSPolicy[];
   onChange: (p: NMSPolicy[]) => void;
+  outputType?: 'nim' | 'n1c';
 }) {
   const update = (i: number, p: NMSPolicy) => onChange(policies.map((x, idx) => idx === i ? p : x));
   const remove = (i: number) => onChange(policies.filter((_, idx) => idx !== i));
+
+  const destination = outputType === 'n1c' ? 'NGINX One Console' : 'NGINX Instance Manager';
+  const emptyMsg = `No policies — add one to manage an App Protect WAF policy in ${destination}.`;
 
   return (
     <div className="cf-subsection">
@@ -18,7 +22,7 @@ export function PoliciesEditor({ policies, onChange }: {
         <AddBtn label="Add policy" onClick={() => onChange([...policies, emptyNMSPolicy()])} />
       </div>
       {policies.length === 0 && (
-        <p className="cf-empty">No policies — add one to manage an App Protect policy in NGINX Instance Manager.</p>
+        <p className="cf-empty">{emptyMsg}</p>
       )}
       {policies.map((pol, pi) => (
         <CollapseCard
@@ -136,16 +140,16 @@ export function OutputSection({ output, onChange }: {
       <div className="cf-type-row">
         <button
           type="button"
-          className={`cf-type-card${output.type === 'nms' ? ' active' : ''}`}
-          onClick={() => onChange({ ...output, type: 'nms' })}
+          className={`cf-type-card${output.type === 'nim' ? ' active' : ''}`}
+          onClick={() => onChange({ ...output, type: 'nim' })}
         >
           <span className="cf-type-card-title">NGINX Instance Manager</span>
           <span className="cf-type-card-sub">Push to an instance group</span>
         </button>
         <button
           type="button"
-          className={`cf-type-card${output.type === 'nginxone' ? ' active' : ''}`}
-          onClick={() => onChange({ ...output, type: 'nginxone' })}
+          className={`cf-type-card${output.type === 'n1c' ? ' active' : ''}`}
+          onClick={() => onChange({ ...output, type: 'n1c' })}
         >
           <span className="cf-type-card-title">NGINX One Console</span>
           <span className="cf-type-card-sub">Push to a config sync group</span>
@@ -209,7 +213,7 @@ export function OutputSection({ output, onChange }: {
         )}
       </div>
 
-      {output.type === 'nms' && (
+      {output.type === 'nim' && (
         <>
           <div className="cf-grid-2">
             <Field label="URL" required
@@ -237,7 +241,7 @@ export function OutputSection({ output, onChange }: {
         </>
       )}
 
-      {output.type === 'nginxone' && (
+      {output.type === 'n1c' && (
         <>
           <div className="cf-grid-2">
             <Field label="NGINX One URL" required

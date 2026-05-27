@@ -8,7 +8,7 @@ import { ConfigForm } from '@/components/ConfigForm';
 /** Build a minimal initialJson with one server / one location, apigateway.openapi_schema enabled. */
 const makeJson = (schemaContent = '') =>
   JSON.stringify({
-    output: { type: 'nms' },
+    output: { type: 'nim' },
     declaration: {
       http: {
         servers: [
@@ -32,7 +32,7 @@ const makeJson = (schemaContent = '') =>
 /** Build a minimal initialJson with one server / one location and NO apigateway block. */
 const makeJsonNoAgw = () =>
   JSON.stringify({
-    output: { type: 'nms' },
+    output: { type: 'nim' },
     declaration: {
       http: {
         servers: [
@@ -125,7 +125,7 @@ describe('ConfigForm — API Gateway: OpenAPI Schema', () => {
 
     it('does not show mode buttons when openapi_schema is absent', () => {
       const json = JSON.stringify({
-        output: { type: 'nms' },
+        output: { type: 'nim' },
         declaration: {
           http: {
             servers: [

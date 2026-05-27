@@ -10,13 +10,14 @@ import { PoliciesEditor } from './OutputSection';
 
 type Http = NonNullable<ConfigData['declaration']['http']>;
 
-export function HttpSection({ http, onChange, resolvers, onResolversChange, certificates, onCertificatesChange }: {
+export function HttpSection({ http, onChange, resolvers, onResolversChange, certificates, onCertificatesChange, outputType }: {
   http: Http;
   onChange: (h: Http) => void;
   resolvers: HttpResolver[];
   onResolversChange: (v: HttpResolver[]) => void;
   certificates: NMSCertificate[];
   onCertificatesChange: (v: NMSCertificate[]) => void;
+  outputType?: 'nim' | 'n1c';
 }) {
   const servers      = http.servers      ?? [];
   const upstreams    = http.upstreams    ?? [];
@@ -140,6 +141,7 @@ export function HttpSection({ http, onChange, resolvers, onResolversChange, cert
         <PoliciesEditor
           policies={policies}
           onChange={v => onChange({ ...http, policies: v })}
+          outputType={outputType}
         />
       </div>
 

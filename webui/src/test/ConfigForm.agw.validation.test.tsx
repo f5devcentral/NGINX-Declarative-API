@@ -5,7 +5,7 @@ import { ConfigForm } from '@/components/ConfigForm';
 /** Build a minimal initialJson that has an apigateway with the given extra keys. */
 const makeAgwJson = (agwExtra: Record<string, unknown> = {}) =>
   JSON.stringify({
-    output: { type: 'nms' },
+    output: { type: 'nim' },
     declaration: {
       http: {
         servers: [
