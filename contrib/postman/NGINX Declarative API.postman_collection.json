@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "6bcfa8d2-a3c5-4659-9255-c951d40420c5",
+		"_postman_id": "1ce658f9-8b96-44c7-bdb7-96ac3da8733a",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One Console\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-6bcfa8d2-a3c5-4659-9255-c951d40420c5?action=share&source=collection_link&creator=1667416"
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-1ce658f9-8b96-44c7-bdb7-96ac3da8733a?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
