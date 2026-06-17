@@ -142,7 +142,7 @@ redis:
 
   image:
     repository: redis
-    tag: "8.6"
+    tag: "8.8"
     pullPolicy: IfNotPresent
 
   replicaCount: 1
