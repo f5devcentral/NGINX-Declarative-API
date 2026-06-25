@@ -1,5 +1,5 @@
 """
-Tests for v5_5/MiscUtils.py and v5_4/MiscUtils.py
+Tests for v5_5/MiscUtils.py and v5_6/MiscUtils.py
 
 Covers pure utility functions that have no external service dependencies.
 """
@@ -10,7 +10,7 @@ import uuid
 import pytest
 
 import v5_5.MiscUtils as utils_v55
-import v5_4.MiscUtils as utils_v54
+import v5_6.MiscUtils as utils_v56
 
 
 # ---------------------------------------------------------------------------
@@ -41,10 +41,10 @@ class TestGetDictKey:
     def test_empty_dict(self):
         assert utils_v55.getDictKey({}, 'a.b') is None
 
-    # v5_4 has the same implementation
-    def test_v54_nested_key(self):
+    # v5_6 has the same implementation
+    def test_v56_nested_key(self):
         d = {'x': {'y': 'hello'}}
-        assert utils_v54.getDictKey(d, 'x.y') == 'hello'
+        assert utils_v56.getDictKey(d, 'x.y') == 'hello'
 
 
 # ---------------------------------------------------------------------------
@@ -65,8 +65,8 @@ class TestRegexReplace:
         result = utils_v55.regex_replace('aXbXcX', r'X', '-')
         assert result == 'a-b-c-'
 
-    def test_v54_regex_replace(self):
-        assert utils_v54.regex_replace('foo bar', r'\s', '_') == 'foo_bar'
+    def test_v56_regex_replace(self):
+        assert utils_v56.regex_replace('foo bar', r'\s', '_') == 'foo_bar'
 
 
 # ---------------------------------------------------------------------------
@@ -86,13 +86,13 @@ class TestYamlOrJson:
         doc = io.StringIO('{}')
         assert utils_v55.yaml_or_json(doc) == 'json'
 
-    def test_v54_detects_json(self):
+    def test_v56_detects_json(self):
         doc = io.StringIO('{"a": 1}')
-        assert utils_v54.yaml_or_json(doc) == 'json'
+        assert utils_v56.yaml_or_json(doc) == 'json'
 
-    def test_v54_detects_yaml(self):
+    def test_v56_detects_yaml(self):
         doc = io.StringIO('a: 1\n')
-        assert utils_v54.yaml_or_json(doc) == 'yaml'
+        assert utils_v56.yaml_or_json(doc) == 'yaml'
 
 
 # ---------------------------------------------------------------------------
@@ -116,8 +116,8 @@ class TestYamlToJson:
         result = json.loads(utils_v55.yaml_to_json(yaml_input))
         assert result['items'] == ['one', 'two']
 
-    def test_v54_yaml_to_json(self):
-        result = json.loads(utils_v54.yaml_to_json('key: val'))
+    def test_v56_yaml_to_json(self):
+        result = json.loads(utils_v56.yaml_to_json('key: val'))
         assert result['key'] == 'val'
 
 
@@ -138,9 +138,9 @@ class TestJsonToYaml:
         parsed = yaml.safe_load(result)
         assert parsed['a']['b'] == 1
 
-    def test_v54_json_to_yaml(self):
+    def test_v56_json_to_yaml(self):
         import yaml
-        result = utils_v54.json_to_yaml('{"x": "y"}')
+        result = utils_v56.json_to_yaml('{"x": "y"}')
         parsed = yaml.safe_load(result)
         assert parsed['x'] == 'y'
 
@@ -159,8 +159,8 @@ class TestGetUniqueId:
         ids = {utils_v55.getuniqueid() for _ in range(100)}
         assert len(ids) == 100
 
-    def test_v54_returns_uuid(self):
-        result = utils_v54.getuniqueid()
+    def test_v56_returns_uuid(self):
+        result = utils_v56.getuniqueid()
         assert isinstance(result, uuid.UUID)
 
 
@@ -173,8 +173,8 @@ class TestResolveFQDN:
         ok, _ = utils_v55.resolveFQDN('this.domain.does.not.exist.invalid')
         assert ok is False
 
-    def test_v54_invalid_fqdn(self):
-        ok, _ = utils_v54.resolveFQDN('this.domain.does.not.exist.invalid')
+    def test_v56_invalid_fqdn(self):
+        ok, _ = utils_v56.resolveFQDN('this.domain.does.not.exist.invalid')
         assert ok is False
 
 

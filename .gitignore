@@ -20,6 +20,7 @@ Thumbs.db
 =======
 /.idea/
 /venv/
+/tests/__pycache__/
 /src/__pycache__/
 /src/v5_5/__pycache__/
 /src/v5_6/__pycache__/
