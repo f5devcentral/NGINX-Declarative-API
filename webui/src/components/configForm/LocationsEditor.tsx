@@ -72,8 +72,12 @@ export function LocationsEditor({ locations, onChange, profiles, njsProfileNames
           <LocationRateLimitEditor rl={loc.rate_limit} rateLimitNames={profiles?.rateLimitNames ?? []} onChange={v => update(i, { ...loc, rate_limit: v })} />
           <HealthCheckEditor hc={loc.health_check} onChange={v => update(i, { ...loc, health_check: v })} />
           <LocationCacheEditor cache={loc.cache} cacheNames={profiles?.cacheNames ?? []} onChange={v => update(i, { ...loc, cache: v })} />
-          <LocationAuthEditor auth={loc.authentication} authClientNames={profiles?.authClientNames ?? []} authServerNames={profiles?.authServerNames ?? []} onChange={v => update(i, { ...loc, authentication: v })} />
-          <LocationAuthzEditor authz={loc.authorization} authzNames={profiles?.authzNames ?? []} onChange={v => update(i, { ...loc, authorization: v })} />
+          {loc.apigateway == null && (
+            <>
+              <LocationAuthEditor auth={loc.authentication} authClientNames={profiles?.authClientNames ?? []} authServerNames={profiles?.authServerNames ?? []} onChange={v => update(i, { ...loc, authentication: v })} />
+              <LocationAuthzEditor authz={loc.authorization} authzNames={profiles?.authzNames ?? []} onChange={v => update(i, { ...loc, authorization: v })} />
+            </>
+          )}
           <HeadersEditor headers={loc.headers} onChange={v => update(i, { ...loc, headers: v })} />
           <AppProtectEditor ap={loc.app_protect} onChange={v => update(i, { ...loc, app_protect: v })} />
           <LogEditor log={loc.log} onChange={v => update(i, { ...loc, log: v })} />
