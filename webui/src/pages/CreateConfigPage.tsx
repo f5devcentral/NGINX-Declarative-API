@@ -354,8 +354,8 @@ export const CreateConfigPage = () => {
                 value={jsonValue}
                 path="nginx-dapi-config.json"
                 onMount={handleEditorMount}
-                onChange={(val) => { setJsonValue(val ?? ''); setIsDirty(true); }}
                 options={{
+                  readOnly: true,
                   fontSize: 13,
                   tabSize: 2,
                   minimap: { enabled: false },

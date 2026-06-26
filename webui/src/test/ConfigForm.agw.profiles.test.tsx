@@ -131,3 +131,78 @@ describe('ConfigForm — API Gateway: live profile typing', () => {
     expect(populatedSelect).toBeDefined();
   });
 });
+
+describe('ConfigForm — API Gateway: path enforcement defaults', () => {
+  let mockOnChange: (json: string) => void;
+  beforeEach(() => { mockOnChange = vi.fn(); });
+
+  const makeJsonMissingPathControls = () => JSON.stringify({
+    output: { type: 'nim' },
+    declaration: {
+      http: {
+        rate_limit: [{ name: 'petstore_ratelimit', key: '$binary_remote_addr', size: '10m', rate: '10r/s' }],
+        authentication: {
+          client: [{ name: 'jwt-client-auth', type: 'jwt', jwt: { realm: 'api', key: 'secret' } }],
+        },
+        authorization: [{ name: 'jwt-authz', type: 'jwt', jwt: { claims: [] } }],
+        servers: [{
+          name: 'test',
+          locations: [{
+            uri: '/',
+            urimatch: 'prefix',
+            apigateway: {
+              rate_limit: [{ profile: '', httpcode: 429, burst: 0, delay: 0 }],
+              authentication: { client: [{ profile: '' }] },
+              authorization: [{ profile: '' }],
+            }
+          }]
+        }]
+      }
+    }
+  });
+
+  it('adds enforceOnPaths and paths when selecting an API Gateway rate limit profile', () => {
+    const { container } = render(<ConfigForm initialJson={makeJsonMissingPathControls()} onChange={mockOnChange} />);
+    const select = Array.from(container.querySelectorAll('select')).find(s =>
+      Array.from(s.options).some(o => o.value === 'petstore_ratelimit')
+    ) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'petstore_ratelimit' } });
+
+    const calls = (mockOnChange as ReturnType<typeof vi.fn>).mock.calls;
+    const lastJson = JSON.parse(calls[calls.length - 1][0]);
+    const rl = lastJson.declaration.http.servers[0].locations[0].apigateway.rate_limit[0];
+    expect(rl.profile).toBe('petstore_ratelimit');
+    expect(rl.enforceOnPaths).toBe(true);
+    expect(rl.paths).toEqual([]);
+  });
+
+  it('adds enforceOnPaths and paths when selecting an API Gateway auth client profile', () => {
+    const { container } = render(<ConfigForm initialJson={makeJsonMissingPathControls()} onChange={mockOnChange} />);
+    const select = Array.from(container.querySelectorAll('select')).find(s =>
+      Array.from(s.options).some(o => o.value === 'jwt-client-auth')
+    ) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'jwt-client-auth' } });
+
+    const calls = (mockOnChange as ReturnType<typeof vi.fn>).mock.calls;
+    const lastJson = JSON.parse(calls[calls.length - 1][0]);
+    const auth = lastJson.declaration.http.servers[0].locations[0].apigateway.authentication;
+    expect(auth.client[0].profile).toBe('jwt-client-auth');
+    expect(auth.enforceOnPaths).toBe(true);
+    expect(auth.paths).toEqual([]);
+  });
+
+  it('adds enforceOnPaths and paths when selecting an API Gateway authorization profile', () => {
+    const { container } = render(<ConfigForm initialJson={makeJsonMissingPathControls()} onChange={mockOnChange} />);
+    const select = Array.from(container.querySelectorAll('select')).find(s =>
+      Array.from(s.options).some(o => o.value === 'jwt-authz')
+    ) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'jwt-authz' } });
+
+    const calls = (mockOnChange as ReturnType<typeof vi.fn>).mock.calls;
+    const lastJson = JSON.parse(calls[calls.length - 1][0]);
+    const authz = lastJson.declaration.http.servers[0].locations[0].apigateway.authorization[0];
+    expect(authz.profile).toBe('jwt-authz');
+    expect(authz.enforceOnPaths).toBe(true);
+    expect(authz.paths).toEqual([]);
+  });
+});

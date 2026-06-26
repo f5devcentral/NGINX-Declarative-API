@@ -290,7 +290,12 @@ export function ApiGatewayEditor({
             <div key={ri} className="cf-agw-item-row">
               <Field label="Profile" hint="Name of the rate limit profile defined in the HTTP section."
                 error={!rl.profile?.trim() ? 'Required' : undefined}>
-                <ProfileSelect value={rl.profile ?? ''} onChange={v => onChange({ ...g, rate_limit: rateLimits.map((x, idx) => idx === ri ? { ...x, profile: v } : x) })} options={profiles.rateLimitNames} placeholder="my-rate-limit" error={!rl.profile?.trim()} />
+                <ProfileSelect value={rl.profile ?? ''} onChange={v => onChange({
+                  ...g,
+                  rate_limit: rateLimits.map((x, idx) => idx === ri
+                    ? { ...x, profile: v, enforceOnPaths: x.enforceOnPaths ?? true, paths: x.paths ?? [] }
+                    : x)
+                })} options={profiles.rateLimitNames} placeholder="my-rate-limit" error={!rl.profile?.trim()} />
               </Field>
               <Field label="HTTP code" hint="Status code returned when rate-limited.">
                 <NumberInput value={rl.httpcode ?? 429} onChange={v => onChange({ ...g, rate_limit: rateLimits.map((x, idx) => idx === ri ? { ...x, httpcode: v } : x) })} />
@@ -331,7 +336,15 @@ export function ApiGatewayEditor({
             <div>
               <div className="cf-subsection-header" style={{ marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Client profiles</span>
-                <AddBtn label="Add" onClick={() => onChange({ ...g, authentication: { ...auth, client: [...(auth.client ?? []), { profile: '' }] } })} />
+                <AddBtn label="Add" onClick={() => onChange({
+                  ...g,
+                  authentication: {
+                    ...auth,
+                    enforceOnPaths: auth.enforceOnPaths ?? true,
+                    paths: auth.paths ?? [],
+                    client: [...(auth.client ?? []), { profile: '' }],
+                  }
+                })} />
               </div>
               {(auth.client ?? []).length === 0
                 ? <p className="cf-hint">No client profiles. Add one to reference an authentication profile.</p>
@@ -340,7 +353,15 @@ export function ApiGatewayEditor({
                     <Field label={`Profile ${aci + 1}`} required error={!ac.profile?.trim() ? 'Required' : undefined}>
                       <ProfileSelect
                         value={ac.profile ?? ''}
-                        onChange={v => onChange({ ...g, authentication: { ...auth, client: (auth.client ?? []).map((x, j) => j === aci ? { ...x, profile: v } : x) } })}
+                        onChange={v => onChange({
+                          ...g,
+                          authentication: {
+                            ...auth,
+                            enforceOnPaths: auth.enforceOnPaths ?? true,
+                            paths: auth.paths ?? [],
+                            client: (auth.client ?? []).map((x, j) => j === aci ? { ...x, profile: v } : x),
+                          }
+                        })}
                         options={profiles.authClientNames}
                         placeholder="jwt-auth"
                         error={!ac.profile?.trim()}
@@ -380,7 +401,12 @@ export function ApiGatewayEditor({
             <div key={ai} className="cf-agw-item-row">
               <Field label="Profile" required hint="Name of an authorization profile defined in the HTTP section."
                 error={!az.profile?.trim() ? 'Required' : undefined}>
-                <ProfileSelect value={az.profile} onChange={v => onChange({ ...g, authorization: authzItems.map((x, idx) => idx === ai ? { ...x, profile: v } : x) })} options={profiles.authzNames} placeholder="my-authz-profile" error={!az.profile?.trim()} />
+                <ProfileSelect value={az.profile} onChange={v => onChange({
+                  ...g,
+                  authorization: authzItems.map((x, idx) => idx === ai
+                    ? { ...x, profile: v, enforceOnPaths: x.enforceOnPaths ?? true, paths: x.paths ?? [] }
+                    : x)
+                })} options={profiles.authzNames} placeholder="my-authz-profile" error={!az.profile?.trim()} />
               </Field>
               <Field label="Paths" hint="Paths this rule applies to, one per line. Empty = all.">
                 <PathsInput value={az.paths ?? []} onChange={v => onChange({ ...g, authorization: authzItems.map((x, idx) => idx === ai ? { ...x, paths: v } : x) })} />

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateConfigPage } from '@/pages/CreateConfigPage';
 import toast from 'react-hot-toast';
@@ -7,11 +7,14 @@ import toast from 'react-hot-toast';
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock('@monaco-editor/react', () => ({
-  default: ({ value, onChange }: { value: string; onChange?: (v: string) => void }) => (
+  default: ({ value, onChange, options }: { value: string; onChange?: (v: string) => void; options?: { readOnly?: boolean } }) => (
     <textarea
       data-testid="monaco-editor"
       value={value}
-      onChange={(e) => onChange?.(e.target.value)}
+      readOnly={Boolean(options?.readOnly)}
+      onChange={(e) => {
+        if (!options?.readOnly) onChange?.(e.target.value);
+      }}
     />
   ),
 }));
@@ -113,6 +116,13 @@ describe('CreateConfigPage', () => {
       await userEvent.click(screen.getByRole('button', { name: /form/i }));
       expect(screen.getByTestId('form-trigger-change')).toBeInTheDocument();
     });
+
+    it('renders JSON mode editor as read-only', async () => {
+      renderPage();
+      await userEvent.click(screen.getByRole('button', { name: /json/i }));
+      const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
+      expect(editor.readOnly).toBe(true);
+    });
   });
 
   // ── Template loading (clean state) ────────────────────────────────────────
@@ -161,25 +171,11 @@ describe('CreateConfigPage', () => {
       await userEvent.click(screen.getByTestId('form-trigger-change'));
     };
 
-    const makeDirtyViaEditor = async () => {
-      renderPage();
-      await userEvent.click(screen.getByRole('button', { name: /json/i }));
-      fireEvent.change(screen.getByTestId('monaco-editor'), {
-        target: { value: '{"declaration":{}}' },
-      });
-    };
-
     it('shows confirm dialog when form is dirty and a template is clicked', async () => {
       await makeDirtyViaForm();
       await userEvent.click(screen.getByText('NGINX Instance Manager'));
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByText('Replace configuration?')).toBeInTheDocument();
-    });
-
-    it('shows confirm dialog when JSON editor is dirty and a template is clicked', async () => {
-      await makeDirtyViaEditor();
-      await userEvent.click(screen.getByText('NGINX One Console'));
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     it('dismisses dialog without loading template when Cancel is clicked', async () => {
@@ -225,16 +221,6 @@ describe('CreateConfigPage', () => {
       );
     });
 
-    it('shows error toast when JSON is invalid', async () => {
-      renderPage();
-      await userEvent.click(screen.getByRole('button', { name: /json/i }));
-      fireEvent.change(screen.getByTestId('monaco-editor'), {
-        target: { value: '{ bad json' },
-      });
-      await userEvent.click(screen.getByRole('button', { name: /copy to clipboard/i }));
-      expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/invalid json/i));
-    });
-
     it('copies valid JSON and shows success toast', async () => {
       renderPage();
       await userEvent.click(screen.getByText('NGINX Instance Manager'));
@@ -262,16 +248,6 @@ describe('CreateConfigPage', () => {
       expect(toast.error).toHaveBeenCalledWith(
         'Nothing to save — build or paste a configuration first'
       );
-    });
-
-    it('shows error toast when JSON is invalid', async () => {
-      renderPage();
-      await userEvent.click(screen.getByRole('button', { name: /json/i }));
-      fireEvent.change(screen.getByTestId('monaco-editor'), {
-        target: { value: '{ bad json' },
-      });
-      await userEvent.click(screen.getByRole('button', { name: /save to file/i }));
-      expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/invalid json/i));
     });
 
     it('triggers a download and shows "Download started" toast for valid JSON', async () => {
