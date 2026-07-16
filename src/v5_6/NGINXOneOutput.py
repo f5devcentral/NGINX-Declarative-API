@@ -25,8 +25,7 @@ import v5_6.NGINXOneUtils
 # pydantic models
 from V5_6_NginxConfigDeclaration import *
 
-# NGINX App Protect helper functions
-# NGINX App Protect helper functions
+# F5 WAF for NGINX helper functions
 import v5_6.NGINXOneNAPUtils
 
 # NGINX Declarative API modules
@@ -69,7 +68,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 "message": {"status_code": 400, "message": {"code": 400, "content": "synctime must be >= 0"}},
                 "headers": {'Content-Type': 'application/json'}}
 
-    # Fetch NGINX App Protect WAF policies from source of truth if needed
+    # Fetch F5 WAF for NGINX policies from source of truth if needed
     d_policies = v5_6.MiscUtils.getDictKey(d, 'declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
@@ -245,9 +244,9 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                                 "content": igUid}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        ### NGINX App Protect policies support - commits policies to control plane
+        ### F5 WAF for NGINX policies support - commits policies to control plane
 
-        # Check NGINX App Protect WAF policies configuration sanity
+        # Check F5 WAF for NGINX policies configuration sanity
         status, description = v5_6.NGINXOneNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
@@ -255,7 +254,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                     "message": {"status_code": status, "message": {"code": status, "content": description}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Provision NGINX App Protect WAF policies to NGINX Instance Manager
+        # Provision F5 WAF for NGINX policies to NGINX Instance Manager
         ppReply = v5_6.NGINXOneNAPUtils.provisionPolicies(
             nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  declaration=d)
 
@@ -267,7 +266,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
-        ### / NGINX App Protect policies support
+        ### / F5 WAF for NGINX policies support
 
         ### Publish staged config to config sync group
         returnHttpCode = 422
@@ -332,7 +331,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
             NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
-        # Makes NGINX App Protect policies active
+        # Makes F5 WAF for NGINX policies active
         doWeHavePolicies = v5_6.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
                                                              nginxOneToken=nOneToken,
                                                              nginxOneNamespace=nOneNamespace,
@@ -340,7 +339,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                              instanceGroupUid=igUid)
 
         if doWeHavePolicies:
-            # Clean up NGINX App Protect WAF policies not used anymore
+            # Clean up F5 WAF for NGINX policies not used anymore
             # and not defined in the declaration just pushed
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
             #v5_6.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,

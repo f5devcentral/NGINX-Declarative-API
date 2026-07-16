@@ -1,5 +1,5 @@
 """
-NGINX App Protect support functions
+F5 WAF for NGINX support functions
 """
 
 import requests
@@ -15,7 +15,7 @@ from fastapi.responses import Response, JSONResponse
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
 
-# Define (create/update) a NGINX App Protect policy on NMS.
+# Define (create/update) a F5 WAF for NGINX policy on NMS.
 # If policyUid is not empty a the policy update is performed
 # Returns a tuple {status_code,text}. status_code is 201 if successful
 def __definePolicyOnNGINXOne__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyJson: str):
@@ -23,7 +23,7 @@ def __definePolicyOnNGINXOne__(nginxOneUrl: str, nginxOneToken: str, nginxOneNam
 
     # Payload for NGINX One Console
     # policyBody holds the base64-encoded policy JSON definition
-    # Control plane-compiled policy bundles are supported. Create the NGINX App Protect policy on NGINX One Console
+    # Control plane-compiled policy bundles are supported. Create the F5 WAF for NGINX policy on NGINX One Console
     # POST {nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies
     # {
     #     "policy": "<BASE64>"
@@ -86,7 +86,7 @@ def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: st
 # Check NAP policies names validity for the given declaration
 # Return a tuple: status, description. If status = 200 checks were successful
 def checkDeclarationPolicies(declaration: dict):
-    # NGINX App Protect policies check - duplicated policy names
+    # F5 WAF for NGINX policies check - duplicated policy names
 
     # all policy names as defined in the declaration
     # { 'policyName': 'activeTag', ... }
@@ -99,7 +99,7 @@ def checkDeclarationPolicies(declaration: dict):
         # print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
 
         if policy['name'] and policy['name'] in allPolicyNames:
-            return 422, f"Duplicated NGINX App Protect WAF policy [{policy['name']}]"
+            return 422, f"Duplicated F5 WAF for NGINX policy [{policy['name']}]"
 
         allPolicyNames[policy['name']] = policy['active_tag']
 
@@ -107,7 +107,7 @@ def checkDeclarationPolicies(declaration: dict):
         allPolicyVersionTags = {}
         for policyVersion in policy['versions']:
             if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
-                return 422, f"Duplicated NGINX App Protect WAF policy tag [{policyVersion['tag']}] " \
+                return 422, f"Duplicated F5 WAF for NGINX policy tag [{policyVersion['tag']}] " \
                             f"for policy [{policy['name']}]"
 
             allPolicyVersionTags[policyVersion['tag']] = "found"
@@ -121,7 +121,7 @@ def checkDeclarationPolicies(declaration: dict):
             if 'app_protect' in httpServer:
                 if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] \
                         and httpServer['app_protect']['policy'] not in allPolicyNames:
-                    return 422, f"Unknown NGINX App Protect WAF policy [{httpServer['app_protect']['policy']}] " \
+                    return 422, f"Unknown F5 WAF for NGINX policy [{httpServer['app_protect']['policy']}] " \
                                 f"referenced by HTTP server [{httpServer['name']}]"
 
                 if 'log' in httpServer['app_protect'] \
@@ -129,7 +129,7 @@ def checkDeclarationPolicies(declaration: dict):
                         and httpServer['app_protect']['log']['profile_name'] \
                         and httpServer['app_protect']['log']['profile_name'] \
                         not in available_log_profiles:
-                    return 422, f"Invalid NGINX App Protect WAF log profile " \
+                    return 422, f"Invalid F5 WAF for NGINX log profile " \
                                 f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
                                 f"[{httpServer['name']}]"
 
@@ -138,25 +138,25 @@ def checkDeclarationPolicies(declaration: dict):
                 if 'app_protect' in location:
                     if 'policy' in location['app_protect'] and location['app_protect']['policy'] \
                             and location['app_protect']['policy'] not in allPolicyNames:
-                        return 422, f"Unknown NGINX App Protect WAF policy [{location['app_protect']['policy']}] " \
+                        return 422, f"Unknown F5 WAF for NGINX policy [{location['app_protect']['policy']}] " \
                                     f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}]"
 
                     if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
                             and httpServer['app_protect']['log']['profile_name'] \
                             and httpServer['app_protect']['log']['profile_name'] \
                             not in available_log_profiles:
-                        return 422, f"Invalid NGINX App Protect WAF log profile " \
+                        return 422, f"Invalid F5 WAF for NGINX log profile " \
                                     f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
                                     f"[{httpServer['name']}] location [{location['uri']}]"
 
     return 200, ""
 
 
-# For the given declaration creates/updates NGINX App Protect WAF policies on NGINX Instance Manager
+# For the given declaration creates/updates F5 WAF for NGINX policies on NGINX Instance Manager
 # making sure that they are in sync with what is defined in the JSON declaration
 # Returns a JSON with status code and content
 def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, declaration: dict):
-    # NGINX App Protect policies - each policy supports multiple tagged versions
+    # F5 WAF for NGINX policies - each policy supports multiple tagged versions
 
     # Policy names and all tag/uid pairs
     # {'prod-policy': [{'tag': 'v1', 'uid': 'ebcf9c7e-0930-450d-8108-7cad30e59661'},
@@ -176,7 +176,7 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
             if policy_name:
                 policy_active_tag = p['active_tag']
 
-                # Iterates over all NGINX App Protect policies
+                # Iterates over all F5 WAF for NGINX policies
                 if p['type'] == 'app_protect':
                     # Iterates over all policy versions
 
@@ -197,13 +197,13 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
                                          "details": policyBody['content']}
                             )
 
-                        # Create the NGINX App Protect policy on NGINX One Console
+                        # Create the F5 WAF for NGINX policy on NGINX One Console
                         r = __definePolicyOnNGINXOne__(
                             nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace,
                             policyJson=policyBody['content']
                         )
 
-                        # Check for errors creating NGINX App Protect policy
+                        # Check for errors creating F5 WAF for NGINX policy
                         if r.status_code != 201:
                             return JSONResponse(
                                 status_code=r.status_code,
@@ -227,7 +227,7 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
                                                   "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
 
 
-# Publish a NGINX App Protect WAF policy making it active
+# Publish a F5 WAF for NGINX policy making it active
 # activePolicyUids is a dict { "policy_name": "active_uid", [...] }
 # Return True if at least one policy was enabled, False otherwise
 def makePolicyActive(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, activePolicyUids: dict, instanceGroupUid: str):
