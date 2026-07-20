@@ -18,12 +18,12 @@ Convention used throughout this module:
 import base64
 from urllib.parse import urlparse
 
-import v5_6.APIGateway
-import v5_6.DevPortal
-import v5_6.GitOps
-import v5_6.MiscUtils
-import v5_6.NGINXOneOutput
-import v5_6.NIMOutput
+import v5_7.APIGateway
+import v5_7.DevPortal
+import v5_7.GitOps
+import v5_7.MiscUtils
+import v5_7.NGINXOneOutput
+import v5_7.NIMOutput
 from jinja2 import Environment, FileSystemLoader
 
 from NcgConfig import NcgConfig
@@ -67,7 +67,7 @@ def _build_jinja_environment(apiversion: str) -> Environment:
     templates_dir = f"{NcgConfig.config['templates']['root_dir']}/{apiversion}"
     j2_env = Environment(loader=FileSystemLoader(templates_dir), trim_blocks=True,
                          extensions=["jinja2_base64_filters.Base64Filters"])
-    j2_env.filters['regex_replace'] = v5_6.MiscUtils.regex_replace
+    j2_env.filters['regex_replace'] = v5_7.MiscUtils.regex_replace
     return j2_env
 
 
@@ -119,7 +119,7 @@ def dispatch_output(ctx: ConfigBuildContext, decltype: str, declaration, apivers
     if decltype_lower == 'nms':
         ctx.configFiles['rootDir'] = NcgConfig.config['nms']['config_dir']
         ctx.auxFiles['rootDir'] = NcgConfig.config['nms']['config_dir']
-        final_reply = v5_6.NIMOutput.NIMOutput(
+        final_reply = v5_7.NIMOutput.NIMOutput(
             d=ctx.d, declaration=declaration, apiversion=apiversion,
             b64HttpConf=b64_http_conf, b64StreamConf=b64_stream_conf,
             configFiles=ctx.configFiles, auxFiles=ctx.auxFiles,
@@ -127,7 +127,7 @@ def dispatch_output(ctx: ConfigBuildContext, decltype: str, declaration, apivers
     elif decltype_lower == 'nginxone':
         ctx.configFiles['name'] = NcgConfig.config['nms']['config_dir']
         ctx.auxFiles['name'] = NcgConfig.config['nms']['config_dir']
-        final_reply = v5_6.NGINXOneOutput.NGINXOneOutput(
+        final_reply = v5_7.NGINXOneOutput.NGINXOneOutput(
             d=ctx.d, declaration=declaration, apiversion=apiversion,
             b64HttpConf=b64_http_conf, b64StreamConf=b64_stream_conf,
             configFiles=ctx.configFiles, auxFiles=ctx.auxFiles,
@@ -166,7 +166,7 @@ def _process_resolvers(ctx: ConfigBuildContext):
     if 'resolvers' not in ctx.d['declaration']:
         return
 
-    d_resolver_profiles = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.resolvers')
+    d_resolver_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.resolvers')
     if d_resolver_profiles is None:
         return
 
@@ -218,7 +218,7 @@ def _process_http_snippet(ctx: ConfigBuildContext):
     if 'snippet' not in d:
         return None
 
-    status, snippet = v5_6.GitOps.getObjectFromRepo(object=d['http']['snippet'], authProfiles=d['authentication'])
+    status, snippet = v5_7.GitOps.getObjectFromRepo(object=d['http']['snippet'], authProfiles=d['authentication'])
     if status != 200:
         return _gitops_error(status, snippet)
     d['snippet'] = snippet
@@ -238,7 +238,7 @@ def _process_http_upstreams(ctx: ConfigBuildContext):
                 f"[{upstream['name']}], must be one of {ctx.all_resolver_profiles}")
 
         if upstream['snippet']:
-            status, snippet = v5_6.GitOps.getObjectFromRepo(
+            status, snippet = v5_7.GitOps.getObjectFromRepo(
                 object=upstream['snippet'], authProfiles=d['authentication'])
             if status != 200:
                 return _gitops_error(status, snippet)
@@ -255,14 +255,14 @@ def _process_http_upstreams(ctx: ConfigBuildContext):
 
 
 def _collect_rate_limit_profiles(ctx: ConfigBuildContext):
-    d_rate_limit = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.rate_limit')
+    d_rate_limit = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.rate_limit')
     if d_rate_limit is None:
         return
     ctx.all_ratelimits.extend(rl['name'] for rl in d_rate_limit)
 
 
 def _collect_cache_profiles(ctx: ConfigBuildContext):
-    d_cache_profiles = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.cache')
+    d_cache_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.cache')
     if d_cache_profiles is None:
         return
     ctx.all_cache_profiles.extend(cp['name'] for cp in d_cache_profiles)
@@ -313,7 +313,7 @@ def _render_oidc_client_auth(ctx: ConfigBuildContext, auth_profile):
 
 
 def _process_auth_client_profiles(ctx: ConfigBuildContext):
-    d_auth_profiles = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
+    d_auth_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
     if d_auth_profiles is None or 'client' not in d_auth_profiles:
         return
 
@@ -350,7 +350,7 @@ def _render_mtls_server_auth(ctx: ConfigBuildContext, auth_profile):
 
 
 def _process_auth_server_profiles(ctx: ConfigBuildContext):
-    d_auth_profiles = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
+    d_auth_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
     if d_auth_profiles is None or 'server' not in d_auth_profiles:
         return
 
@@ -385,7 +385,7 @@ def _render_jwt_client_authz(ctx: ConfigBuildContext, authz_profile):
 
 
 def _process_authz_profiles(ctx: ConfigBuildContext):
-    d_authz_profiles = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.authorization')
+    d_authz_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authorization')
     if d_authz_profiles is None:
         return
 
@@ -400,14 +400,14 @@ def _process_authz_profiles(ctx: ConfigBuildContext):
 # ---------------------------------------------------------------------------
 
 def _process_njs_profiles(ctx: ConfigBuildContext):
-    d_njs_files = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs_profiles')
+    d_njs_files = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs_profiles')
     if d_njs_files is None:
         return None
 
     auth_profiles = ctx.d['declaration']['authentication']
     for njs_file in d_njs_files:
         njs_filename = njs_file['name'].replace(' ', '_')
-        status, content = v5_6.GitOps.getObjectFromRepo(object=njs_file['file'], authProfiles=auth_profiles)
+        status, content = v5_7.GitOps.getObjectFromRepo(object=njs_file['file'], authProfiles=auth_profiles)
         if status != 200:
             return _gitops_error(status, content)
         ctx.auxFiles['files'].append({
@@ -419,7 +419,7 @@ def _process_njs_profiles(ctx: ConfigBuildContext):
 
 
 def _process_acme_issuers(ctx: ConfigBuildContext):
-    d_acme_issuers = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.acme_issuers')
+    d_acme_issuers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.acme_issuers')
     if d_acme_issuers is None:
         return
 
@@ -438,7 +438,7 @@ def _process_acme_issuers(ctx: ConfigBuildContext):
 # ---------------------------------------------------------------------------
 
 def _validate_http_njs_hooks(ctx: ConfigBuildContext):
-    d_http_njs_hooks = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs')
+    d_http_njs_hooks = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs')
     if d_http_njs_hooks is None:
         return None
 
@@ -451,7 +451,7 @@ def _validate_http_njs_hooks(ctx: ConfigBuildContext):
 
 
 def _validate_http_resolver(ctx: ConfigBuildContext):
-    d_http_resolver = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.resolver')
+    d_http_resolver = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.resolver')
     if not d_http_resolver:
         return None
 
@@ -467,7 +467,7 @@ def _validate_http_resolver(ctx: ConfigBuildContext):
 # ---------------------------------------------------------------------------
 
 def _process_http_servers(ctx: ConfigBuildContext):
-    d_servers = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.http.servers')
+    d_servers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.servers')
     if d_servers is None:
         return None
 
@@ -557,7 +557,7 @@ def _validate_server(ctx: ConfigBuildContext, server):
 
 def _fetch_server_snippet(ctx: ConfigBuildContext, server):
     auth_profiles = ctx.d['declaration']['authentication']
-    status, server_snippet = v5_6.GitOps.getObjectFromRepo(
+    status, server_snippet = v5_7.GitOps.getObjectFromRepo(
         object=server['snippet'], authProfiles=auth_profiles, base64Encode=False)
     if status != 200:
         return _gitops_error(status, server_snippet), ''
@@ -637,7 +637,7 @@ def _process_location_snippet(ctx: ConfigBuildContext, loc):
     if not loc['snippet']:
         return None
     auth_profiles = ctx.d['declaration']['authentication']
-    status, snippet = v5_6.GitOps.getObjectFromRepo(object=loc['snippet'], authProfiles=auth_profiles)
+    status, snippet = v5_7.GitOps.getObjectFromRepo(object=loc['snippet'], authProfiles=auth_profiles)
     if status != 200:
         return _gitops_error(status, snippet)
     loc['snippet'] = snippet
@@ -787,7 +787,7 @@ def _process_api_gateway_provisioning(ctx: ConfigBuildContext, server, loc, enab
         return error, None
 
     schema_content = apigateway['openapi_schema']['content']
-    status, api_gateway_declaration, openapi_schema_json = v5_6.APIGateway.createAPIGateway(
+    status, api_gateway_declaration, openapi_schema_json = v5_7.APIGateway.createAPIGateway(
         locationDeclaration=loc, authProfiles=apigateway['openapi_schema']['authentication'])
     if status != 200:
         return ({"status_code": 412,
@@ -840,7 +840,7 @@ def _process_developer_portal(ctx: ConfigBuildContext, loc, openapi_schema_json)
 
 def _process_redocly_developer_portal(ctx: ConfigBuildContext, loc):
     auth_profiles = ctx.d['declaration']['authentication']
-    status, dev_portal_html = v5_6.DevPortal.createDevPortal(locationDeclaration=loc, authProfiles=auth_profiles)
+    status, dev_portal_html = v5_7.DevPortal.createDevPortal(locationDeclaration=loc, authProfiles=auth_profiles)
     if status != 200:
         return {"status_code": 412,
                 "message": {"status_code": status,
@@ -857,7 +857,7 @@ def _process_backstage_developer_portal(ctx: ConfigBuildContext, loc, openapi_sc
     template_name = f"{NcgConfig.config['templates']['devportal_root']}/backstage.tmpl"
     manifest = ctx.j2_env.get_template(template_name).render(
         declaration=loc['apigateway']['developer_portal']['backstage'],
-        openAPISchema=v5_6.MiscUtils.json_to_yaml(openapi_schema_json),
+        openAPISchema=v5_7.MiscUtils.json_to_yaml(openapi_schema_json),
         ncgconfig=NcgConfig.config)
     ctx.extraOutputManifests.append(manifest)
 
@@ -878,7 +878,7 @@ def _process_layer4(ctx: ConfigBuildContext):
 
 
 def _process_layer4_upstreams(ctx: ConfigBuildContext):
-    d_upstreams = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.upstreams')
+    d_upstreams = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.upstreams')
     if d_upstreams is None:
         return None
 
@@ -890,7 +890,7 @@ def _process_layer4_upstreams(ctx: ConfigBuildContext):
                 f"[{upstream['name']}], must be one of {ctx.all_resolver_profiles}")
 
         if upstream['snippet']:
-            status, snippet = v5_6.GitOps.getObjectFromRepo(object=upstream['snippet'], authProfiles=auth_profiles)
+            status, snippet = v5_7.GitOps.getObjectFromRepo(object=upstream['snippet'], authProfiles=auth_profiles)
             if status != 200:
                 return _gitops_error(status, snippet)
             ctx.d['declaration']['layer4']['upstreams'][i]['snippet'] = snippet
@@ -906,7 +906,7 @@ def _process_layer4_upstreams(ctx: ConfigBuildContext):
 
 
 def _process_layer4_servers(ctx: ConfigBuildContext):
-    d_servers = v5_6.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.servers')
+    d_servers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.servers')
     if d_servers is None:
         return None
 
@@ -925,7 +925,7 @@ def _process_layer4_server(ctx: ConfigBuildContext, server):
 
     if server['snippet']:
         auth_profiles = ctx.d['declaration']['authentication']
-        status, snippet = v5_6.GitOps.getObjectFromRepo(object=server['snippet'], authProfiles=auth_profiles)
+        status, snippet = v5_7.GitOps.getObjectFromRepo(object=server['snippet'], authProfiles=auth_profiles)
         if status != 200:
             return _gitops_error(status, snippet)
         server['snippet'] = snippet

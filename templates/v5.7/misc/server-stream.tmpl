@@ -4,14 +4,14 @@
     {% if s.listen.address %}
 
 server {
-    listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %};
+    listen {{ s.listen.address }}{% if s.listen.protocol == "udp" %} {{ s.listen.protocol }}{% endif %}{% if s.listen.tls and s.listen.tls.certificate %} ssl{% endif %};
     status_zone {{ s.name | replace(" ", "_") }};
     {% endif -%}
-    {% endif -%}
+    {% endif %}
 
     {% if s.resolver -%}
     include "{{ ncgconfig.nms.resolver_dir }}/{{ s.resolver | replace(" ", "_") }}.conf";
-    {% endif -%}
+    {% endif %}
 
     {# --- TLS section --- #}
     {%- if s.listen.tls -%}

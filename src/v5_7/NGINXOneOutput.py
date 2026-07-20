@@ -1,5 +1,5 @@
 """
-Output to NGINX Instance Manager
+Output to NGINX One console
 """
 
 import base64
@@ -20,37 +20,37 @@ import v5_6.DevPortal
 import v5_6.DeclarationPatcher
 import v5_6.GitOps
 import v5_6.MiscUtils
-import v5_6.NIMOutput
-import v5_6.NIMUtils
+import v5_6.NGINXOneUtils
 
 # pydantic models
 from V5_6_NginxConfigDeclaration import *
 
 # F5 WAF for NGINX helper functions
-import v5_6.NIMNAPUtils
+import v5_6.NGINXOneNAPUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
 
-def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
+def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: str,
               b64StreamConf: str,configFiles = {}, auxFiles = {},
               runfromautosync: bool = False,
               configUid: str = ""):
-    # NGINX Instance Manager Staged Configuration publish
+    # NGINX One Console Staged Configuration publish
 
-    nmsUsername = v5_6.MiscUtils.getDictKey(d, 'output.nms.username')
-    nmsPassword = v5_6.MiscUtils.getDictKey(d, 'output.nms.password')
-    nmsInstanceGroup = v5_6.MiscUtils.getDictKey(d, 'output.nms.instancegroup')
-    nmsSynctime = v5_6.MiscUtils.getDictKey(d, 'output.nms.synctime')
+    nOneToken = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.token')
+    nOneConfigSyncGroup = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')
+    nOneNamespace = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.namespace')
 
-    nmsUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nms.url')
-    urlCheck = urlparse(nmsUrlFromJson)
+    nOneSynctime = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.synctime')
+
+    nOneUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.url')
+    urlCheck = urlparse(nOneUrlFromJson)
 
     if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
-                                                            "content": f"invalid NGINX Instance Manager URL {nmsUrlFromJson}"}},
+                                                            "content": f"invalid NGINX One URL {nOneUrlFromJson}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     # DNS resolution check
@@ -61,22 +61,21 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                             "content": f"DNS resolution failed for {urlCheck.netloc}: {dnsReply}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
-    nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
+    nOneUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"
 
-    if nmsSynctime < 0:
+    if nOneSynctime < 0:
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400, "content": "synctime must be >= 0"}},
                 "headers": {'Content-Type': 'application/json'}}
 
-    # Fetch F5 WAF for NGINX WAF policies from source of truth if needed
-    d_policies = v5_6.MiscUtils.getDictKey(d, 'output.declaration.http.policies')
+    # Fetch F5 WAF for NGINX policies from source of truth if needed
+    d_policies = v5_6.MiscUtils.getDictKey(d, 'declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
             if 'versions' in policy:
                 for policyVersion in policy['versions']:
                     status, content = v5_6.GitOps.getObjectFromRepo(object=policyVersion['contents'],
-                                                                    authProfiles=d['declaration']['http'][
-                                                                        'authentication'])
+                                                                    authProfiles=d['declaration']['authentication'])
 
                     if status != 200:
                         return {"status_code": 422, "message": {"status_code": status, "message": content}}
@@ -152,7 +151,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     if d_certificates is not None:
         for c in d_certificates:
             status, certContent = v5_6.GitOps.getObjectFromRepo(object=c['contents'],
-                                                                authProfiles=d['declaration']['http']['authentication'])
+                                                                authProfiles=d['declaration']['authentication'])
 
             if status != 200:
                 return {"status_code": 422,
@@ -171,7 +170,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
         nginxconf={'mainhttpfile': NcgConfig.config['nms']['staged_config_http_filename'],
                    'mainstreamfile': NcgConfig.config['nms']['staged_config_stream_filename'],
-                   'modules': v5_6.MiscUtils.getDictKey(d, 'output.nms.modules'),
+                   'modules': v5_6.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
                    'license': v5_6.MiscUtils.getDictKey(d, 'output.license')},
                    d={'http': v5_6.MiscUtils.getDictKey(d, 'declaration.http')})
 
@@ -216,10 +215,9 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         configFiles['files'].append(filesLicenseFile)
 
     # Staged config
-    baseStagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles}
-    stagedConfig = {'auxFiles': auxFiles, 'configFiles': configFiles,
-                    'updateTime': datetime.utcnow().isoformat()[:-3] + 'Z',
-                    'ignoreConflict': True, 'validateConfig': False}
+    baseStagedConfig = {'aux': [ { 'files': configFiles } ] }
+    stagedConfig = {'conf_path': NcgConfig.config['nms']['config_dir'] + '/nginx.conf',
+                    'configs': [ configFiles, auxFiles ]}
 
     currentBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}').decode(
         'utf-8') if NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}') else None
@@ -230,34 +228,34 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         return {"status_code": 200,
                 "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
     else:
-        # Configuration objects have changed, publish to NIM needed
+        # Configuration objects have changed, publish to NGINX One needed
         print(
             f'Declaration [{configUid}] changed, publishing' if configUid else f'New declaration created, publishing')
 
-        # Get the instance group id
-        igUid = v5_6.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                     nmsPassword=nmsPassword, instanceGroupName=nmsInstanceGroup)
+        # Get the config sync group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
+        returnCode, igUid = v5_6.NGINXOneUtils.getConfigSyncGroupId(nOneUrl = nOneUrl, nOneToken = nOneToken,
+                                                nameSpace = nOneNamespace, configSyncGroupName = nOneConfigSyncGroup)
 
-        # Invalid instance group
-        if igUid is None:
+        # Invalid config sync group
+        if returnCode != 200:
             return {"status_code": 404,
-                    "message": {"status_code": 404, "message": {"code": 404,
-                                                                "content": f"instance group {nmsInstanceGroup} not found"}},
+                    "message": {"status_code": 404, "message": {"code": returnCode,
+                                                                "content": igUid}},
                     "headers": {'Content-Type': 'application/json'}}
 
         ### F5 WAF for NGINX policies support - commits policies to control plane
 
-        # Check WAF policies configuration sanity
-        status, description = v5_6.NIMNAPUtils.checkDeclarationPolicies(d)
+        # Check F5 WAF for NGINX policies configuration sanity
+        status, description = v5_6.NGINXOneNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
             return {"status_code": 422,
                     "message": {"status_code": status, "message": {"code": status, "content": description}},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Provision WAF policies to NGINX Instance Manager
-        ppReply = v5_6.NIMNAPUtils.provisionPolicies(
-            nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
+        # Provision F5 WAF for NGINX policies to NGINX Instance Manager
+        ppReply = v5_6.NGINXOneNAPUtils.provisionPolicies(
+            nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  declaration=d)
 
         if ppReply.status_code >= 400:
             return {"status_code": ppReply.status_code,
@@ -267,96 +265,100 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         provisionedNapPolicies = napPolicies['all_policy_names_and_versions']
         activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
-           ### / F5 WAF for NGINX policies support
+        ### / F5 WAF for NGINX policies support
 
-        ### Publish staged config to instance group
-        r = requests.post(url=nmsUrl + f"/api/platform/v1/instance-groups/{igUid}/config",
+        ### Publish staged config to config sync group
+        returnHttpCode = 422
+
+        r = requests.put(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config',
                           data=json.dumps(stagedConfig),
-                          headers={'Content-Type': 'application/json'},
-                          auth=(nmsUsername, nmsPassword),
+                          headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"},
                           verify=False)
 
-        if r.status_code != 202:
-            # Configuration push failed
+        if r.status_code not in [200, 202]:
+            # Configuration publish failed
             return {"status_code": r.status_code,
                     "message": {"status_code": r.status_code, "message": r.text},
                     "headers": {'Content-Type': 'application/json'}}
 
-        # Fetch the deployment status
-        publishResponse = json.loads(r.text)
+        if r.status_code == 202:
+            # Configuration has been submitted to NGINX One Console, fetch the deployment status - reply was HTTP/202
+            publishResponse = json.loads(r.text)
+            publication_id = publishResponse['object_id']
 
-        # Wait for either NGINX Instance Manager success or failure after pushing a staged config
-        isPending = True
-        jsonResponse = {}
-        while isPending:
-            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            deploymentCheck = requests.get(url=nmsUrl + publishResponse['links']['rel'],
-                                           auth=(nmsUsername, nmsPassword),
-                                           verify=False)
-
-            checkJson = json.loads(deploymentCheck.text)
-
-            if deploymentCheck.status_code == 404:
-                jsonResponse = {"message": f"deployment not found at {publishResponse['links']['rel']}"}
-                isPending = False
-
-            if 'details' in checkJson and not checkJson['details']['pending']:
-                isPending = False
-
-        if 'details' not in checkJson or len(checkJson['details']['failure']) > 0:
-            # Staged config publish to NIM failed
-            jsonResponse = checkJson['details']['failure'][0] if 'details' in checkJson else jsonResponse
-            deploymentCheck.status_code = 422
-        else:
-            # Staged config publish to NIM succeeded
-            jsonResponse = json.loads(deploymentCheck.text)
-
-            # if nmsSynctime > 0 and runfromautosync == False:
-            if runfromautosync == False:
-                # No configuration is found, generate one
-                configUid = str(v5_6.MiscUtils.getuniqueid())
-
-                # Stores the staged config to redis
-                # Redis keys:
-                # ncg.declaration.[configUid] = original config declaration
-                # ncg.declarationrendered.[configUid] = original config declaration - rendered
-                # ncg.basestagedconfig.[configUid] = base staged configuration
-                # ncg.apiversion.[configUid] = ncg API version
-                # ncg.status.[configUid] = latest status
-
-                NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-                NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-                NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
-                NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
-
-            # Makes F5 WAF for NGINX policies active
-            doWeHavePolicies = v5_6.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                                 nmsPassword=nmsPassword,
-                                                                 activePolicyUids=activePolicyUids,
-                                                                 instanceGroupUid=igUid)
-
-            if doWeHavePolicies:
-                # Clean up F5 WAF for NGINX WAF policies not used anymore
-                # and not defined in the declaration just pushed
+            # Wait for either NGINX One Cloud Console success or failure after pushing a staged config
+            isPending = True
+            while isPending:
                 time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-                v5_6.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
-                                                      nmsPassword=nmsPassword,
-                                                      currentPolicies=provisionedNapPolicies)
+                deploymentCheck = requests.get(url=f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}',
+                                               headers={"Authorization": f"Bearer APIToken {nOneToken}"},
+                                               verify=False)
 
-            # If deploying a new configuration in GitOps mode start autosync
-            if nmsSynctime == 0:
-                NcgRedis.declarationsList[configUid] = "static"
-            elif not runfromautosync:
-                # GitOps autosync
-                print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
+                checkJson = json.loads(deploymentCheck.text)
 
-                job = schedule.every(nmsSynctime).seconds.do(lambda: v5_6_CreateConfig.configautosync(configUid))
-                # Keep track of GitOps configs, key is the threaded job
-                NcgRedis.declarationsList[configUid] = job
+                if not checkJson['status'] == 'pending':
+                    isPending = False
 
-                NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+            if checkJson['status'] == "failed":
+                # Staged config publish to NGINX One failed
+                jsonResponse = checkJson['status_reasons'][0]
+                returnHttpCode = 422
+            elif checkJson['status'] == "succeeded":
+                jsonResponse = { "message": "Config successfully applied", "status": checkJson['status'] }
+                returnHttpCode = 200
 
-        responseContent = {'code': deploymentCheck.status_code, 'content': jsonResponse, 'configUid': configUid}
+        else:
+            # Staged config publish to NGINX One succeeded - reply was HTTP/200
+            jsonResponse = json.loads(r.text)
+            returnHttpCode = 200
+
+        # if nmsSynctime > 0 and runfromautosync == False:
+        if runfromautosync == False:
+            # No configuration is found, generate one
+            configUid = str(v5_6.MiscUtils.getuniqueid())
+
+            # Stores the staged config to redis
+            # Redis keys:
+            # ncg.declaration.[configUid] = original config declaration
+            # ncg.declarationrendered.[configUid] = original config declaration - rendered
+            # ncg.basestagedconfig.[configUid] = base staged configuration
+            # ncg.apiversion.[configUid] = ncg API version
+            # ncg.status.[configUid] = latest status
+
+            NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
+            NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
+            NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+            NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+
+        # Makes F5 WAF for NGINX policies active
+        doWeHavePolicies = v5_6.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
+                                                             nginxOneToken=nOneToken,
+                                                             nginxOneNamespace=nOneNamespace,
+                                                             activePolicyUids=activePolicyUids,
+                                                             instanceGroupUid=igUid)
+
+        if doWeHavePolicies:
+            # Clean up F5 WAF for NGINX policies not used anymore
+            # and not defined in the declaration just pushed
+            time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+            #v5_6.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
+            #                                        nginxOneNamespace=nOneNamespace,
+            #                                        currentPolicies=provisionedNapPolicies)
+
+        # If deploying a new configuration in GitOps mode start autosync
+        if nOneSynctime == 0:
+            NcgRedis.declarationsList[configUid] = "static"
+        elif not runfromautosync:
+            # GitOps autosync
+            print(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
+
+            job = schedule.every(nOneSynctime).seconds.do(lambda: v5_6_CreateConfig.configautosync(configUid))
+            # Keep track of GitOps configs, key is the threaded job
+            NcgRedis.declarationsList[configUid] = job
+
+            NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
+
+        responseContent = {' code': returnHttpCode, 'content': jsonResponse, 'configUid': configUid}
 
         # Configuration push completed, update redis keys
         if configUid != "":
@@ -368,8 +370,8 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
             NcgRedis.redis.set('ncg.declarationrendered.' + configUid, json.dumps(d))
             NcgRedis.redis.set('ncg.basestagedconfig.' + configUid, json.dumps(baseStagedConfig))
 
-        return {"status_code": deploymentCheck.status_code,
-            "message": {"status_code": deploymentCheck.status_code,
+        return {"status_code": returnHttpCode,
+            "message": {"status_code": returnHttpCode,
                         "message": responseContent},
             "headers": {'Content-Type': 'application/json'}
             }

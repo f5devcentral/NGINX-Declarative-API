@@ -1,0 +1,39 @@
+{
+    "policy": {
+        "name": "prod-policy",
+        "template": {
+            "name": "POLICY_TEMPLATE_NGINX_BASE"
+        },
+        "applicationLanguage": "utf-8",
+        "enforcementMode": "blocking",
+        "signature-sets": [
+            {
+                "name": "All Signatures",
+                "block": true,
+                "alarm": true
+            }
+        ],
+        "signatures": [
+            {
+                "signatureId": 200001834,
+                "enabled": false
+            },
+            {
+                "signatureId": 200001475,
+                "enabled": false
+            },
+            {
+                "signatureId": 200000098,
+                "enabled": false
+            },
+            {
+                "signatureId": 200001088,
+                "enabled": false
+            },
+            {
+                "signatureId": 200101609,
+                "enabled": false
+            }
+        ]
+    }
+}

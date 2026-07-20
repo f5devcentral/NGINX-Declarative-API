@@ -192,7 +192,7 @@ server {
     {%- if loc.urimatch|lower == "best" %} ^~ {% endif %}
     {%- endif -%}
     {{ loc.uri }} {
-        status_zone {{ loc.uri | replace(" ", "_") }};
+        status_zone {{ s.names[0] | replace(" ", "_") }}_{{ loc.uri | replace(" ", "_") }};
         {% if loc.authentication and loc.authentication.server and loc.authentication.server[0].profile -%}
         include "{{ ncgconfig.nms.auth_server_dir }}/{{ loc.authentication.server[0].profile | replace(" ", "_") }}.conf";
         {% endif -%}
@@ -319,7 +319,7 @@ server {
         include "{{ ncgconfig.nms.authz_client_dir }}/{{ loc.authorization.profile | replace(" ", "_") }}.conf";
         {%- endif -%}
 
-        {# --- Location NGINX App Protect WAF --- #}
+        {# --- Location-level WAF --- #}
 
         {% if loc.app_protect -%}
         {% if loc.app_protect.enabled == True -%}
