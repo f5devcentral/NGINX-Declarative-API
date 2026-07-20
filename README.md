@@ -51,7 +51,7 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 | v5.6        | 2.20+                     | January 2027         | R33+          | 5.x              |
 | v5.7        | 2.22+                     | July 2027            | R35+          | 5.x              |
 
-**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
+>**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
 
 ## 🛠️ Architecture
 
