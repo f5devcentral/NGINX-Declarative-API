@@ -208,6 +208,7 @@ See the [features list](/FEATURES.md)
 Usage details and JSON schema are available here:
 
 - [API v5.6](/USAGE-v5.6.md) - latest
+- [API v5.7](/USAGE-v5.7.md) - stable
 - [API v5.5](/USAGE-v5.5.md) - stable
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
