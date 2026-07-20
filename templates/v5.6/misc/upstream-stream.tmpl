@@ -1,0 +1,19 @@
+# Stream upstream template
+
+{% if u.name %}
+{% if u.origin %}
+upstream {{ u.name }} {
+    zone {{ u.name }} 64k;
+    {% for o in u.origin -%}
+    server {{ o.server }}{% if o.weight %} weight={{ o.weight }}{% endif %}{% if o.max_fails %} max_fails={{ o.max_fails }}{% endif %}{% if o.fail_timeout %} fail_timeout={{ o.fail_timeout }}{% endif %}{% if o.max_conns %} max_conns={{ o.max_conns }}{% endif %}{% if o.slow_start %} slow_start={{ o.slow_start }}{% endif %}{% if o.backup and o.backup == True %} backup{% endif %};
+    {% endfor %}
+
+    {% if u.snippet and u.snippet.content %}{{ u.snippet.content }}{% endif %}
+
+    {% if u.resolver -%}
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ u.resolver | replace(" ", "_") }}.conf";
+    {% endif %}
+
+}
+{% endif %}
+{% endif %}

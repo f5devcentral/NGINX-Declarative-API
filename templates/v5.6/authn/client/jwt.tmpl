@@ -1,0 +1,6 @@
+auth_jwt "{{ authprofile.jwt.realm }}"{% if authprofile.jwt.token_location %} token={{ authprofile.jwt.token_location }}{% endif %};
+auth_jwt_type {{ authprofile.jwt.jwt_type }};
+auth_jwt_key_request /_auth/jwt/{{ authprofile.name | replace(" ", "_") }}/_jwks_uri;
+{% if authprofile.jwt.cachetime != 0 %}
+auth_jwt_key_cache {{ authprofile.jwt.cachetime }};
+{% endif %}
