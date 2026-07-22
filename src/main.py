@@ -11,6 +11,7 @@ import schedule
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
+import warnings
 
 # NGINX Declarative API modules
 import NcgConfig
@@ -27,6 +28,13 @@ import v5_6.Asynchronous
 import V5_7_CreateConfig
 import V5_7_NginxConfigDeclaration
 import v5_7.Asynchronous
+
+# Suppress the Pydantic serialization unexpected value warnings
+warnings.filterwarnings(
+    "ignore",
+    message="Pydantic serializer warnings:",
+    category=UserWarning
+)
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])

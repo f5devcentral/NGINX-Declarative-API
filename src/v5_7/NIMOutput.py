@@ -47,18 +47,18 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     nmsUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nms.url')
     urlCheck = urlparse(nmsUrlFromJson)
 
-    if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
+    if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.hostname == "":
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
                                                             "content": f"invalid NGINX Instance Manager URL {nmsUrlFromJson}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     # DNS resolution check
-    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.netloc)
+    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.hostname)
     if not dnsOutcome:
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
-                                                            "content": f"DNS resolution failed for {urlCheck.netloc}: {dnsReply}"}},
+                                                            "content": f"DNS resolution failed for {urlCheck.hostname}: {dnsReply}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     nmsUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"

@@ -47,18 +47,18 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     nOneUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.url')
     urlCheck = urlparse(nOneUrlFromJson)
 
-    if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.netloc == "":
+    if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.hostname == "":
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
                                                             "content": f"invalid NGINX One URL {nOneUrlFromJson}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     # DNS resolution check
-    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.netloc)
+    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.hostname)
     if not dnsOutcome:
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
-                                                            "content": f"DNS resolution failed for {urlCheck.netloc}: {dnsReply}"}},
+                                                            "content": f"DNS resolution failed for {urlCheck.hostname}: {dnsReply}"}},
                 "headers": {'Content-Type': 'application/json'}}
 
     nOneUrl = f"{urlCheck.scheme}://{urlCheck.netloc}"

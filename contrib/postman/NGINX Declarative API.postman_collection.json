@@ -11619,6 +11619,33 @@
 													"response": []
 												},
 												{
+													"name": "Metrics - XSS Attack",
+													"request": {
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "https://apigw.nginx.lab/apiguru/metrics.json?q=<script>alert();</script>",
+															"protocol": "https",
+															"host": [
+																"apigw",
+																"nginx",
+																"lab"
+															],
+															"path": [
+																"apiguru",
+																"metrics.json"
+															],
+															"query": [
+																{
+																	"key": "q",
+																	"value": "<script>alert();</script>"
+																}
+															]
+														}
+													},
+													"response": []
+												},
+												{
 													"name": "Providers - no authentication",
 													"request": {
 														"method": "GET",
