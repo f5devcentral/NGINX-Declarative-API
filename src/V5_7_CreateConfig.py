@@ -56,7 +56,7 @@ def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosyn
 
 
 # ---------------------------------------------------------------------------
-# Declaration patching (PATCH /config/{configUid})
+# Section Patch Handlers
 # ---------------------------------------------------------------------------
 
 def _apply_nap_policy_patches(declaration_to_patch, current_declaration):
@@ -71,28 +71,103 @@ def _apply_nap_policy_patches(declaration_to_patch, current_declaration):
 
 
 def _apply_certificate_patches(declaration_to_patch, current_declaration):
-    # TLS certificate/key updates
+    # Support both .declaration.certificates and .declaration.http.certificates
     certificates = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.certificates')
     if certificates is None:
+        certificates = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.http.certificates')
+    if not certificates or not isinstance(certificates, list):
         return current_declaration
-    for certificate in certificates:
-        current_declaration = v5_7.DeclarationPatcher.patchCertificates(
-            sourceDeclaration=current_declaration, patchedCertificates=certificate)
+
+    for cert in certificates:
+        current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+            current_declaration, ['declaration', 'certificates'], cert
+        )
+    return current_declaration
+
+
+def _apply_resolvers_patches(declaration_to_patch, current_declaration):
+    # Patch .declaration.resolvers
+    resolvers = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.resolvers')
+    if not resolvers or not isinstance(resolvers, list):
+        return current_declaration
+
+    for resolver in resolvers:
+        current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+            current_declaration, ['declaration', 'resolvers'], resolver
+        )
+    return current_declaration
+
+
+def _apply_authentication_patches(declaration_to_patch, current_declaration):
+    # Patch .declaration.authentication (client and server)
+    auth = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.authentication')
+    if not auth or not isinstance(auth, dict):
+        return current_declaration
+
+    for auth_type in ['client', 'server']:
+        items = auth.get(auth_type)
+        if items and isinstance(items, list):
+            for item in items:
+                current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+                    current_declaration, ['declaration', 'authentication', auth_type], item
+                )
+    return current_declaration
+
+
+def _apply_authorization_patches(declaration_to_patch, current_declaration):
+    # Patch .declaration.authorization
+    authz = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.authorization')
+    if not authz or not isinstance(authz, list):
+        return current_declaration
+
+    for item in authz:
+        current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+            current_declaration, ['declaration', 'authorization'], item
+        )
     return current_declaration
 
 
 def _apply_http_patches(declaration_to_patch, current_declaration):
-    upstreams = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.http.upstreams')
-    if upstreams:
-        for upstream in upstreams:
-            current_declaration = v5_7.DeclarationPatcher.patchHttpUpstream(
-                sourceDeclaration=current_declaration, patchedHttpUpstream=upstream)
+    # Patch all profiles under .declaration.http
+    http_patch = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.http')
+    if not http_patch or not isinstance(http_patch, dict):
+        return current_declaration
 
-    servers = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.http.servers')
-    if servers:
-        for server in servers:
-            current_declaration = v5_7.DeclarationPatcher.patchHttpServer(
-                sourceDeclaration=current_declaration, patchedHttpServer=server)
+    if 'declaration' not in current_declaration or not isinstance(current_declaration['declaration'], dict):
+        current_declaration['declaration'] = {}
+    if 'http' not in current_declaration['declaration'] or not isinstance(current_declaration['declaration']['http'], dict):
+        current_declaration['declaration']['http'] = {}
+
+    curr_http = current_declaration['declaration']['http']
+
+    # 1. Named list profiles under .declaration.http
+    named_list_fields = [
+        'upstreams', 'servers', 'policies', 'caching', 'rate_limit',
+        'njs_profiles', 'cache', 'logformats', 'acme_issuers', 'log_profiles'
+    ]
+
+    for field in named_list_fields:
+        items = http_patch.get(field)
+        if items and isinstance(items, list):
+            for item in items:
+                current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+                    current_declaration, ['declaration', 'http', field], item
+                )
+
+    # 2. Maps (keyed by variable or match if name is absent)
+    maps = http_patch.get('maps')
+    if maps and isinstance(maps, list):
+        for m in maps:
+            if 'name' not in m:
+                m['name'] = m.get('variable') or m.get('match')
+            current_declaration = v5_7.DeclarationPatcher._patch_section_item(
+                current_declaration, ['declaration', 'http', 'maps'], m
+            )
+
+    # 3. Scalar and dictionary fields under .declaration.http
+    for field in ['snippet', 'nginx_plus_api', 'resolver']:
+        if field in http_patch and http_patch[field] is not None:
+            curr_http[field] = http_patch[field]
 
     return current_declaration
 
@@ -113,8 +188,11 @@ def _apply_layer4_patches(declaration_to_patch, current_declaration):
     return current_declaration
 
 
+# ---------------------------------------------------------------------------
+# Declaration patching (PATCH /config/{configUid})
+# ---------------------------------------------------------------------------
+
 def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str):
-    # Patch a declaration
     if configUid not in NcgRedis.declarationsList:
         return JSONResponse(
             status_code=404,
@@ -122,25 +200,34 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
             headers={'Content-Type': 'application/json'}
         )
 
-    # The declaration sections to be patched
     declaration_to_patch = declaration.model_dump()
-
-    # The currently applied declaration
     _, current_declaration = get_declaration(configUid=configUid)
 
+    # Snapshot current state to detect changes across all sections
+    previous_declaration_json = json.dumps(current_declaration, sort_keys=True)
+
+    # Apply patches across all supported sections
     current_declaration = _apply_nap_policy_patches(declaration_to_patch, current_declaration)
     current_declaration = _apply_certificate_patches(declaration_to_patch, current_declaration)
+    current_declaration = _apply_resolvers_patches(declaration_to_patch, current_declaration)
+    current_declaration = _apply_authentication_patches(declaration_to_patch, current_declaration)
+    current_declaration = _apply_authorization_patches(declaration_to_patch, current_declaration)
 
-    if 'declaration' in declaration_to_patch:
+    if 'declaration' in declaration_to_patch and declaration_to_patch['declaration']:
         current_declaration = _apply_http_patches(declaration_to_patch, current_declaration)
         current_declaration = _apply_layer4_patches(declaration_to_patch, current_declaration)
+
+    # If the declaration changed anywhere, invalidate cached baseStagedConfig in Redis
+    # to force NIMOutput/NGINXOneOutput to process and publish changes
+    new_declaration_json = json.dumps(current_declaration, sort_keys=True)
+    if previous_declaration_json != new_declaration_json:
+        NcgRedis.redis.delete(f'ncg.basestagedconfig.{configUid}')
 
     # Apply the updated declaration
     config_declaration = ConfigDeclaration.model_validate_json(json.dumps(current_declaration))
     result = createconfig(declaration=config_declaration, apiversion=apiversion,
                           runfromautosync=True, configUid=configUid)
 
-    # Return the updated declaration
     message = result['message']
     if result['status_code'] != 200:
         current_declaration = {}
@@ -154,9 +241,10 @@ def patch_config(declaration: ConfigDeclaration, configUid: str, apiversion: str
     )
 
 
-# Gets the given declaration. Returns status_code and body
 def get_declaration(configUid: str):
     cfg = NcgRedis.redis.get('ncg.declaration.' + configUid)
     if cfg is None:
         return 404, ""
-    return 200, pickle.loads(cfg).dict()
+    unpickled = pickle.loads(cfg)
+    decl_dict = unpickled.model_dump() if hasattr(unpickled, 'model_dump') else unpickled.dict()
+    return 200, decl_dict
