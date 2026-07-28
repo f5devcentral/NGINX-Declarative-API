@@ -13,21 +13,21 @@ from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlparse
 from datetime import datetime
 
-import V5_6_CreateConfig
+import V5_7_CreateConfig
 
-import v5_6.APIGateway
-import v5_6.DevPortal
-import v5_6.DeclarationPatcher
-import v5_6.GitOps
-import v5_6.MiscUtils
-import v5_6.NIMOutput
-import v5_6.NIMUtils
+import v5_7.APIGateway
+import v5_7.DevPortal
+import v5_7.DeclarationPatcher
+import v5_7.GitOps
+import v5_7.MiscUtils
+import v5_7.NIMOutput
+import v5_7.NIMUtils
 
 # pydantic models
-from V5_6_NginxConfigDeclaration import *
+from V5_7_NginxConfigDeclaration import *
 
 # F5 WAF for NGINX helper functions
-import v5_6.NIMNAPUtils
+import v5_7.NIMNAPUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
@@ -39,12 +39,12 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
               configUid: str = ""):
     # NGINX Instance Manager Staged Configuration publish
 
-    nmsUsername = v5_6.MiscUtils.getDictKey(d, 'output.nms.username')
-    nmsPassword = v5_6.MiscUtils.getDictKey(d, 'output.nms.password')
-    nmsInstanceGroup = v5_6.MiscUtils.getDictKey(d, 'output.nms.instancegroup')
-    nmsSynctime = v5_6.MiscUtils.getDictKey(d, 'output.nms.synctime')
+    nmsUsername = v5_7.MiscUtils.getDictKey(d, 'output.nms.username')
+    nmsPassword = v5_7.MiscUtils.getDictKey(d, 'output.nms.password')
+    nmsInstanceGroup = v5_7.MiscUtils.getDictKey(d, 'output.nms.instancegroup')
+    nmsSynctime = v5_7.MiscUtils.getDictKey(d, 'output.nms.synctime')
 
-    nmsUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nms.url')
+    nmsUrlFromJson = v5_7.MiscUtils.getDictKey(d, 'output.nms.url')
     urlCheck = urlparse(nmsUrlFromJson)
 
     if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.hostname == "":
@@ -54,7 +54,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 "headers": {'Content-Type': 'application/json'}}
 
     # DNS resolution check
-    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.hostname)
+    dnsOutcome, dnsReply = v5_7.MiscUtils.resolveFQDN(urlCheck.hostname)
     if not dnsOutcome:
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
@@ -69,12 +69,12 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 "headers": {'Content-Type': 'application/json'}}
 
     # Fetch F5 WAF for NGINX WAF policies from source of truth if needed
-    d_policies = v5_6.MiscUtils.getDictKey(d, 'output.declaration.http.policies')
+    d_policies = v5_7.MiscUtils.getDictKey(d, 'output.declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
             if 'versions' in policy:
                 for policyVersion in policy['versions']:
-                    status, content = v5_6.GitOps.getObjectFromRepo(object=policyVersion['contents'],
+                    status, content = v5_7.GitOps.getObjectFromRepo(object=policyVersion['contents'],
                                                                     authProfiles=d['declaration'][
                                                                         'authentication'])
 
@@ -86,19 +86,19 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     # Check TLS items validity
     all_tls = {'certificate': {}, 'key': {}}
 
-    d_certs = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
+    d_certs = v5_7.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certs is not None:
         for i in range(len(d_certs)):
             if d_certs[i]['name']:
                 all_tls[d_certs[i]['type']][d_certs[i]['name']] = True
 
     # TLS certificates and key names validity checks for servers
-    d_servers = v5_6.MiscUtils.getDictKey(d, 'declaration.http.servers')
+    d_servers = v5_7.MiscUtils.getDictKey(d, 'declaration.http.servers')
     if d_servers is not None:
         for server in d_servers:
             if server['listen'] is not None:
                 if 'tls' in server['listen']:
-                    cert_name = v5_6.MiscUtils.getDictKey(server, 'listen.tls.certificate')
+                    cert_name = v5_7.MiscUtils.getDictKey(server, 'listen.tls.certificate')
                     if cert_name and cert_name not in all_tls['certificate']:
                         return {"status_code": 422,
                                 "message": {
@@ -109,7 +109,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                     server['names']) + "] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                                 }}
 
-                    cert_key = v5_6.MiscUtils.getDictKey(server, 'listen.tls.key')
+                    cert_key = v5_7.MiscUtils.getDictKey(server, 'listen.tls.key')
                     if cert_key and cert_key not in all_tls['key']:
                         return {"status_code": 422,
                                 "message": {
@@ -119,7 +119,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                                     server['names']) + "] must be one of [" + ",".join(all_tls['key']) + "]"}
                                 }}
 
-                    trusted_cert_name = v5_6.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
+                    trusted_cert_name = v5_7.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
                     if trusted_cert_name and trusted_cert_name not in all_tls['certificate']:
                         return {"status_code": 422,
                                 "message": {
@@ -131,7 +131,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                                 }}
 
     # TLS certificates and key names validity checks or ACME issuer profiles
-    d_acmeissuers = v5_6.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
+    d_acmeissuers = v5_7.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
     if d_acmeissuers is not None:
         for issuer in d_acmeissuers:
             cert_name = issuer['ssl_trusted_certificate']
@@ -148,10 +148,10 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     # Add optional certificates specified under declaration.certificates
     extensions_map = {'certificate': '.crt', 'key': '.key'}
 
-    d_certificates = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
+    d_certificates = v5_7.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certificates is not None:
         for c in d_certificates:
-            status, certContent = v5_6.GitOps.getObjectFromRepo(object=c['contents'],
+            status, certContent = v5_7.GitOps.getObjectFromRepo(object=c['contents'],
                                                                 authProfiles=d['declaration']['authentication'])
 
             if status != 200:
@@ -171,16 +171,16 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
         nginxconf={'mainhttpfile': NcgConfig.config['nms']['staged_config_http_filename'],
                    'mainstreamfile': NcgConfig.config['nms']['staged_config_stream_filename'],
-                   'modules': v5_6.MiscUtils.getDictKey(d, 'output.nms.modules'),
-                   'license': v5_6.MiscUtils.getDictKey(d, 'output.license')},
-                   d={'http': v5_6.MiscUtils.getDictKey(d, 'declaration.http')})
+                   'modules': v5_7.MiscUtils.getDictKey(d, 'output.nms.modules'),
+                   'license': v5_7.MiscUtils.getDictKey(d, 'output.license')},
+                   d={'http': v5_7.MiscUtils.getDictKey(d, 'declaration.http')})
 
     # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
     b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
 
     # NGINX License file
     licenseJwtFile = j2_env.get_template(NcgConfig.config['templates']['license']).render(
-        nginxconf={'license': v5_6.MiscUtils.getDictKey(d, 'output.license')})
+        nginxconf={'license': v5_7.MiscUtils.getDictKey(d, 'output.license')})
 
     # Base64-encoded license file (/etc/nginx/license.jwt)
     b64licenseJwtFile = str(base64.urlsafe_b64encode(licenseJwtFile.encode("utf-8")), "utf-8")
@@ -212,7 +212,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
 
     # If no R33+ license token was specified in the JSON declaration, it is assumed a token already exists
     # on the NGINX instances and it won't be overwritten
-    if v5_6.MiscUtils.getDictKey(d, 'output.license.token') != "":
+    if v5_7.MiscUtils.getDictKey(d, 'output.license.token') != "":
         configFiles['files'].append(filesLicenseFile)
 
     # Staged config
@@ -235,7 +235,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
             f'Declaration [{configUid}] changed, publishing' if configUid else f'New declaration created, publishing')
 
         # Get the instance group id
-        igUid = v5_6.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+        igUid = v5_7.NIMUtils.getNIMInstanceGroupUid(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                      nmsPassword=nmsPassword, instanceGroupName=nmsInstanceGroup)
 
         # Invalid instance group
@@ -248,7 +248,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
         ### F5 WAF for NGINX policies support - commits policies to control plane
 
         # Check WAF policies configuration sanity
-        status, description = v5_6.NIMNAPUtils.checkDeclarationPolicies(d)
+        status, description = v5_7.NIMNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
             return {"status_code": 422,
@@ -256,7 +256,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                     "headers": {'Content-Type': 'application/json'}}
 
         # Provision WAF policies to NGINX Instance Manager
-        ppReply = v5_6.NIMNAPUtils.provisionPolicies(
+        ppReply = v5_7.NIMNAPUtils.provisionPolicies(
             nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d)
 
         if ppReply.status_code >= 400:
@@ -314,7 +314,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
             # if nmsSynctime > 0 and runfromautosync == False:
             if runfromautosync == False:
                 # No configuration is found, generate one
-                configUid = str(v5_6.MiscUtils.getuniqueid())
+                configUid = str(v5_7.MiscUtils.getuniqueid())
 
                 # Stores the staged config to redis
                 # Redis keys:
@@ -330,7 +330,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
             # Makes F5 WAF for NGINX policies active
-            doWeHavePolicies = v5_6.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+            doWeHavePolicies = v5_7.NIMNAPUtils.makePolicyActive(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                                  nmsPassword=nmsPassword,
                                                                  activePolicyUids=activePolicyUids,
                                                                  instanceGroupUid=igUid)
@@ -339,7 +339,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 # Clean up F5 WAF for NGINX WAF policies not used anymore
                 # and not defined in the declaration just pushed
                 time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-                v5_6.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
+                v5_7.NIMNAPUtils.cleanPolicyLeftovers(nmsUrl=nmsUrl, nmsUsername=nmsUsername,
                                                       nmsPassword=nmsPassword,
                                                       currentPolicies=provisionedNapPolicies)
 
@@ -350,7 +350,7 @@ def NIMOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpConf: s
                 # GitOps autosync
                 print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
 
-                job = schedule.every(nmsSynctime).seconds.do(lambda: v5_6_CreateConfig.configautosync(configUid))
+                job = schedule.every(nmsSynctime).seconds.do(lambda: v5_7_CreateConfig.configautosync(configUid))
                 # Keep track of GitOps configs, key is the threaded job
                 NcgRedis.declarationsList[configUid] = job
 

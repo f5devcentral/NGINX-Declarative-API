@@ -13,20 +13,20 @@ from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlparse
 from datetime import datetime
 
-import V5_6_CreateConfig
+import V5_7_CreateConfig
 
-import v5_6.APIGateway
-import v5_6.DevPortal
-import v5_6.DeclarationPatcher
-import v5_6.GitOps
-import v5_6.MiscUtils
-import v5_6.NGINXOneUtils
+import v5_7.APIGateway
+import v5_7.DevPortal
+import v5_7.DeclarationPatcher
+import v5_7.GitOps
+import v5_7.MiscUtils
+import v5_7.NGINXOneUtils
 
 # pydantic models
-from V5_6_NginxConfigDeclaration import *
+from V5_7_NginxConfigDeclaration import *
 
 # F5 WAF for NGINX helper functions
-import v5_6.NGINXOneNAPUtils
+import v5_7.NGINXOneNAPUtils
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
@@ -38,13 +38,13 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
               configUid: str = ""):
     # NGINX One Console Staged Configuration publish
 
-    nOneToken = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.token')
-    nOneConfigSyncGroup = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')
-    nOneNamespace = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.namespace')
+    nOneToken = v5_7.MiscUtils.getDictKey(d, 'output.nginxone.token')
+    nOneConfigSyncGroup = v5_7.MiscUtils.getDictKey(d, 'output.nginxone.configsyncgroup')
+    nOneNamespace = v5_7.MiscUtils.getDictKey(d, 'output.nginxone.namespace')
 
-    nOneSynctime = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.synctime')
+    nOneSynctime = v5_7.MiscUtils.getDictKey(d, 'output.nginxone.synctime')
 
-    nOneUrlFromJson = v5_6.MiscUtils.getDictKey(d, 'output.nginxone.url')
+    nOneUrlFromJson = v5_7.MiscUtils.getDictKey(d, 'output.nginxone.url')
     urlCheck = urlparse(nOneUrlFromJson)
 
     if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.hostname == "":
@@ -54,7 +54,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 "headers": {'Content-Type': 'application/json'}}
 
     # DNS resolution check
-    dnsOutcome, dnsReply = v5_6.MiscUtils.resolveFQDN(urlCheck.hostname)
+    dnsOutcome, dnsReply = v5_7.MiscUtils.resolveFQDN(urlCheck.hostname)
     if not dnsOutcome:
         return {"status_code": 400,
                 "message": {"status_code": 400, "message": {"code": 400,
@@ -69,12 +69,12 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                 "headers": {'Content-Type': 'application/json'}}
 
     # Fetch F5 WAF for NGINX policies from source of truth if needed
-    d_policies = v5_6.MiscUtils.getDictKey(d, 'declaration.http.policies')
+    d_policies = v5_7.MiscUtils.getDictKey(d, 'declaration.http.policies')
     if d_policies is not None:
         for policy in d_policies:
             if 'versions' in policy:
                 for policyVersion in policy['versions']:
-                    status, content = v5_6.GitOps.getObjectFromRepo(object=policyVersion['contents'],
+                    status, content = v5_7.GitOps.getObjectFromRepo(object=policyVersion['contents'],
                                                                     authProfiles=d['declaration']['authentication'])
 
                     if status != 200:
@@ -85,19 +85,19 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     # Check TLS items validity
     all_tls = {'certificate': {}, 'key': {}}
 
-    d_certs = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
+    d_certs = v5_7.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certs is not None:
         for i in range(len(d_certs)):
             if d_certs[i]['name']:
                 all_tls[d_certs[i]['type']][d_certs[i]['name']] = True
 
     # TLS certificates and key names validity checks for servers
-    d_servers = v5_6.MiscUtils.getDictKey(d, 'declaration.http.servers')
+    d_servers = v5_7.MiscUtils.getDictKey(d, 'declaration.http.servers')
     if d_servers is not None:
         for server in d_servers:
             if server['listen'] is not None:
                 if 'tls' in server['listen']:
-                    cert_name = v5_6.MiscUtils.getDictKey(server, 'listen.tls.certificate')
+                    cert_name = v5_7.MiscUtils.getDictKey(server, 'listen.tls.certificate')
                     if cert_name and cert_name not in all_tls['certificate']:
                         return {"status_code": 422,
                                 "message": {
@@ -108,7 +108,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                     server['names']) + "] must be one of [" + ",".join(all_tls['certificate']) + "]"}
                                 }}
 
-                    cert_key = v5_6.MiscUtils.getDictKey(server, 'listen.tls.key')
+                    cert_key = v5_7.MiscUtils.getDictKey(server, 'listen.tls.key')
                     if cert_key and cert_key not in all_tls['key']:
                         return {"status_code": 422,
                                 "message": {
@@ -118,7 +118,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                                     server['names']) + "] must be one of [" + ",".join(all_tls['key']) + "]"}
                                 }}
 
-                    trusted_cert_name = v5_6.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
+                    trusted_cert_name = v5_7.MiscUtils.getDictKey(server, 'listen.tls.trusted_ca_certificates')
                     if trusted_cert_name and trusted_cert_name not in all_tls['certificate']:
                         return {"status_code": 422,
                                 "message": {
@@ -130,7 +130,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                                 }}
 
     # TLS certificates and key names validity checks or ACME issuer profiles
-    d_acmeissuers = v5_6.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
+    d_acmeissuers = v5_7.MiscUtils.getDictKey(d, 'declaration.http.acme_issuers')
     if d_acmeissuers is not None:
         for issuer in d_acmeissuers:
             cert_name = issuer['ssl_trusted_certificate']
@@ -147,10 +147,10 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     # Add optional certificates specified under declaration.certificates
     extensions_map = {'certificate': '.crt', 'key': '.key'}
 
-    d_certificates = v5_6.MiscUtils.getDictKey(d, 'declaration.certificates')
+    d_certificates = v5_7.MiscUtils.getDictKey(d, 'declaration.certificates')
     if d_certificates is not None:
         for c in d_certificates:
-            status, certContent = v5_6.GitOps.getObjectFromRepo(object=c['contents'],
+            status, certContent = v5_7.GitOps.getObjectFromRepo(object=c['contents'],
                                                                 authProfiles=d['declaration']['authentication'])
 
             if status != 200:
@@ -170,16 +170,16 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
         nginxconf={'mainhttpfile': NcgConfig.config['nms']['staged_config_http_filename'],
                    'mainstreamfile': NcgConfig.config['nms']['staged_config_stream_filename'],
-                   'modules': v5_6.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
-                   'license': v5_6.MiscUtils.getDictKey(d, 'output.license')},
-                   d={'http': v5_6.MiscUtils.getDictKey(d, 'declaration.http')})
+                   'modules': v5_7.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
+                   'license': v5_7.MiscUtils.getDictKey(d, 'output.license')},
+                   d={'http': v5_7.MiscUtils.getDictKey(d, 'declaration.http')})
 
     # Base64-encoded NGINX main configuration (/etc/nginx/nginx.conf)
     b64NginxMain = str(base64.urlsafe_b64encode(nginxMainConf.encode("utf-8")), "utf-8")
 
     # NGINX License file
     licenseJwtFile = j2_env.get_template(NcgConfig.config['templates']['license']).render(
-        nginxconf={'license': v5_6.MiscUtils.getDictKey(d, 'output.license')})
+        nginxconf={'license': v5_7.MiscUtils.getDictKey(d, 'output.license')})
 
     # Base64-encoded license file (/etc/nginx/license.jwt)
     b64licenseJwtFile = str(base64.urlsafe_b64encode(licenseJwtFile.encode("utf-8")), "utf-8")
@@ -211,7 +211,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
 
     # If no R33+ license token was specified in the JSON declaration, it is assumed a token already exists
     # on the NGINX instances and it won't be overwritten
-    if v5_6.MiscUtils.getDictKey(d, 'output.license.token') != "":
+    if v5_7.MiscUtils.getDictKey(d, 'output.license.token') != "":
         configFiles['files'].append(filesLicenseFile)
 
     # Staged config
@@ -233,7 +233,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             f'Declaration [{configUid}] changed, publishing' if configUid else f'New declaration created, publishing')
 
         # Get the config sync group id nOneUrl: str, nOneTokenUsername: str, nameSpace: str, clusterName: str
-        returnCode, igUid = v5_6.NGINXOneUtils.getConfigSyncGroupId(nOneUrl = nOneUrl, nOneToken = nOneToken,
+        returnCode, igUid = v5_7.NGINXOneUtils.getConfigSyncGroupId(nOneUrl = nOneUrl, nOneToken = nOneToken,
                                                 nameSpace = nOneNamespace, configSyncGroupName = nOneConfigSyncGroup)
 
         # Invalid config sync group
@@ -246,7 +246,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         ### F5 WAF for NGINX policies support - commits policies to control plane
 
         # Check F5 WAF for NGINX policies configuration sanity
-        status, description = v5_6.NGINXOneNAPUtils.checkDeclarationPolicies(d)
+        status, description = v5_7.NGINXOneNAPUtils.checkDeclarationPolicies(d)
 
         if status != 200:
             return {"status_code": 422,
@@ -254,7 +254,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
                     "headers": {'Content-Type': 'application/json'}}
 
         # Provision F5 WAF for NGINX policies to NGINX Instance Manager
-        ppReply = v5_6.NGINXOneNAPUtils.provisionPolicies(
+        ppReply = v5_7.NGINXOneNAPUtils.provisionPolicies(
             nginxOneUrl = nOneUrl, nginxOneToken = nOneToken, nginxOneNamespace = nOneNamespace,  declaration=d)
 
         if ppReply.status_code >= 400:
@@ -315,7 +315,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
         # if nmsSynctime > 0 and runfromautosync == False:
         if runfromautosync == False:
             # No configuration is found, generate one
-            configUid = str(v5_6.MiscUtils.getuniqueid())
+            configUid = str(v5_7.MiscUtils.getuniqueid())
 
             # Stores the staged config to redis
             # Redis keys:
@@ -331,7 +331,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
         # Makes F5 WAF for NGINX policies active
-        doWeHavePolicies = v5_6.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
+        doWeHavePolicies = v5_7.NGINXOneNAPUtils.makePolicyActive(nginxOneUrl=nOneUrl,
                                                              nginxOneToken=nOneToken,
                                                              nginxOneNamespace=nOneNamespace,
                                                              activePolicyUids=activePolicyUids,
@@ -341,7 +341,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             # Clean up F5 WAF for NGINX policies not used anymore
             # and not defined in the declaration just pushed
             time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
-            #v5_6.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
+            #v5_7.NGINXOneNAPUtils.cleanPolicyLeftovers(nginxOneUrl=nOneUrl,nginxOneToken=nOneToken,
             #                                        nginxOneNamespace=nOneNamespace,
             #                                        currentPolicies=provisionedNapPolicies)
 
@@ -352,7 +352,7 @@ def NGINXOneOutput(d, declaration: ConfigDeclaration, apiversion: str, b64HttpCo
             # GitOps autosync
             print(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
 
-            job = schedule.every(nOneSynctime).seconds.do(lambda: v5_6_CreateConfig.configautosync(configUid))
+            job = schedule.every(nOneSynctime).seconds.do(lambda: v5_7_CreateConfig.configautosync(configUid))
             # Keep track of GitOps configs, key is the threaded job
             NcgRedis.declarationsList[configUid] = job
 
