@@ -38,7 +38,7 @@ class ConfigBuildContext:
     single createconfig() invocation."""
 
     def __init__(self, d: dict, apiversion: str):
-        self.d = d
+        self.d = d or {}
         self.apiversion = apiversion
 
         self.j2_env = _build_jinja_environment(apiversion)
@@ -143,15 +143,15 @@ def dispatch_output(ctx: ConfigBuildContext, decltype: str, declaration, apivers
 
 
 def _render_main_configs(ctx: ConfigBuildContext):
-    declaration = ctx.d['declaration']
+    declaration = ctx.d.get('declaration') or {}
 
     http_conf = ''
-    if 'http' in declaration:
+    if declaration.get('http'):
         http_conf = ctx.j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
             declaration=declaration, ncgconfig=NcgConfig.config)
 
     stream_conf = ''
-    if 'layer4' in declaration:
+    if declaration.get('layer4'):
         stream_conf = ctx.j2_env.get_template(NcgConfig.config['templates']['streamconf']).render(
             declaration=declaration, ncgconfig=NcgConfig.config)
 
@@ -163,11 +163,12 @@ def _render_main_configs(ctx: ConfigBuildContext):
 # ---------------------------------------------------------------------------
 
 def _process_resolvers(ctx: ConfigBuildContext):
-    if 'resolvers' not in ctx.d['declaration']:
+    declaration = ctx.d.get('declaration') or {}
+    if 'resolvers' not in declaration:
         return
 
     d_resolver_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.resolvers')
-    if d_resolver_profiles is None:
+    if not d_resolver_profiles:
         return
 
     for resolver_profile in d_resolver_profiles:
@@ -185,7 +186,8 @@ def _process_resolvers(ctx: ConfigBuildContext):
 # ---------------------------------------------------------------------------
 
 def _process_http(ctx: ConfigBuildContext):
-    if 'http' not in ctx.d['declaration']:
+    declaration = ctx.d.get('declaration') or {}
+    if 'http' not in declaration or not declaration.get('http'):
         return None
 
     for step in (_process_http_snippet, _process_http_upstreams):
@@ -214,32 +216,34 @@ def _process_http(ctx: ConfigBuildContext):
 
 
 def _process_http_snippet(ctx: ConfigBuildContext):
-    d = ctx.d['declaration']
-    if 'snippet' not in d:
+    d = ctx.d.get('declaration') or {}
+    http = d.get('http') or {}
+    if not http.get('snippet'):
         return None
 
-    status, snippet = v5_7.GitOps.getObjectFromRepo(object=d['http']['snippet'], authProfiles=d['authentication'])
+    status, snippet = v5_7.GitOps.getObjectFromRepo(object=http['snippet'], authProfiles=d.get('authentication'))
     if status != 200:
         return _gitops_error(status, snippet)
-    d['snippet'] = snippet
+    http['snippet'] = snippet
     return None
 
 
 def _process_http_upstreams(ctx: ConfigBuildContext):
-    d = ctx.d['declaration']
-    upstreams = d.get('http').get('upstreams')
+    d = ctx.d.get('declaration') or {}
+    http = d.get('http') or {}
+    upstreams = http.get('upstreams')
     if not upstreams:
         return None
 
     for i, upstream in enumerate(upstreams):
-        if upstream['resolver'] and upstream['resolver'] not in ctx.all_resolver_profiles:
+        if upstream.get('resolver') and upstream['resolver'] not in ctx.all_resolver_profiles:
             return _validation_error(
                 f"invalid resolver profile [{upstream['resolver']}] in HTTP upstream "
                 f"[{upstream['name']}], must be one of {ctx.all_resolver_profiles}")
 
-        if upstream['snippet']:
+        if upstream.get('snippet'):
             status, snippet = v5_7.GitOps.getObjectFromRepo(
-                object=upstream['snippet'], authProfiles=d['authentication'])
+                object=upstream['snippet'], authProfiles=d.get('authentication'))
             if status != 200:
                 return _gitops_error(status, snippet)
             upstreams[i]['snippet'] = snippet
@@ -256,14 +260,14 @@ def _process_http_upstreams(ctx: ConfigBuildContext):
 
 def _collect_rate_limit_profiles(ctx: ConfigBuildContext):
     d_rate_limit = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.rate_limit')
-    if d_rate_limit is None:
+    if not d_rate_limit:
         return
     ctx.all_ratelimits.extend(rl['name'] for rl in d_rate_limit)
 
 
 def _collect_cache_profiles(ctx: ConfigBuildContext):
     d_cache_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.cache')
-    if d_cache_profiles is None:
+    if not d_cache_profiles:
         return
     ctx.all_cache_profiles.extend(cp['name'] for cp in d_cache_profiles)
 
@@ -314,11 +318,11 @@ def _render_oidc_client_auth(ctx: ConfigBuildContext, auth_profile):
 
 def _process_auth_client_profiles(ctx: ConfigBuildContext):
     d_auth_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
-    if d_auth_profiles is None or 'client' not in d_auth_profiles:
+    if not d_auth_profiles or not d_auth_profiles.get('client'):
         return
 
     for auth_profile in d_auth_profiles['client']:
-        match auth_profile['type']:
+        match auth_profile.get('type'):
             case 'jwt':
                 _render_jwt_client_auth(ctx, auth_profile)
             case 'mtls':
@@ -351,11 +355,11 @@ def _render_mtls_server_auth(ctx: ConfigBuildContext, auth_profile):
 
 def _process_auth_server_profiles(ctx: ConfigBuildContext):
     d_auth_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authentication')
-    if d_auth_profiles is None or 'server' not in d_auth_profiles:
+    if not d_auth_profiles or not d_auth_profiles.get('server'):
         return
 
     for auth_profile in d_auth_profiles['server']:
-        match auth_profile['type']:
+        match auth_profile.get('type'):
             case 'token':
                 _render_token_server_auth(ctx, auth_profile)
             case 'mtls':
@@ -386,11 +390,11 @@ def _render_jwt_client_authz(ctx: ConfigBuildContext, authz_profile):
 
 def _process_authz_profiles(ctx: ConfigBuildContext):
     d_authz_profiles = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.authorization')
-    if d_authz_profiles is None:
+    if not d_authz_profiles:
         return
 
     for authz_profile in d_authz_profiles:
-        match authz_profile['type']:
+        match authz_profile.get('type'):
             case 'jwt':
                 _render_jwt_client_authz(ctx, authz_profile)
 
@@ -401,10 +405,10 @@ def _process_authz_profiles(ctx: ConfigBuildContext):
 
 def _process_njs_profiles(ctx: ConfigBuildContext):
     d_njs_files = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs_profiles')
-    if d_njs_files is None:
+    if not d_njs_files:
         return None
 
-    auth_profiles = ctx.d['declaration']['authentication']
+    auth_profiles = (ctx.d.get('declaration') or {}).get('authentication')
     for njs_file in d_njs_files:
         njs_filename = njs_file['name'].replace(' ', '_')
         status, content = v5_7.GitOps.getObjectFromRepo(object=njs_file['file'], authProfiles=auth_profiles)
@@ -420,7 +424,7 @@ def _process_njs_profiles(ctx: ConfigBuildContext):
 
 def _process_acme_issuers(ctx: ConfigBuildContext):
     d_acme_issuers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.acme_issuers')
-    if d_acme_issuers is None:
+    if not d_acme_issuers:
         return
 
     for acme_issuer in d_acme_issuers:
@@ -439,11 +443,11 @@ def _process_acme_issuers(ctx: ConfigBuildContext):
 
 def _validate_http_njs_hooks(ctx: ConfigBuildContext):
     d_http_njs_hooks = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.njs')
-    if d_http_njs_hooks is None:
+    if not d_http_njs_hooks:
         return None
 
     for hook in d_http_njs_hooks:
-        if hook['profile'] not in ctx.all_njs_profiles:
+        if hook.get('profile') and hook['profile'] not in ctx.all_njs_profiles:
             return _validation_error(
                 f"invalid njs profile [{hook['profile']}] in HTTP declaration, "
                 f"must be one of {ctx.all_njs_profiles}")
@@ -468,7 +472,7 @@ def _validate_http_resolver(ctx: ConfigBuildContext):
 
 def _process_http_servers(ctx: ConfigBuildContext):
     d_servers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.http.servers')
-    if d_servers is None:
+    if not d_servers:
         return None
 
     for server in d_servers:
@@ -484,79 +488,80 @@ def _process_http_server(ctx: ConfigBuildContext, server):
         return error
 
     server_snippet = ''
-    if server['snippet']:
+    if server.get('snippet'):
         error, server_snippet = _fetch_server_snippet(ctx, server)
         if error is not None:
             return error
 
     _render_http_server_conf(ctx, server)
 
-    for loc in server['locations']:
+    for loc in (server.get('locations') or []):
         error = _process_location(ctx, server, loc)
         if error is not None:
             return error
 
-    # Preserves the original behaviour of re-encoding the server snippet
-    # contents after every location has been processed.
-    server['snippet']['content'] = _b64(server_snippet)
+    if server.get('snippet'):
+        server['snippet']['content'] = _b64(server_snippet)
 
     return None
 
 
 def _validate_server(ctx: ConfigBuildContext, server):
-    if server['resolver'] and server['resolver'] not in ctx.all_resolver_profiles:
+    if server.get('resolver') and server['resolver'] not in ctx.all_resolver_profiles:
         return _validation_error(
             f"invalid resolver profile [{server['resolver']}] in HTTP server "
             f"[{server['name']}], must be one of {ctx.all_resolver_profiles}")
 
-    if server['cache']:
-        profile = server['cache']['profile']
-        if profile not in ctx.all_cache_profiles and profile != "":
+    if server.get('cache'):
+        profile = server['cache'].get('profile')
+        if profile and profile not in ctx.all_cache_profiles:
             return _validation_error(
                 f"invalid cache profile [{profile}] in HTTP server "
                 f"[{server['name']}], must be one of {ctx.all_cache_profiles}")
 
-    if server['njs']:
+    if server.get('njs'):
         for hook in server['njs']:
-            if hook['profile'] not in ctx.all_njs_profiles:
+            if hook.get('profile') and hook['profile'] not in ctx.all_njs_profiles:
                 return _validation_error(
                     f"invalid njs profile [{hook['profile']}] in server "
                     f"[{server['name']}], must be one of {ctx.all_njs_profiles}")
 
-    if server.get('authentication'):
+    if server.get('authentication') and server['authentication'].get('client'):
         for auth_profile in server['authentication']['client']:
-            if auth_profile['profile'] not in ctx.all_auth_client_profiles:
+            if auth_profile.get('profile') and auth_profile['profile'] not in ctx.all_auth_client_profiles:
                 return _validation_error(
                     f"invalid client authentication profile [{auth_profile['profile']}] "
                     f"in server [{server['name']}] must be one of {ctx.all_auth_client_profiles}")
 
     if server.get('authorization'):
-        profile = server['authorization']['profile']
+        profile = server['authorization'].get('profile')
         if profile and profile not in ctx.all_authz_client_profiles:
             return _validation_error(
                 f"invalid client authorization profile [{profile}] in server "
                 f"[{server['name']}] must be one of {ctx.all_authz_client_profiles}")
 
-    tls = server['listen']['tls']
-    if 'authentication' in tls and 'client' in tls['authentication']:
-        for mtls_profile in tls['authentication']['client']:
-            if mtls_profile['profile'] not in ctx.all_auth_client_profiles:
-                return _validation_error(
-                    f"invalid client authentication profile [{mtls_profile['profile']}] "
-                    f"in server [{server['name']}] must be one of {ctx.all_auth_client_profiles}")
+    listen = server.get('listen') or {}
+    tls = listen.get('tls')
+    if tls:
+        if tls.get('authentication') and tls['authentication'].get('client'):
+            for mtls_profile in tls['authentication']['client']:
+                if mtls_profile.get('profile') and mtls_profile['profile'] not in ctx.all_auth_client_profiles:
+                    return _validation_error(
+                        f"invalid client authentication profile [{mtls_profile['profile']}] "
+                        f"in server [{server['name']}] must be one of {ctx.all_auth_client_profiles}")
 
-    if 'acme_issuer' in tls:
-        acme_issuer = tls['acme_issuer']
-        if acme_issuer and acme_issuer not in ctx.all_acme_issuers:
-            return _validation_error(
-                f"invalid ACME issuer [{acme_issuer}] in server "
-                f"[{server['name']}] must be one of {ctx.all_acme_issuers}")
+        if tls.get('acme_issuer'):
+            acme_issuer = tls['acme_issuer']
+            if acme_issuer and acme_issuer not in ctx.all_acme_issuers:
+                return _validation_error(
+                    f"invalid ACME issuer [{acme_issuer}] in server "
+                    f"[{server['name']}] must be one of {ctx.all_acme_issuers}")
 
     return None
 
 
 def _fetch_server_snippet(ctx: ConfigBuildContext, server):
-    auth_profiles = ctx.d['declaration']['authentication']
+    auth_profiles = (ctx.d.get('declaration') or {}).get('authentication')
     status, server_snippet = v5_7.GitOps.getObjectFromRepo(
         object=server['snippet'], authProfiles=auth_profiles, base64Encode=False)
     if status != 200:
@@ -565,8 +570,9 @@ def _fetch_server_snippet(ctx: ConfigBuildContext, server):
 
 
 def _render_http_server_conf(ctx: ConfigBuildContext, server):
+    declaration = ctx.d.get('declaration') or {}
     rendered = ctx.j2_env.get_template(NcgConfig.config['templates']['server_http']).render(
-        declaration=ctx.d['declaration'], s=server, ncgconfig=NcgConfig.config)
+        declaration=declaration, s=server, ncgconfig=NcgConfig.config)
     config_file_name = (NcgConfig.config['nms']['server_http_dir'] + '/' +
                         server['name'].replace(' ', '_') + ".conf")
     ctx.configFiles['files'].append({'contents': _b64(rendered), 'name': config_file_name})
@@ -623,10 +629,10 @@ def _process_location(ctx: ConfigBuildContext, server, loc):
 
 
 def _validate_location_njs(ctx: ConfigBuildContext, loc):
-    if not loc['njs']:
+    if not loc.get('njs'):
         return None
     for hook in loc['njs']:
-        if hook['profile'] not in ctx.all_njs_profiles:
+        if hook.get('profile') and hook['profile'] not in ctx.all_njs_profiles:
             return _validation_error(
                 f"invalid njs profile [{hook['profile']}] in location "
                 f"[{loc['uri']}], must be one of {ctx.all_njs_profiles}")
@@ -634,9 +640,9 @@ def _validate_location_njs(ctx: ConfigBuildContext, loc):
 
 
 def _process_location_snippet(ctx: ConfigBuildContext, loc):
-    if not loc['snippet']:
+    if not loc.get('snippet'):
         return None
-    auth_profiles = ctx.d['declaration']['authentication']
+    auth_profiles = (ctx.d.get('declaration') or {}).get('authentication')
     status, snippet = v5_7.GitOps.getObjectFromRepo(object=loc['snippet'], authProfiles=auth_profiles)
     if status != 200:
         return _gitops_error(status, snippet)
@@ -645,15 +651,16 @@ def _process_location_snippet(ctx: ConfigBuildContext, loc):
 
 
 def _validate_location_upstream(ctx: ConfigBuildContext, loc):
-    if 'upstream' in loc and loc['upstream'] and urlparse(loc['upstream']).netloc not in ctx.all_http_upstreams:
+    if loc.get('upstream') and urlparse(loc['upstream']).netloc not in ctx.all_http_upstreams:
         return _validation_error(f"invalid HTTP upstream [{loc['upstream']}]")
     return None
 
 
 def _validate_location_auth_client(ctx: ConfigBuildContext, loc):
-    if 'authentication' in loc and loc['authentication']:
-        for auth_profile in loc['authentication']['client']:
-            if auth_profile['profile'] not in ctx.all_auth_client_profiles:
+    auth = loc.get('authentication')
+    if auth and auth.get('client'):
+        for auth_profile in auth['client']:
+            if auth_profile.get('profile') and auth_profile['profile'] not in ctx.all_auth_client_profiles:
                 return _validation_error(
                     f"invalid client authentication profile [{auth_profile['profile']}] "
                     f"in location [{loc['uri']}] must be one of {ctx.all_auth_client_profiles}")
@@ -661,8 +668,9 @@ def _validate_location_auth_client(ctx: ConfigBuildContext, loc):
 
 
 def _validate_location_authz(ctx: ConfigBuildContext, loc):
-    if 'authorization' in loc and loc['authorization']:
-        profile = loc['authorization']['profile']
+    authz = loc.get('authorization')
+    if authz:
+        profile = authz.get('profile')
         if profile and profile not in ctx.all_authz_client_profiles:
             return _validation_error(
                 f"invalid client authorization profile [{profile}] in location "
@@ -671,9 +679,10 @@ def _validate_location_authz(ctx: ConfigBuildContext, loc):
 
 
 def _validate_location_auth_server(ctx: ConfigBuildContext, loc):
-    if 'authentication' in loc and loc['authentication']:
-        for auth_profile in loc['authentication']['server']:
-            if auth_profile['profile'] not in ctx.all_auth_server_profiles:
+    auth = loc.get('authentication')
+    if auth and auth.get('server'):
+        for auth_profile in auth['server']:
+            if auth_profile.get('profile') and auth_profile['profile'] not in ctx.all_auth_server_profiles:
                 return _validation_error(
                     f"invalid server authentication profile [{auth_profile['profile']}] "
                     f"in location [{loc['uri']}]")
@@ -681,14 +690,14 @@ def _validate_location_auth_server(ctx: ConfigBuildContext, loc):
 
 
 def _validate_location_rate_limit(ctx: ConfigBuildContext, loc):
-    rate_limit = loc['rate_limit']
+    rate_limit = loc.get('rate_limit')
     if rate_limit and rate_limit.get('profile') and rate_limit['profile'] not in ctx.all_ratelimits:
         return _validation_error(f"invalid rate_limit profile [{rate_limit['profile']}]")
     return None
 
 
 def _validate_location_cache(ctx: ConfigBuildContext, loc):
-    cache = loc['cache']
+    cache = loc.get('cache')
     if cache and cache.get('profile') and cache['profile'] not in ctx.all_cache_profiles and cache['profile'] != "":
         return _validation_error(f"invalid cache profile [{cache['profile']}]")
     return None
@@ -704,15 +713,15 @@ def _process_api_gateway_visibility(ctx: ConfigBuildContext, loc):
     Returns a dict of enabled integration types, e.g. {'moesif': True}.
     """
     enabled_integrations = {}
-    apigateway = loc['apigateway']
-    if not (apigateway and apigateway['visibility']):
+    apigateway = loc.get('apigateway')
+    if not (apigateway and apigateway.get('visibility')):
         return enabled_integrations
 
     for vis in apigateway['visibility']:
-        if not vis['enabled']:
+        if not vis.get('enabled'):
             continue
         enabled_integrations[vis['type']] = True
-        if vis['type'].lower() == 'moesif':
+        if vis.get('type', '').lower() == 'moesif':
             _render_moesif_visibility(ctx, loc, vis)
 
     return enabled_integrations
@@ -739,32 +748,36 @@ def _render_moesif_visibility(ctx: ConfigBuildContext, loc, vis):
 # ---------------------------------------------------------------------------
 
 def _validate_api_gateway_profiles(ctx: ConfigBuildContext, loc):
-    apigateway = loc['apigateway']
-    schema_content = apigateway['openapi_schema']['content']
+    apigateway = loc.get('apigateway')
+    if not apigateway:
+        return None
 
-    if apigateway['authentication'] and apigateway['authentication']['client']:
+    openapi_schema = apigateway.get('openapi_schema') or {}
+    schema_content = openapi_schema.get('content')
+
+    if apigateway.get('authentication') and apigateway['authentication'].get('client'):
         for profile in apigateway['authentication']['client']:
-            if profile['profile'] not in ctx.all_auth_client_profiles:
+            if profile.get('profile') and profile['profile'] not in ctx.all_auth_client_profiles:
                 return _validation_error(
                     f"invalid API Gateway authentication profile [{profile['profile']}] "
                     f"for OpenAPI schema [{schema_content}] must be one of {ctx.all_auth_client_profiles}")
 
-    if apigateway['authorization']:
+    if apigateway.get('authorization'):
         for profile in apigateway['authorization']:
-            if profile['profile'] not in ctx.all_authz_client_profiles:
+            if profile.get('profile') and profile['profile'] not in ctx.all_authz_client_profiles:
                 return _validation_error(
                     f"invalid API Gateway authorization profile [{profile['profile']}] "
                     f"for OpenAPI schema [{schema_content}] must be one of {ctx.all_authz_client_profiles}")
 
-    if apigateway['rate_limit']:
+    if apigateway.get('rate_limit'):
         for profile in apigateway['rate_limit']:
-            if profile['profile'] not in ctx.all_ratelimits:
+            if profile.get('profile') and profile['profile'] not in ctx.all_ratelimits:
                 return _validation_error(
                     f"invalid API Gateway rate limit profile [{profile['profile']}] "
                     f"for OpenAPI schema [{schema_content}] must be one of {ctx.all_ratelimits}")
 
-    openapi_auth_profile = apigateway['openapi_schema']['authentication']
-    if openapi_auth_profile and openapi_auth_profile[0]['profile'] not in ctx.all_auth_server_profiles:
+    openapi_auth_profile = openapi_schema.get('authentication')
+    if openapi_auth_profile and openapi_auth_profile[0].get('profile') not in ctx.all_auth_server_profiles:
         return _validation_error(
             f"invalid server authentication profile [{openapi_auth_profile[0]['profile']}] "
             f"for OpenAPI schema [{schema_content}]")
@@ -777,7 +790,7 @@ def _process_api_gateway_provisioning(ctx: ConfigBuildContext, server, loc, enab
 
     Returns a (error, openAPISchemaJSON) tuple.
     """
-    apigateway = loc['apigateway']
+    apigateway = loc.get('apigateway')
     api_gateway_settings = apigateway.get('api_gateway') if apigateway else None
     if not (api_gateway_settings and api_gateway_settings.get('enabled')):
         return None, None
@@ -786,9 +799,9 @@ def _process_api_gateway_provisioning(ctx: ConfigBuildContext, server, loc, enab
     if error is not None:
         return error, None
 
-    schema_content = apigateway['openapi_schema']['content']
+    schema_content = apigateway.get('openapi_schema', {}).get('content')
     status, api_gateway_declaration, openapi_schema_json = v5_7.APIGateway.createAPIGateway(
-        locationDeclaration=loc, authProfiles=apigateway['openapi_schema']['authentication'])
+        locationDeclaration=loc, authProfiles=apigateway.get('openapi_schema', {}).get('authentication'))
     if status != 200:
         return ({"status_code": 412,
                 "message": {"status_code": status,
@@ -825,12 +838,12 @@ def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_
 # ---------------------------------------------------------------------------
 
 def _process_developer_portal(ctx: ConfigBuildContext, loc, openapi_schema_json):
-    apigateway = loc['apigateway']
+    apigateway = loc.get('apigateway')
     dev_portal = apigateway.get('developer_portal') if apigateway else None
     if not (dev_portal and dev_portal.get('enabled')):
         return None
 
-    portal_type = dev_portal['type'].lower()
+    portal_type = dev_portal.get('type', '').lower()
     if portal_type == 'redocly':
         return _process_redocly_developer_portal(ctx, loc)
     elif portal_type == 'backstage':
@@ -839,7 +852,7 @@ def _process_developer_portal(ctx: ConfigBuildContext, loc, openapi_schema_json)
 
 
 def _process_redocly_developer_portal(ctx: ConfigBuildContext, loc):
-    auth_profiles = ctx.d['declaration']['authentication']
+    auth_profiles = (ctx.d.get('declaration') or {}).get('authentication')
     status, dev_portal_html = v5_7.DevPortal.createDevPortal(locationDeclaration=loc, authProfiles=auth_profiles)
     if status != 200:
         return {"status_code": 412,
@@ -867,7 +880,8 @@ def _process_backstage_developer_portal(ctx: ConfigBuildContext, loc, openapi_sc
 # ---------------------------------------------------------------------------
 
 def _process_layer4(ctx: ConfigBuildContext):
-    if 'layer4' not in ctx.d['declaration']:
+    declaration = ctx.d.get('declaration') or {}
+    if 'layer4' not in declaration or not declaration.get('layer4'):
         return None
 
     error = _process_layer4_upstreams(ctx)
@@ -879,21 +893,22 @@ def _process_layer4(ctx: ConfigBuildContext):
 
 def _process_layer4_upstreams(ctx: ConfigBuildContext):
     d_upstreams = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.upstreams')
-    if d_upstreams is None:
+    if not d_upstreams:
         return None
 
-    auth_profiles = ctx.d['declaration']['layer4']['authentication']
+    layer4 = (ctx.d.get('declaration') or {}).get('layer4') or {}
+    auth_profiles = layer4.get('authentication')
     for i, upstream in enumerate(d_upstreams):
-        if upstream['resolver'] and upstream['resolver'] not in ctx.all_resolver_profiles:
+        if upstream.get('resolver') and upstream['resolver'] not in ctx.all_resolver_profiles:
             return _validation_error(
                 f"invalid resolver profile [{upstream['resolver']}] in stream upstream "
                 f"[{upstream['name']}], must be one of {ctx.all_resolver_profiles}")
 
-        if upstream['snippet']:
+        if upstream.get('snippet'):
             status, snippet = v5_7.GitOps.getObjectFromRepo(object=upstream['snippet'], authProfiles=auth_profiles)
             if status != 200:
                 return _gitops_error(status, snippet)
-            ctx.d['declaration']['layer4']['upstreams'][i]['snippet'] = snippet
+            d_upstreams[i]['snippet'] = snippet
 
         template_name = NcgConfig.config['templates']['upstream_stream']
         rendered = ctx.j2_env.get_template(template_name).render(u=upstream, ncgconfig=NcgConfig.config)
@@ -907,7 +922,7 @@ def _process_layer4_upstreams(ctx: ConfigBuildContext):
 
 def _process_layer4_servers(ctx: ConfigBuildContext):
     d_servers = v5_7.MiscUtils.getDictKey(ctx.d, 'declaration.layer4.servers')
-    if d_servers is None:
+    if not d_servers:
         return None
 
     for server in d_servers:
@@ -918,19 +933,19 @@ def _process_layer4_servers(ctx: ConfigBuildContext):
 
 
 def _process_layer4_server(ctx: ConfigBuildContext, server):
-    if server['resolver'] and server['resolver'] not in ctx.all_resolver_profiles:
+    if server.get('resolver') and server['resolver'] not in ctx.all_resolver_profiles:
         return _validation_error(
             f"invalid resolver profile [{server['resolver']}] in stream server "
             f"[{server['name']}], must be one of {ctx.all_resolver_profiles}")
 
-    if server['snippet']:
-        auth_profiles = ctx.d['declaration']['authentication']
+    if server.get('snippet'):
+        auth_profiles = (ctx.d.get('declaration') or {}).get('authentication')
         status, snippet = v5_7.GitOps.getObjectFromRepo(object=server['snippet'], authProfiles=auth_profiles)
         if status != 200:
             return _gitops_error(status, snippet)
         server['snippet'] = snippet
 
-    if 'upstream' in server and server['upstream'] and server['upstream'] not in ctx.all_layer4_upstreams:
+    if server.get('upstream') and server['upstream'] not in ctx.all_layer4_upstreams:
         return _validation_error(f"invalid Layer4 upstream [{server['upstream']}]")
 
     rendered = ctx.j2_env.get_template(NcgConfig.config['templates']['server_stream']).render(

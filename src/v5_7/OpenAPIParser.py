@@ -3,100 +3,149 @@ OpenAPI schema parser support functions
 """
 
 import json
+from typing import Dict, Any, List, Optional
+
 
 class OpenAPIParser:
+    """
+    Parser for OpenAPI / Swagger specification dictionaries.
+    """
     httpMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 
-    def __init__(self, openAPISchema):
-        self.openAPISchema = openAPISchema
+    def __init__(self, openAPISchema: Dict[str, Any]):
+        """
+        Initialize OpenAPIParser.
 
-    def version(self):
+        Args:
+            openAPISchema (Dict[str, Any]): Parsed OpenAPI or Swagger specification dictionary.
+        """
+        self.openAPISchema = openAPISchema or {}
+
+    def version(self) -> Optional[str]:
+        """
+        Retrieves the OpenAPI or Swagger specification version.
+
+        Returns:
+            Optional[str]: Version string if found, otherwise None.
+        """
         if 'openapi' in self.openAPISchema:
             return self.openAPISchema['openapi']
         elif 'swagger' in self.openAPISchema:
             return self.openAPISchema['swagger']
-
         return None
 
-    def info(self):
-        if 'info' in self.openAPISchema:
-            return self.openAPISchema['info']
+    def info(self) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves the specification info dictionary.
 
-        return None
+        Returns:
+            Optional[Dict[str, Any]]: Info dictionary if found, otherwise None.
+        """
+        return self.openAPISchema.get('info')
 
-    def servers(self):
-        self.allServers = []
+    def servers(self) -> List[Dict[str, str]]:
+        """
+        Retrieves server definitions from the schema.
 
-        # Loop over OpenAPI schema servers
-        if 'servers' in self.openAPISchema:
+        Returns:
+            List[Dict[str, str]]: List of server dictionaries containing 'url' and optional 'description'.
+        """
+        all_servers = []
+        if 'servers' in self.openAPISchema and isinstance(self.openAPISchema['servers'], list):
             for server in self.openAPISchema['servers']:
-                urlName = server['url']
-                self.s = {}
-                self.s['url'] = urlName
-
+                s = {'url': server.get('url', '')}
                 if 'description' in server:
-                    self.s['description'] = server['description']
+                    s['description'] = server['description']
+                all_servers.append(s)
+        return all_servers
 
-                self.allServers.append(self.s)
+    def _parse_parameter(self, qsParam: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Helper method to parse a single query string / path parameter dictionary.
 
-        return self.allServers
+        Args:
+            qsParam (Dict[str, Any]): Parameter definition dictionary.
 
-    def paths(self):
-        self.allPaths = []
+        Returns:
+            Optional[Dict[str, Any]]: Cleaned parameter dictionary or None if 'name' missing.
+        """
+        if 'name' not in qsParam:
+            return None
 
-        # Loop over OpenAPI schema paths
-        if 'paths' in self.openAPISchema:
-            for path in self.openAPISchema['paths'].keys():
-                #print(f"- {path}")
-                self.p = {}
-                self.p['path'] = path
-                self.p['methods'] = []
+        param = {
+            'name': qsParam['name'],
+            'in': qsParam.get('in', ''),
+            'description': qsParam.get('description', ''),
+            'required': qsParam.get('required', False)
+        }
 
-                # Loop over path HTTP methods found in schema
-                for method in self.openAPISchema['paths'][path].keys():
-                    methodInfo = self.openAPISchema['paths'][path][method]
+        param_schema = {}
+        if 'schema' in qsParam and isinstance(qsParam['schema'], dict):
+            schema_obj = qsParam['schema']
+            param_schema['type'] = schema_obj.get('type', '')
+            param_schema['default'] = schema_obj.get('default', '')
+            param_schema['enum'] = list(schema_obj.get('enum', [])) if 'enum' in schema_obj else []
 
-                    if method.upper() in self.httpMethods:
-                        self.m = {}
-                        self.m['method'] = method
-                        self.m['details'] = {}
-                        self.m['parameters'] = []
+        param['schema'] = param_schema
+        return param
 
-                        self.m['details']['description'] = methodInfo['description']  if 'description' in methodInfo else ''
-                        self.m['details']['summary'] = methodInfo['summary'] if 'summary' in methodInfo else ''
-                        self.m['details']['operationId'] = methodInfo['operationId'] if 'operationId' in methodInfo else ''
+    def _parse_method(self, method: str, methodInfo: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Helper method to parse details and parameters for an HTTP method on a path.
 
-                        # loop over query string parameters
-                        if 'parameters' in methodInfo and methodInfo['parameters']:
-                            parametersInfo = methodInfo['parameters']
-                            for qsParam in parametersInfo:
-                                if 'name' in qsParam:
-                                    thisParam = {}
-                                    thisParam['name'] = qsParam['name']
-                                    thisParam['in'] = qsParam['in'] if 'in' in qsParam else ''
-                                    thisParam['description'] = qsParam['description'] if 'description' in qsParam else ''
-                                    thisParam['required'] = qsParam[
-                                        'required'] if 'required' in qsParam else False
-                                    # thisParam['type'] = qsParam['type'] if 'type' in qsParam else ''
-                                    thisParamSchema = {}
+        Args:
+            method (str): HTTP method name (e.g. 'get').
+            methodInfo (Dict[str, Any]): Method details dictionary.
 
-                                    if 'schema' in qsParam:
-                                        thisParamSchema['type'] = qsParam['schema']['type'] if 'type' in qsParam['schema'] else ''
-                                        thisParamSchema['default'] = qsParam['schema']['default'] if 'default' in qsParam['schema'] else ''
+        Returns:
+            Optional[Dict[str, Any]]: Parsed method dictionary or None if method not supported.
+        """
+        if method.upper() not in self.httpMethods:
+            return None
 
-                                        thisParamSchemaEnum = []
-                                        if 'enum' in qsParam['schema']:
-                                            for e in qsParam['schema']['enum']:
-                                                thisParamSchemaEnum.append(e)
+        m = {
+            'method': method,
+            'details': {
+                'description': methodInfo.get('description', ''),
+                'summary': methodInfo.get('summary', ''),
+                'operationId': methodInfo.get('operationId', '')
+            },
+            'parameters': []
+        }
 
-                                        thisParamSchema['enum'] = thisParamSchemaEnum
+        raw_params = methodInfo.get('parameters')
+        if raw_params and isinstance(raw_params, list):
+            for qsParam in raw_params:
+                parsed_p = self._parse_parameter(qsParam)
+                if parsed_p:
+                    m['parameters'].append(parsed_p)
 
-                                    thisParam['schema'] = thisParamSchema
+        return m
 
-                                    self.m['parameters'].append(thisParam)
+    def paths(self) -> List[Dict[str, Any]]:
+        """
+        Retrieves all path and method definitions from the schema.
 
-                        self.p['methods'].append(self.m)
+        Returns:
+            List[Dict[str, Any]]: List of path dictionaries containing 'path' and 'methods'.
+        """
+        all_paths = []
+        raw_paths = self.openAPISchema.get('paths')
 
-                self.allPaths.append(self.p)
+        if raw_params_dict := (raw_paths if isinstance(raw_paths, dict) else None):
+            for path, path_obj in raw_params_dict.items():
+                p = {
+                    'path': path,
+                    'methods': []
+                }
 
-        return self.allPaths
+                if isinstance(path_obj, dict):
+                    for method, method_info in path_obj.items():
+                        if isinstance(method_info, dict):
+                            parsed_m = self._parse_method(method, method_info)
+                            if parsed_m:
+                                p['methods'].append(parsed_m)
+
+                all_paths.append(p)
+
+        return all_paths

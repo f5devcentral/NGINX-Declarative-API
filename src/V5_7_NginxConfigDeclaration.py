@@ -15,7 +15,7 @@ alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 class TLSCertificate(BaseModel, extra="forbid"):
     type: str
     name: str
-    contents: Optional[ObjectFromSourceOfTruth] = {}
+    contents: Optional[ObjectFromSourceOfTruth] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'TLSCertificate':
@@ -32,7 +32,7 @@ class NGINXPolicyVersion(BaseModel, extra="forbid"):
     tag: str = ""
     displayName: Optional[str] = ""
     description: Optional[str] = ""
-    contents: Optional[ObjectFromSourceOfTruth] = {}
+    contents: Optional[ObjectFromSourceOfTruth] = None
 
 
 class NGINXPolicy(BaseModel, extra="forbid"):
@@ -80,7 +80,7 @@ class AppProtectLogProfile(BaseModel, extra="forbid"):
 
 class LogProfile(BaseModel, extra="forbid"):
     type: str
-    app_protect: Optional[AppProtectLogProfile] = {}
+    app_protect: Optional[AppProtectLogProfile] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'LogProfile':
@@ -132,9 +132,9 @@ class License(BaseModel, extra="forbid"):
 class Output(BaseModel, extra="forbid"):
     type: str
     synchronous: bool = True
-    license: Optional[License] = {}
-    nms: Optional[OutputNMS] = {}
-    nginxone: Optional[OutputNGINXOne] = {}
+    license: Optional[License] = None
+    nms: Optional[OutputNMS] = None
+    nginxone: Optional[OutputNGINXOne] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Output':
@@ -182,8 +182,8 @@ class AuthClientMtls(BaseModel, extra="forbid"):
     enabled: Optional[str] = "off"
     client_certificates: str = ""
     trusted_ca_certificates: Optional[str] = ""
-    ocsp: Optional[Ocsp] = {}
-    stapling: Optional[OcspStapling] = {}
+    ocsp: Optional[Ocsp] = None
+    stapling: Optional[OcspStapling] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'AuthClientMtls':
@@ -201,7 +201,7 @@ class L4Tls(BaseModel, extra="forbid"):
     key: str = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    authentication: Optional[LocationAuth] = {}
+    authentication: Optional[LocationAuth] = None
 
 
 class Tls(BaseModel, extra="forbid"):
@@ -210,7 +210,7 @@ class Tls(BaseModel, extra="forbid"):
     acme_issuer: Optional[str] = ""
     ciphers: Optional[str] = ""
     protocols: Optional[List[str]] = []
-    authentication: Optional[LocationAuth] = {}
+    authentication: Optional[LocationAuth] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Tls':
@@ -227,13 +227,12 @@ class Tls(BaseModel, extra="forbid"):
 class Listen(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     http2: Optional[bool] = False
-    tls: Optional[Tls] = {}
-
+    tls: Optional[Tls] = None
 
 class ListenL4(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
-    tls: Optional[L4Tls] = {}
+    tls: Optional[L4Tls] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'ListenL4':
@@ -250,8 +249,8 @@ class ListenL4(BaseModel, extra="forbid"):
 
 
 class Log(BaseModel, extra="forbid"):
-    access: Optional[LogAccess] = {}
-    error: Optional[LogError] = {}
+    access: Optional[LogAccess] = None
+    error: Optional[LogError] = None
 
 
 class LogAccess(BaseModel, extra="forbid"):
@@ -314,8 +313,8 @@ class AuthorizationProfileReference(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
 
 class LocationHeaders(BaseModel, extra="forbid"):
-    to_server: Optional[LocationHeaderToServer] = {}
-    to_client: Optional[LocationHeaderToClient] = {}
+    to_server: Optional[LocationHeaderToServer] = None
+    to_client: Optional[LocationHeaderToClient] = None
 
 class RateLimitApiGw(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
@@ -471,25 +470,25 @@ class AppProtectLog(BaseModel, extra="forbid"):
 class AppProtect(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     policy: str = ""
-    log: AppProtectLog = {}
+    log: AppProtectLog = None
 
 
 class Location(BaseModel, extra="forbid"):
     uri: str
     urimatch: Optional[str] = "prefix"
     upstream: Optional[str] = ""
-    log: Optional[Log] = {}
-    apigateway: Optional[APIGateway] = {}
+    log: Optional[Log] = None
+    apigateway: Optional[APIGateway] = None
     caching: Optional[str] = ""
-    rate_limit: Optional[RateLimit] = {}
-    health_check: Optional[HealthCheck] = {}
-    app_protect: Optional[AppProtect] = {}
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
-    authentication: Optional[LocationAuth] = {}
-    authorization: Optional[AuthorizationProfileReference] = {}
-    headers: Optional[LocationHeaders] = {}
+    rate_limit: Optional[RateLimit] = None
+    health_check: Optional[HealthCheck] = None
+    app_protect: Optional[AppProtect] = None
+    snippet: Optional[ObjectFromSourceOfTruth] = None
+    authentication: Optional[LocationAuth] = None
+    authorization: Optional[AuthorizationProfileReference] = None
+    headers: Optional[LocationHeaders] = None
     njs: Optional[List[NjsHookLocation]] = []
-    cache: Optional[CacheItem] = {}
+    cache: Optional[CacheItem] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Location':
@@ -532,8 +531,8 @@ class NjsHook_js_set(BaseModel, extra="forbid"):
 
 class NjsHookHttpServerDetails(BaseModel, extra="forbid"):
     type: str
-    js_preload_object: Optional[NjsHook_js_preload_object] = {}
-    js_set: Optional[NjsHook_js_set] = {}
+    js_preload_object: Optional[NjsHook_js_preload_object] = None
+    js_set: Optional[NjsHook_js_set] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'NjsHookHttpServerDetails':
@@ -548,10 +547,10 @@ class NjsHookHttpServerDetails(BaseModel, extra="forbid"):
 
 class NjsHookLocationDetails(BaseModel, extra="forbid"):
     type: str
-    js_preload_object: Optional[NjsHook_js_preload_object] = {}
-    js_set: Optional[NjsHook_js_set] = {}
-    js_body_filter: Optional[NjsHook_js_body_filter] = {}
-    js_periodic: Optional[NjsHook_js_periodic] = {}
+    js_preload_object: Optional[NjsHook_js_preload_object] = None
+    js_set: Optional[NjsHook_js_set] = None
+    js_body_filter: Optional[NjsHook_js_body_filter] = None
+    js_periodic: Optional[NjsHook_js_periodic] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'NjsHookLocationDetails':
@@ -580,16 +579,16 @@ class Server(BaseModel, extra="forbid"):
     name: str
     names: Optional[List[str]] = []
     resolver: Optional[str] = ""
-    listen: Optional[Listen] = {}
-    log: Optional[Log] = {}
+    listen: Optional[Listen] = None
+    log: Optional[Log] = None
     locations: Optional[List[Location]] = []
-    app_protect: Optional[AppProtect] = {}
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
-    headers: Optional[LocationHeaders] = {}
+    app_protect: Optional[AppProtect] = None
+    snippet: Optional[ObjectFromSourceOfTruth] = None
+    headers: Optional[LocationHeaders] = None
     njs: Optional[List[NjsHookHttpServer]] = []
-    authentication: Optional[LocationAuth] = {}
-    authorization: Optional[AuthorizationProfileReference] = {}
-    cache: Optional[CacheItem] = {}
+    authentication: Optional[LocationAuth] = None
+    authorization: Optional[AuthorizationProfileReference] = None
+    cache: Optional[CacheItem] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Server':
@@ -604,9 +603,9 @@ class Server(BaseModel, extra="forbid"):
 class L4Server(BaseModel, extra="forbid"):
     name: str
     resolver: Optional[str] = ""
-    listen: Optional[ListenL4] = {}
+    listen: Optional[ListenL4] = None
     upstream: Optional[str] = ""
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    snippet: Optional[ObjectFromSourceOfTruth] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'L4Server':
@@ -649,8 +648,8 @@ class Upstream(BaseModel, extra="forbid"):
     name: str
     resolver: Optional[str] = ""
     origin: Optional[List[Origin]] = []
-    sticky: Optional[Sticky] = {}
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    sticky: Optional[Sticky] = None
+    snippet: Optional[ObjectFromSourceOfTruth] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Upstream':
@@ -666,7 +665,7 @@ class L4Upstream(BaseModel, extra="forbid"):
     name: str
     resolver: Optional[str] = ""
     origin: Optional[List[L4Origin]] = []
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    snippet: Optional[ObjectFromSourceOfTruth] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'L4Upstream':
@@ -746,7 +745,7 @@ class Map(BaseModel, extra="forbid"):
 class Layer4(BaseModel, extra="forbid"):
     servers: Optional[List[L4Server]] = []
     upstreams: Optional[List[L4Upstream]] = []
-    authentication: Optional[Authentication] = {}
+    authentication: Optional[Authentication] = None
     logformats: Optional[List[L4LogFormat]] = []
 
 
@@ -850,9 +849,9 @@ class Authentication_Client(BaseModel, extra="forbid"):
     name: str
     type: str
 
-    jwt: Optional[AuthClientJWT] = {}
-    mtls: Optional[AuthClientMtls] = {}
-    oidc: Optional[AuthClientOIDC] = {}
+    jwt: Optional[AuthClientJWT] = None
+    mtls: Optional[AuthClientMtls] = None
+    oidc: Optional[AuthClientOIDC] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Client':
@@ -872,8 +871,8 @@ class Authentication_Server(BaseModel, extra="forbid"):
     name: str
     type: str
 
-    token: Optional[AuthServerToken] = {}
-    mtls: Optional[AuthServerMtls] = {}
+    token: Optional[AuthServerToken] = None
+    mtls: Optional[AuthServerMtls] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authentication_Server':
@@ -898,7 +897,7 @@ class Authorization(BaseModel, extra="forbid"):
     name: str
     type: str
 
-    jwt: Optional[AuthorizationJWT] = {}
+    jwt: Optional[AuthorizationJWT] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Authorization':
@@ -932,9 +931,9 @@ class Http(BaseModel, extra="forbid"):
     upstreams: Optional[List[Upstream]] = []
     caching: Optional[List[CachingItem]] = []
     rate_limit: Optional[List[RateLimitItem]] = []
-    nginx_plus_api: Optional[NginxPlusApi] = {}
+    nginx_plus_api: Optional[NginxPlusApi] = None
     maps: Optional[List[Map]] = []
-    snippet: Optional[ObjectFromSourceOfTruth] = {}
+    snippet: Optional[ObjectFromSourceOfTruth] = None
     njs: Optional[List[NjsHookHttpServer]] = []
     njs_profiles: Optional[List[NjsFile]] = []
     cache: Optional[List[CacheProfile]] = []
@@ -946,9 +945,9 @@ class Http(BaseModel, extra="forbid"):
 
 
 class Declaration(BaseModel, extra="forbid"):
-    layer4: Optional[Layer4] = {}
-    http: Optional[Http] = {}
-    authentication: Optional[Authentication] = {}
+    layer4: Optional[Layer4] = None
+    http: Optional[Http] = None
+    authentication: Optional[Authentication] = None
     authorization: Optional[List[Authorization]] = []
     resolvers: Optional[List[Resolver]] = []
     certificates: Optional[List[TLSCertificate]] = []
@@ -984,8 +983,8 @@ class DevPortal_Backstage(BaseModel, extra="forbid"):
 class DeveloperPortal(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     type: str = ""
-    redocly: Optional[DevPortal_Redocly] = {}
-    backstage: Optional[DevPortal_Backstage] = {}
+    redocly: Optional[DevPortal_Redocly] = None
+    backstage: Optional[DevPortal_Backstage] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'DeveloperPortal':
@@ -1018,7 +1017,7 @@ class Visibility_Moesif(BaseModel, extra="forbid"):
 class Visibility(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     type: str = ""
-    moesif: Optional[Visibility_Moesif] = {}
+    moesif: Optional[Visibility_Moesif] = None
 
     @model_validator(mode='after')
     def check_type(self) -> 'Visibility':
@@ -1040,17 +1039,17 @@ class Visibility(BaseModel, extra="forbid"):
         return self
 
 class APIGateway(BaseModel, extra="forbid"):
-    openapi_schema: Optional[ObjectFromSourceOfTruth] = {}
+    openapi_schema: Optional[ObjectFromSourceOfTruth] = None
     api_gateway: Optional[API_Gateway] =  {}
-    developer_portal: Optional[DeveloperPortal] = {}
+    developer_portal: Optional[DeveloperPortal] = None
     visibility: Optional[List[Visibility]] = []
     rate_limit: Optional[List[RateLimitApiGw]] = []
-    authentication: Optional[APIGatewayAuthentication] = {}
+    authentication: Optional[APIGatewayAuthentication] = None
     authorization: Optional[List[APIGatewayAuthorization]] = []
     cache: Optional[List[APIGatewayCache]] = []
-    log: Optional[Log] = {}
+    log: Optional[Log] = None
 
 
 class ConfigDeclaration(BaseModel, extra="forbid"):
     output: Output
-    declaration: Optional[Declaration] = {}
+    declaration: Optional[Declaration] = None

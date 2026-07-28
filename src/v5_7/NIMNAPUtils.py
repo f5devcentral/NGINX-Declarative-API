@@ -1,239 +1,303 @@
 """
-F5 WAF for NGINX support functions
+F5 WAF for NGINX support functions (NGINX Instance Manager)
 """
 
-import requests
 import json
 import base64
+import requests
+from typing import Tuple, Dict, Any, List
 
 import v5_7.GitOps
-
 from NcgConfig import NcgConfig
-
 from fastapi.responses import Response, JSONResponse
 
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
 
-# Define (create/update) a F5 WAF for NGINX policy on NMS.
-# If policyUid is not empty the policy update is performed
-# Returns a tuple {status_code,text}. status_code is 201 if successful
-def __definePolicyOnNMS__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyName: str, policyDisplayName: str,
-                          policyDescription: str, policyJson: str, policyUid: str = ""):
-    # policyJson holds the base64-encoded policy JSON definition
-    # Control plane-compiled policy bundles are supported. Create the F5 WAF for NGINX policy on NGINX Instance Manager
-    # POST https://IP_ADDRESS/api/platform/v1/security/policies
-    # {
-    #     "metadata": {
-    #         "name": "prod-policy",
-    #         "displayName": "Production Policy - blocking",
-    #         "description": "Production-ready policy - blocking"
-    #     },
-    #     "content": "<BASE64>"
-    # }
+def __definePolicyOnNMS__(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    policyName: str,
+    policyDisplayName: str,
+    policyDescription: str,
+    policyJson: str,
+    policyUid: str = ""
+) -> requests.Response:
+    """
+    Creates or updates an F5 WAF for NGINX policy on NGINX Instance Manager (NMS).
 
-    policyCreationPayload = {'metadata': {}}
-    policyCreationPayload['metadata']['name'] = policyName
-    policyCreationPayload['metadata']['displayName'] = policyDisplayName
-    policyCreationPayload['metadata']['description'] = policyDescription
-    policyCreationPayload['content'] = policyJson
+    Args:
+        nmsUrl (str): NMS base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        policyName (str): Policy name.
+        policyDisplayName (str): Display name.
+        policyDescription (str): Description string.
+        policyJson (str): Policy JSON string content.
+        policyUid (str, optional): Policy UID if updating existing policy. Defaults to "".
+
+    Returns:
+        requests.Response: Response object from NMS.
+    """
+    policyCreationPayload = {
+        'metadata': {
+            'name': policyName,
+            'displayName': policyDisplayName,
+            'description': policyDescription
+        },
+        'content': policyJson
+    }
+
+    auth = (nmsUsername, nmsPassword)
+    headers = {'Content-Type': 'application/json'}
 
     if policyUid != "":
-        # Existing policy update
-        r = requests.put(url=f"{nmsUrl}/api/platform/v1/security/policies/{policyUid}",
-                         data=json.dumps(policyCreationPayload),
-                         headers={'Content-Type': 'application/json'},
-                         auth=(nmsUsername, nmsPassword),
-                         verify=False)
-    else:
-        # New policy creation - first try to create it as a new revision for an existing policy
-        # The response code is 201 if successful and 404 if there is no policy with the given name
-        r = requests.post(url=f"{nmsUrl}/api/platform/v1/security/policies?isNewRevision=true",
-                          data=json.dumps(policyCreationPayload),
-                          headers={'Content-Type': 'application/json'},
-                          auth=(nmsUsername, nmsPassword),
-                          verify=False)
+        url = f"{nmsUrl}/api/platform/v1/security/policies/{policyUid}"
+        return requests.put(url=url, data=json.dumps(policyCreationPayload), headers=headers, auth=auth, verify=False)
 
-        # Check if this is a new policy with no existing versions. If this is true create its initial version
-        if r.status_code == 404:
-            r = requests.post(url=f"{nmsUrl}/api/platform/v1/security/policies",
-                              data=json.dumps(policyCreationPayload),
-                              headers={'Content-Type': 'application/json'},
-                              auth=(nmsUsername, nmsPassword),
-                              verify=False)
+    url = f"{nmsUrl}/api/platform/v1/security/policies?isNewRevision=true"
+    r = requests.post(url=url, data=json.dumps(policyCreationPayload), headers=headers, auth=auth, verify=False)
+
+    if r.status_code == 404:
+        url = f"{nmsUrl}/api/platform/v1/security/policies"
+        r = requests.post(url=url, data=json.dumps(policyCreationPayload), headers=headers, auth=auth, verify=False)
 
     return r
 
 
-# Retrieve security policies information
-def __getAllPolicies__(nmsUrl: str, nmsUsername: str, nmsPassword: str):
-    return requests.get(url=f'{nmsUrl}/api/platform/v1/security/policies',
-                        auth=(nmsUsername, nmsPassword), verify=False)
+def __getAllPolicies__(nmsUrl: str, nmsUsername: str, nmsPassword: str) -> requests.Response:
+    """
+    Retrieves all security policies from NMS.
+
+    Args:
+        nmsUrl (str): Base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+
+    Returns:
+        requests.Response: Response object.
+    """
+    url = f'{nmsUrl}/api/platform/v1/security/policies'
+    return requests.get(url=url, auth=(nmsUsername, nmsPassword), verify=False)
 
 
-# Delete security policy from control plane
-def __deletePolicy__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyUid: str):
-    return requests.delete(url=f'{nmsUrl}/api/platform/v1/security/policies/{policyUid}',
-                           auth=(nmsUsername, nmsPassword), verify=False)
+def __deletePolicy__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyUid: str) -> requests.Response:
+    """
+    Deletes security policy by UID from NMS.
+
+    Args:
+        nmsUrl (str): Base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        policyUid (str): Target Policy UID.
+
+    Returns:
+        requests.Response: Response object.
+    """
+    url = f'{nmsUrl}/api/platform/v1/security/policies/{policyUid}'
+    return requests.delete(url=url, auth=(nmsUsername, nmsPassword), verify=False)
 
 
-# Check NAP policies names validity for the given declaration
-# Return a tuple: status, description. If status = 200 checks were successful
-def checkDeclarationPolicies(declaration: dict):
-    # F5 WAF for NGINX policies check - duplicated policy names
+def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, str]]:
+    """
+    Validates policy name uniqueness and active tag validity.
 
-    # all policy names as defined in the declaration
-    # { 'policyName': 'activeTag', ... }
-    allPolicyNames = {}
+    Args:
+        policies (list): List of policy declarations.
 
-    if 'http' not in declaration['declaration']:
-        return 200, ""
+    Returns:
+        Tuple[int, str, Dict[str, str]]: (status_code, error_message, map_of_valid_policy_names)
+    """
+    all_policy_names = {}
 
-    if 'policies' not in declaration['declaration']['http']:
-        return 200, ""
+    for policy in policies:
+        name = policy.get('name')
+        active_tag = policy.get('active_tag')
 
-    for policy in declaration['declaration']['http']['policies']:
-        # print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
+        if name and name in all_policy_names:
+            return 422, f"Duplicated F5 WAF for NGINX WAF policy [{name}]", {}
 
-        if policy['name'] and policy['name'] in allPolicyNames:
-            return 422, f"Duplicated F5 WAF for NGINX WAF policy [{policy['name']}]"
+        all_policy_names[name] = active_tag
 
-        allPolicyNames[policy['name']] = policy['active_tag']
+        all_version_tags = {}
+        for version in policy.get('versions', []):
+            tag = version.get('tag')
+            if tag and tag in all_version_tags:
+                return 422, f"Duplicated F5 WAF for NGINX WAF policy tag [{tag}] for policy [{name}]", {}
+            all_version_tags[tag] = "found"
 
-        # Check policy releases for non-univoque tags
-        allPolicyVersionTags = {}
-        for policyVersion in policy['versions']:
-            if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
-                return 422, f"Duplicated F5 WAF for NGINX WAF policy tag [{policyVersion['tag']}] " \
-                            f"for policy [{policy['name']}]"
+        if active_tag and active_tag not in all_version_tags:
+            return 422, f"Invalid active tag [{active_tag}] for policy [{name}]", {}
 
-            allPolicyVersionTags[policyVersion['tag']] = "found"
+    return 200, "", all_policy_names
 
-        if policy['active_tag'] and policy['active_tag'] not in allPolicyVersionTags:
-            return 422, f"Invalid active tag [{policy['active_tag']}] for policy [{policy['name']}]"
 
-    # Check policy names referenced by the declaration inside HTTP servers[]: they must be valid
-    if 'http' in declaration['declaration'] and 'servers' in declaration['declaration']['http']:
-        for httpServer in declaration['declaration']['http']['servers']:
-            if 'app_protect' in httpServer:
-                if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] \
-                        and httpServer['app_protect']['policy'] not in allPolicyNames:
-                    return 422, f"Unknown F5 WAF for NGINX WAF policy [{httpServer['app_protect']['policy']}] " \
-                                f"referenced by HTTP server [{httpServer['name']}] it should be one of [{', '.join(allPolicyNames.keys())}]"
+def _validate_server_and_location_policies(servers: list, all_policy_names: dict) -> Tuple[int, str]:
+    """
+    Validates policy and log profile references inside servers and locations.
 
-                if 'log' in httpServer['app_protect'] \
-                        and 'profile_name' in httpServer['app_protect']['log'] \
-                        and httpServer['app_protect']['log']['profile_name'] \
-                        and httpServer['app_protect']['log']['profile_name'] \
-                        not in available_log_profiles:
-                    return 422, f"Invalid F5 WAF for NGINX WAF log profile " \
-                                f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
-                                f"[{httpServer['name']}] it should be one of [{', '.join(available_log_profiles.keys())}]"
+    Args:
+        servers (list): List of HTTP server definitions.
+        all_policy_names (dict): Dict of valid policy names.
 
-            # Check policy names referenced in HTTP servers[].locations[]
-            for location in httpServer['locations']:
-                if 'app_protect' in location:
-                    if 'policy' in location['app_protect'] and location['app_protect']['policy'] \
-                            and location['app_protect']['policy'] not in allPolicyNames:
-                        return 422, f"Unknown F5 WAF for NGINX WAF policy [{location['app_protect']['policy']}] " \
-                                    (f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}] "
-                                     f"it should be one of [{', '.join(allPolicyNames.keys())}]")
+    Returns:
+        Tuple[int, str]: (status_code, error_message)
+    """
+    valid_policy_keys = ', '.join(all_policy_names.keys())
+    valid_log_keys = ', '.join(available_log_profiles)
 
-                    if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
-                            and httpServer['app_protect']['log']['profile_name'] \
-                            and httpServer['app_protect']['log']['profile_name'] \
-                            not in available_log_profiles:
-                        return 422, f"Invalid F5 WAF for NGINX WAF log profile " \
-                                    f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
-                                    (f"[{httpServer['name']}] location [{location['uri']}]  "
-                                     f"it should be one of [{', '.join(available_log_profiles.keys())}]")
+    for httpServer in servers:
+        app_protect = httpServer.get('app_protect', {})
+        if app_protect:
+            pol = app_protect.get('policy')
+            if pol and pol not in all_policy_names:
+                return 422, f"Unknown F5 WAF for NGINX WAF policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_policy_keys}]"
+
+            log_prof = app_protect.get('log', {}).get('profile_name')
+            if log_prof and log_prof not in available_log_profiles:
+                return 422, f"Invalid F5 WAF for NGINX WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_log_keys}]"
+
+        for location in httpServer.get('locations', []):
+            loc_protect = location.get('app_protect', {})
+            if loc_protect:
+                loc_pol = loc_protect.get('policy')
+                if loc_pol and loc_pol not in all_policy_names:
+                    return 422, f"Unknown F5 WAF for NGINX WAF policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it should be one of [{valid_policy_keys}]"
+
+                if app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                    return 422, f"Invalid F5 WAF for NGINX WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]  it should be one of [{valid_log_keys}]"
 
     return 200, ""
 
 
-# For the given declaration creates/updates F5 WAF for NGINX WAF policies on NGINX Instance Manager
-# making sure that they are in sync with what is defined in the JSON declaration
-# Returns a JSON with status code and content
-def provisionPolicies(nmsUrl: str, nmsUsername: str, nmsPassword: str, declaration: dict):
-    # F5 WAF for NGINX policies - each policy supports multiple tagged versions
+def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
+    """
+    Validates NAP policies defined inside the declaration dictionary.
 
-    # Policy names and all tag/uid pairs
-    # {'prod-policy': [{'tag': 'v1', 'uid': 'ebcf9c7e-0930-450d-8108-7cad30e59661'},
-    #                 {'tag': 'v2', 'uid': 'd18c2eb7-814e-4e4d-90fc-54014eef199e'}],
-    # 'staging-policy': [{'tag': 'block', 'uid': '9794faa7-5b6c-4ce5-9e68-946f04766bb4'},
-    #                    {'tag': 'xss-ok', 'uid': '7b4b850a-ff9e-42a0-85d0-850171474224'}]}
+    Args:
+        declaration (dict): Declaration object.
+
+    Returns:
+        Tuple[int, str]: Status code (200 on success) and error description string.
+    """
+    decl_http = (declaration.get('declaration', {}) or {}).get('http')
+    if not decl_http or 'policies' not in decl_http:
+        return 200, ""
+
+    status, msg, all_policy_names = _validate_policy_declarations(decl_http['policies'])
+    if status != 200:
+        return status, msg
+
+    servers = decl_http.get('servers')
+    if servers:
+        status, msg = _validate_server_and_location_policies(servers, all_policy_names)
+        if status != 200:
+            return status, msg
+
+    return 200, ""
+
+
+def provisionPolicies(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    declaration: dict
+) -> JSONResponse:
+    """
+    Creates/updates F5 WAF policies on NMS for a given declaration.
+
+    Args:
+        nmsUrl (str): NMS URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        declaration (dict): Configuration declaration dict.
+
+    Returns:
+        JSONResponse: Status code and policy version mappings.
+    """
     all_policy_names_and_versions = {}
-
-    # Policy names and active tag uids
-    # { 'prod-policy': 'ebcf9c7e-0930-450d-8108-7cad30e59661',
-    # 'staging-policy': '7b4b850a-ff9e-42a0-85d0-850171474224' }
     all_policy_active_names_and_uids = {}
 
-    if 'http' in declaration['declaration'] and 'policies' in declaration['declaration']['http']:
-        for p in declaration['declaration']['http']['policies']:
-            policy_name = p['name']
-            if policy_name:
-                policy_active_tag = p['active_tag']
+    policies = (declaration.get('declaration', {}) or {}).get('http', {}).get('policies')
+    if policies:
+        for p in policies:
+            policy_name = p.get('name')
+            if policy_name and p.get('type') == 'app_protect':
+                policy_active_tag = p.get('active_tag')
 
-                # Iterates over all F5 WAF for NGINX policies
-                if p['type'] == 'app_protect':
-                    # Iterates over all policy versions
-                    for policyVersion in p['versions']:
-                        status, policyBody = v5_7.GitOps.getObjectFromRepo(policyVersion['contents'])
+                for policyVersion in p.get('versions', []):
+                    status, policyBody = v5_7.GitOps.getObjectFromRepo(policyVersion['contents'])
 
-                        if status != 200:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": status,
-                                         "details": policyBody['content']}
-                            )
-
-                        # Create the F5 WAF for NGINX policy on NMS
-                        r = __definePolicyOnNMS__(
-                            nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
-                            policyName=policy_name,
-                            policyDisplayName=policyVersion['displayName'],
-                            policyDescription=policyVersion['description'],
-                            policyJson=policyBody['content']
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status, "details": policyBody['content']}
                         )
 
-                        # Check for errors creating F5 WAF for NGINX policy
-                        if r.status_code != 201:
-                            return JSONResponse(
-                                status_code=r.status_code,
-                                content={"code": r.status_code, "details": json.loads(r.text)}
-                            )
-                        else:
-                            # Policy was created, retrieve metadata.uid for each policy version
-                            if policy_name not in all_policy_names_and_versions:
-                                all_policy_names_and_versions[policy_name] = []
+                    r = __definePolicyOnNMS__(
+                        nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword,
+                        policyName=policy_name,
+                        policyDisplayName=policyVersion.get('displayName', ''),
+                        policyDescription=policyVersion.get('description', ''),
+                        policyJson=policyBody['content']
+                    )
 
-                            # Stores the policy version
-                            uid = json.loads(r.text)['metadata']['uid']
-                            tag = policyVersion['tag']
+                    if r.status_code != 201:
+                        return JSONResponse(
+                            status_code=r.status_code,
+                            content={"code": r.status_code, "details": json.loads(r.text)}
+                        )
 
-                            if policy_active_tag == tag:
-                                all_policy_active_names_and_uids[policy_name] = uid
+                    if policy_name not in all_policy_names_and_versions:
+                        all_policy_names_and_versions[policy_name] = []
 
-                            all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+                    uid = json.loads(r.text)['metadata']['uid']
+                    tag = policyVersion['tag']
 
-    return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
-                                                  "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
+                    if policy_active_tag == tag:
+                        all_policy_active_names_and_uids[policy_name] = uid
+
+                    all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "all_policy_names_and_versions": all_policy_names_and_versions,
+            "all_policy_active_names_and_uids": all_policy_active_names_and_uids
+        }
+    )
 
 
-# Publish a F5 WAF for NGINX WAF policy making it active
-# activePolicyUids is a dict { "policy_name": "active_uid", [...] }
-# Return True if at least one policy was enabled, False otherwise
-def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePolicyUids: dict, instanceGroupUid: str):
+def makePolicyActive(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    activePolicyUids: dict,
+    instanceGroupUid: str
+) -> bool:
+    """
+    Publishes an F5 WAF policy making it active on NMS.
+
+    Args:
+        nmsUrl (str): NMS Base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        activePolicyUids (dict): Policy name to active UID dict.
+        instanceGroupUid (str): Instance group UID.
+
+    Returns:
+        bool: True if at least one policy was published, False otherwise.
+    """
     doWeHavePolicies = False
 
-    for policyName in activePolicyUids:
+    for policyName, activeUid in activePolicyUids.items():
         body = {
             "publications": [
                 {
                     "policyContent": {
                         "name": f'{policyName}',
-                        "uid": f'{activePolicyUids[policyName]}'
+                        "uid": f'{activeUid}'
                     },
                     "instanceGroups": [
                         f'{instanceGroupUid}'
@@ -243,36 +307,39 @@ def makePolicyActive(nmsUrl: str, nmsUsername: str, nmsPassword: str, activePoli
         }
 
         doWeHavePolicies = True
-        r = requests.post(url=f'{nmsUrl}/api/platform/v1/security/publish', auth=(nmsUsername, nmsPassword),
-                          data=json.dumps(body), headers={'Content-Type': 'application/json'}, verify=False)
+        url = f'{nmsUrl}/api/platform/v1/security/publish'
+        auth = (nmsUsername, nmsPassword)
+        headers = {'Content-Type': 'application/json'}
+        requests.post(url=url, auth=auth, data=json.dumps(body), headers=headers, verify=False)
 
     return doWeHavePolicies
 
 
-# For the given declaration creates/updates F5 WAF for NGINX WAF policies on NGINX Instance Manager
-# making sure that they are in sync with what is defined in the JSON declaration
-# Returns a tuple: status, response payload
-def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict):
-    # Fetch all policies currently defined on the control plane
+def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict) -> None:
+    """
+    Removes unused/leftover F5 WAF policies from NMS.
+
+    Args:
+        nmsUrl (str): NMS Base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        currentPolicies (dict): Currently active policies map.
+    """
     allNMSPolicies = __getAllPolicies__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword)
     allNMSPoliciesJson = json.loads(allNMSPolicies.text)
 
-    # Build a list of all uids for policies currently available on the control plane whose names match
-    # currentPolicies (policies that have just been pushed to data plane)
     allUidsOnNMS = []
-    for p in allNMSPoliciesJson['items']:
-        if p['metadata']['name'] in currentPolicies:
+    for p in allNMSPoliciesJson.get('items', []):
+        if p.get('metadata', {}).get('name') in currentPolicies:
             allUidsOnNMS.append(p['metadata']['uid'])
 
     allCurrentPoliciesUIDs = []
-    for policyName in currentPolicies:
+    for policyName, tags in currentPolicies.items():
         if policyName:
-            for tag in currentPolicies[policyName]:
+            for tag in tags:
                 allCurrentPoliciesUIDs.append(tag['uid'])
 
     uidsToRemove = list(set(allUidsOnNMS) - set(allCurrentPoliciesUIDs))
 
     for uid in uidsToRemove:
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
-
-    return

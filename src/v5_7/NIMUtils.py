@@ -1,26 +1,43 @@
 """
-NGINX Instance Manager support functions
+NGINX Instance Manager support utility functions
 """
 
-import requests
 import json
+import requests
+from typing import Tuple, Optional
 
 
-# Fetch an instance group UID from NGINX Instance Manager
-# Return None if not found
-def getNIMInstanceGroupUid(nmsUrl: str, nmsUsername: str, nmsPassword: str, instanceGroupName: str):
-    # Retrieve instance group uid
-    ig = requests.get(url=f'{nmsUrl}/api/platform/v1/instance-groups?limit=100', auth=(nmsUsername, nmsPassword),
-                      verify=False)
+def getNIMInstanceGroupUid(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    instanceGroupName: str
+) -> Tuple[int,str]:
+    """
+    Fetches an instance group UID from NGINX Instance Manager (NMS).
 
+    Args:
+        nmsUrl (str): NMS base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        instanceGroupName (str): Target instance group name.
+
+    Returns:
+        Optional[str]: Instance group UID string if found, otherwise None.
+    """
+    url = f'{nmsUrl}/api/platform/v1/instance-groups?limit=100'
+    auth = (nmsUsername, nmsPassword)
+
+    ig = requests.get(url=url, auth=auth, verify=False)
     if ig.status_code != 200:
-        return None
+        if ig.status_code == 401:
+            return ig.status_code, "NGINX Instance Manager authentication failed"
+        else:
+            return ig.status_code, f"Error fetching instance group [{ig.text}]"
 
-    # Get the instance group id
-    igUid = None
     igJson = json.loads(ig.text)
-    for i in igJson['items']:
-        if i['name'] == instanceGroupName:
-            igUid = i['uid']
+    for item in igJson.get('items', []):
+        if item.get('name') == instanceGroupName:
+            return 200, item.get('uid')
 
-    return igUid
+    return 404, f"instance group [{instanceGroupName}] not found"

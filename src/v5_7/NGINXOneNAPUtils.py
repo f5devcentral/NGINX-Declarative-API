@@ -1,245 +1,324 @@
 """
-F5 WAF for NGINX support functions
+F5 WAF for NGINX support functions (NGINX One)
 """
 
-import requests
 import json
 import base64
+import requests
+from typing import Tuple, Dict, Any, List
 
 import v5_7.GitOps
-
 from NcgConfig import NcgConfig
-
 from fastapi.responses import Response, JSONResponse
 
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
 
-# Define (create/update) a F5 WAF for NGINX policy on NMS.
-# If policyUid is not empty a the policy update is performed
-# Returns a tuple {status_code,text}. status_code is 201 if successful
-def __definePolicyOnNGINXOne__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyJson: str):
-    policyName = json.loads(policyJson)['policy']['name']
+def __definePolicyOnNGINXOne__(
+    nginxOneUrl: str,
+    nginxOneToken: str,
+    nginxOneNamespace: str,
+    policyJson: str
+) -> requests.Response:
+    """
+    Creates or updates an F5 WAF for NGINX policy on NGINX One Console.
 
-    # Payload for NGINX One Console
-    # policyBody holds the base64-encoded policy JSON definition
-    # Control plane-compiled policy bundles are supported. Create the F5 WAF for NGINX policy on NGINX One Console
-    # POST {nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies
-    # {
-    #     "policy": "<BASE64>"
-    # }
-    policyCreationPayload = {}
-    policyCreationPayload['policy'] = base64.b64encode(bytes(policyJson, 'utf-8')).decode('utf-8')
+    Args:
+        nginxOneUrl (str): NGINX One console base URL.
+        nginxOneToken (str): Authentication API token.
+        nginxOneNamespace (str): Namespace name.
+        policyJson (str): Policy JSON string.
 
-    # Retrieve the full policy list from NGINX One Console
-    allExistingPolicies = __getAllPolicies__(nginxOneUrl = nginxOneUrl, nginxOneToken = nginxOneToken, nginxOneNamespace=nginxOneNamespace)
-    polId = __getPolicyId__(json.loads(allExistingPolicies.text), policyName)
+    Returns:
+        requests.Response: Response object from NGINX One API call.
+    """
+    policy_name = json.loads(policyJson)['policy']['name']
+
+    policyCreationPayload = {
+        'policy': base64.b64encode(bytes(policyJson, 'utf-8')).decode('utf-8')
+    }
+
+    allExistingPolicies = __getAllPolicies__(
+        nginxOneUrl=nginxOneUrl,
+        nginxOneToken=nginxOneToken,
+        nginxOneNamespace=nginxOneNamespace
+    )
+    polId = __getPolicyId__(json.loads(allExistingPolicies.text), policy_name)
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer APIToken {nginxOneToken}'
+    }
 
     if polId != "":
-        # This is a new version for an existing policy
-        r = requests.put(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{polId}",
-                          data=json.dumps(policyCreationPayload),
-                          headers={'Content-Type': 'application/json',
-                                   "Authorization": f"Bearer APIToken {nginxOneToken}"},
-                          verify=False)
+        url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{polId}"
+        return requests.put(url=url, data=json.dumps(policyCreationPayload), headers=headers, verify=False)
     else:
-        # New policy creation
-        r = requests.post(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies",
-            data=json.dumps(policyCreationPayload),
-            headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nginxOneToken}"},
-            verify=False)
-
-    return r
+        url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies"
+        return requests.post(url=url, data=json.dumps(policyCreationPayload), headers=headers, verify=False)
 
 
-# Retrieve security policies information
-def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str):
-    return requests.get(url=f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies?paginated=false",
-                        headers={"Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False)
+def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str) -> requests.Response:
+    """
+    Retrieves all security policies from NGINX One Console.
+
+    Args:
+        nginxOneUrl (str): Base URL.
+        nginxOneToken (str): API Token.
+        nginxOneNamespace (str): Target namespace.
+
+    Returns:
+        requests.Response: HTTP response object.
+    """
+    url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies?paginated=false"
+    headers = {"Authorization": f"Bearer APIToken {nginxOneToken}"}
+    return requests.get(url=url, headers=headers, verify=False)
 
 
-# Return the policy ID for the given policyName. allPoliciesJSON is the JSON output from __getAllPolicies__
-def __getPolicyId__(allPoliciesJSON: dict, policyName: str):
-    if 'items' in allPoliciesJSON:
+def __getPolicyId__(allPoliciesJSON: dict, policyName: str) -> str:
+    """
+    Retrieves policy ID for a given policy name from full policy list JSON.
+
+    Args:
+        allPoliciesJSON (dict): Parsed JSON dictionary of all policies.
+        policyName (str): Name of target policy.
+
+    Returns:
+        str: Policy object ID if found, otherwise empty string.
+    """
+    if isinstance(allPoliciesJSON, dict) and 'items' in allPoliciesJSON:
         for p in allPoliciesJSON['items']:
-            if policyName == p['name']:
-                return p['object_id']
-
+            if policyName == p.get('name'):
+                return p.get('object_id', '')
     return ""
 
 
-# Delete security policies from control plane
-def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyUids: list):
-    jsonPayload = []
+def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, policyUids: list) -> requests.Response:
+    """
+    Deletes specified security policies from NGINX One Console.
 
-    for polId in policyUids:
-        item = {}
-        item['object_id'] = polId
-        item['action'] = "delete"
-        jsonPayload.append(item)
+    Args:
+        nginxOneUrl (str): Base URL.
+        nginxOneToken (str): API token.
+        nginxOneNamespace (str): Namespace name.
+        policyUids (list): List of policy object IDs to delete.
 
-    return requests.patch(url=f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies',
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer APIToken {nginxOneToken}"}, verify=False,
-        data=json.dumps(jsonPayload))
+    Returns:
+        requests.Response: Response object from PATCH delete operation.
+    """
+    jsonPayload = [{'object_id': polId, 'action': 'delete'} for polId in policyUids]
+    url = f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer APIToken {nginxOneToken}'
+    }
+    return requests.patch(url=url, headers=headers, verify=False, data=json.dumps(jsonPayload))
 
 
-# Check NAP policies names validity for the given declaration
-# Return a tuple: status, description. If status = 200 checks were successful
-def checkDeclarationPolicies(declaration: dict):
-    # F5 WAF for NGINX policies check - duplicated policy names
+def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, str]]:
+    """
+    Validates policy uniqueness, tag uniqueness, and active tag presence.
 
-    # all policy names as defined in the declaration
-    # { 'policyName': 'activeTag', ... }
-    allPolicyNames = {}
+    Args:
+        policies (list): List of policy declarations.
 
-    if 'policies' not in declaration['output']['nginxone']:
-        return 200, ""
+    Returns:
+        Tuple[int, str, Dict[str, str]]: (status, error_message, map_of_valid_policy_names_to_active_tags)
+    """
+    all_policy_names = {}
 
-    for policy in declaration['output']['nginxone']['policies']:
-        # print(f"Found NAP Policy [{policy['name']}] active tag [{policy['active_tag']}]")
+    for policy in policies:
+        name = policy.get('name')
+        active_tag = policy.get('active_tag')
 
-        if policy['name'] and policy['name'] in allPolicyNames:
-            return 422, f"Duplicated F5 WAF for NGINX policy [{policy['name']}]"
+        if name and name in all_policy_names:
+            return 422, f"Duplicated F5 WAF for NGINX policy [{name}]", {}
 
-        allPolicyNames[policy['name']] = policy['active_tag']
+        all_policy_names[name] = active_tag
 
-        # Check policy releases for non-univoque tags
-        allPolicyVersionTags = {}
-        for policyVersion in policy['versions']:
-            if policyVersion['tag'] and policyVersion['tag'] in allPolicyVersionTags:
-                return 422, f"Duplicated F5 WAF for NGINX policy tag [{policyVersion['tag']}] " \
-                            f"for policy [{policy['name']}]"
+        all_version_tags = {}
+        for version in policy.get('versions', []):
+            tag = version.get('tag')
+            if tag and tag in all_version_tags:
+                return 422, f"Duplicated F5 WAF for NGINX policy tag [{tag}] for policy [{name}]", {}
+            all_version_tags[tag] = "found"
 
-            allPolicyVersionTags[policyVersion['tag']] = "found"
+        if active_tag and active_tag not in all_version_tags:
+            return 422, f"Invalid active tag [{active_tag}] for policy [{name}]", {}
 
-        if policy['active_tag'] and policy['active_tag'] not in allPolicyVersionTags:
-            return 422, f"Invalid active tag [{policy['active_tag']}] for policy [{policy['name']}]"
+    return 200, "", all_policy_names
 
-    # Check policy names referenced by the declaration inside HTTP servers[]: they must be valid
-    if 'http' in declaration['declaration'] and 'servers' in declaration['declaration']['http']:
-        for httpServer in declaration['declaration']['http']['servers']:
-            if 'app_protect' in httpServer:
-                if 'policy' in httpServer['app_protect'] and httpServer['app_protect']['policy'] \
-                        and httpServer['app_protect']['policy'] not in allPolicyNames:
-                    return 422, f"Unknown F5 WAF for NGINX policy [{httpServer['app_protect']['policy']}] " \
-                                f"referenced by HTTP server [{httpServer['name']}]"
 
-                if 'log' in httpServer['app_protect'] \
-                        and 'profile_name' in httpServer['app_protect']['log'] \
-                        and httpServer['app_protect']['log']['profile_name'] \
-                        and httpServer['app_protect']['log']['profile_name'] \
-                        not in available_log_profiles:
-                    return 422, f"Invalid F5 WAF for NGINX log profile " \
-                                f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
-                                f"[{httpServer['name']}]"
+def _validate_server_and_location_policies(servers: list, all_policy_names: dict) -> Tuple[int, str]:
+    """
+    Validates referenced policies and log profile names in HTTP servers and locations.
 
-            # Check policy names referenced in HTTP servers[].locations[]
-            for location in httpServer['locations']:
-                if 'app_protect' in location:
-                    if 'policy' in location['app_protect'] and location['app_protect']['policy'] \
-                            and location['app_protect']['policy'] not in allPolicyNames:
-                        return 422, f"Unknown F5 WAF for NGINX policy [{location['app_protect']['policy']}] " \
-                                    f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}]"
+    Args:
+        servers (list): List of HTTP server definitions.
+        all_policy_names (dict): Dict of defined valid policy names.
 
-                    if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
-                            and httpServer['app_protect']['log']['profile_name'] \
-                            and httpServer['app_protect']['log']['profile_name'] \
-                            not in available_log_profiles:
-                        return 422, f"Invalid F5 WAF for NGINX log profile " \
-                                    f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
-                                    f"[{httpServer['name']}] location [{location['uri']}]"
+    Returns:
+        Tuple[int, str]: (status_code, error_message)
+    """
+    for httpServer in servers:
+        app_protect = httpServer.get('app_protect', {})
+        if app_protect:
+            pol = app_protect.get('policy')
+            if pol and pol not in all_policy_names:
+                return 422, f"Unknown F5 WAF for NGINX policy [{pol}] referenced by HTTP server [{httpServer.get('name')}]"
+
+            log_prof = app_protect.get('log', {}).get('profile_name')
+            if log_prof and log_prof not in available_log_profiles:
+                return 422, f"Invalid F5 WAF for NGINX log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}]"
+
+        for location in httpServer.get('locations', []):
+            loc_protect = location.get('app_protect', {})
+            if loc_protect:
+                loc_pol = loc_protect.get('policy')
+                if loc_pol and loc_pol not in all_policy_names:
+                    return 422, f"Unknown F5 WAF for NGINX policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
+
+                if app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                    return 422, f"Invalid F5 WAF for NGINX log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
 
     return 200, ""
 
 
-# For the given declaration creates/updates F5 WAF for NGINX policies on NGINX Instance Manager
-# making sure that they are in sync with what is defined in the JSON declaration
-# Returns a JSON with status code and content
-def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, declaration: dict):
-    # F5 WAF for NGINX policies - each policy supports multiple tagged versions
+def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
+    """
+    Check NAP policies validity for the given declaration.
 
-    # Policy names and all tag/uid pairs
-    # {'prod-policy': [{'tag': 'v1', 'uid': 'ebcf9c7e-0930-450d-8108-7cad30e59661'},
-    #                 {'tag': 'v2', 'uid': 'd18c2eb7-814e-4e4d-90fc-54014eef199e'}],
-    # 'staging-policy': [{'tag': 'block', 'uid': '9794faa7-5b6c-4ce5-9e68-946f04766bb4'},
-    #                    {'tag': 'xss-ok', 'uid': '7b4b850a-ff9e-42a0-85d0-850171474224'}]}
+    Args:
+        declaration (dict): Full configuration declaration dict.
+
+    Returns:
+        Tuple[int, str]: Status code (200 on success) and error description message.
+    """
+    policies = (declaration.get('output', {}) or {}).get('nginxone', {}).get('policies')
+    if not policies:
+        return 200, ""
+
+    status, msg, all_policy_names = _validate_policy_declarations(policies)
+    if status != 200:
+        return status, msg
+
+    servers = declaration.get('declaration', {}).get('http', {}).get('servers')
+    if servers:
+        status, msg = _validate_server_and_location_policies(servers, all_policy_names)
+        if status != 200:
+            return status, msg
+
+    return 200, ""
+
+
+def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, declaration: dict) -> JSONResponse:
+    """
+    Provisions F5 WAF for NGINX policies to NGINX One console for a given declaration.
+
+    Args:
+        nginxOneUrl (str): Console URL.
+        nginxOneToken (str): Auth token.
+        nginxOneNamespace (str): Namespace.
+        declaration (dict): Declaration object.
+
+    Returns:
+        JSONResponse: JSON response containing status and policy version mapping details.
+    """
     all_policy_names_and_versions = {}
-
-    # Policy names and active tag uids
-    # { 'prod-policy': 'ebcf9c7e-0930-450d-8108-7cad30e59661',
-    # 'staging-policy': '7b4b850a-ff9e-42a0-85d0-850171474224' }
     all_policy_active_names_and_uids = {}
 
-    if 'http' in declaration['declaration'] and 'policies' in declaration['declaration']['http']:
-        for p in declaration['declaration']['http']['policies']:
-            policy_name = p['name']
-            if policy_name:
-                policy_active_tag = p['active_tag']
+    policies = (declaration.get('declaration', {}) or {}).get('http', {}).get('policies')
+    if policies:
+        for p in policies:
+            policy_name = p.get('name')
+            if policy_name and p.get('type') == 'app_protect':
+                policy_active_tag = p.get('active_tag')
 
-                # Iterates over all F5 WAF for NGINX policies
-                if p['type'] == 'app_protect':
-                    # Iterates over all policy versions
+                allPoliciesJSON = __getAllPolicies__(
+                    nginxOneUrl=nginxOneUrl,
+                    nginxOneToken=nginxOneToken,
+                    nginxOneNamespace=nginxOneNamespace
+                )
+                polId = __getPolicyId__(json.loads(allPoliciesJSON.text), policy_name)
+                if polId != "":
+                    __deletePolicy__(
+                        nginxOneUrl=nginxOneUrl,
+                        nginxOneToken=nginxOneToken,
+                        nginxOneNamespace=nginxOneNamespace,
+                        policyUids=[polId]
+                    )
 
-                    # Remove pre-existing policy versions
-                    allPoliciesJSON = __getAllPolicies__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
-                    polId = __getPolicyId__(allPoliciesJSON = json.loads(allPoliciesJSON.text), policyName=policy_name)
-                    if polId != "":
-                        __deletePolicy__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, policyUids=[polId])
+                for policyVersion in p.get('versions', []):
+                    status, policyBody = v5_7.GitOps.getObjectFromRepo(policyVersion['contents'], base64Encode=False)
 
-                    # Create all policy versions
-                    for policyVersion in p['versions']:
-                        status, policyBody = v5_7.GitOps.getObjectFromRepo(policyVersion['contents'],base64Encode=False)
-
-                        if status != 200:
-                            return JSONResponse(
-                                status_code=422,
-                                content={"code": status,
-                                         "details": policyBody['content']}
-                            )
-
-                        # Create the F5 WAF for NGINX policy on NGINX One Console
-                        r = __definePolicyOnNGINXOne__(
-                            nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace,
-                            policyJson=policyBody['content']
+                    if status != 200:
+                        return JSONResponse(
+                            status_code=422,
+                            content={"code": status, "details": policyBody['content']}
                         )
 
-                        # Check for errors creating F5 WAF for NGINX policy
-                        if r.status_code != 201:
-                            return JSONResponse(
-                                status_code=r.status_code,
-                                content={"code": r.status_code, "details": json.loads(r.text)}
-                            )
-                        else:
-                            # Policy was created, retrieve metadata.uid for each policy version
-                            if policy_name not in all_policy_names_and_versions:
-                                all_policy_names_and_versions[policy_name] = []
+                    r = __definePolicyOnNGINXOne__(
+                        nginxOneUrl=nginxOneUrl,
+                        nginxOneToken=nginxOneToken,
+                        nginxOneNamespace=nginxOneNamespace,
+                        policyJson=policyBody['content']
+                    )
 
-                            # Stores the policy version
-                            uid = json.loads(r.text)['latest']['object_id']
-                            tag = policyVersion['tag']
+                    if r.status_code != 201:
+                        return JSONResponse(
+                            status_code=r.status_code,
+                            content={"code": r.status_code, "details": json.loads(r.text)}
+                        )
 
-                            if policy_active_tag == tag:
-                                all_policy_active_names_and_uids[policy_name] = uid
+                    if policy_name not in all_policy_names_and_versions:
+                        all_policy_names_and_versions[policy_name] = []
 
-                            all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+                    uid = json.loads(r.text)['latest']['object_id']
+                    tag = policyVersion['tag']
 
-    return JSONResponse(status_code=200, content={"all_policy_names_and_versions": all_policy_names_and_versions,
-                                                  "all_policy_active_names_and_uids": all_policy_active_names_and_uids})
+                    if policy_active_tag == tag:
+                        all_policy_active_names_and_uids[policy_name] = uid
+
+                    all_policy_names_and_versions[policy_name].append({'tag': tag, 'uid': uid})
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "all_policy_names_and_versions": all_policy_names_and_versions,
+            "all_policy_active_names_and_uids": all_policy_active_names_and_uids
+        }
+    )
 
 
-# Publish a F5 WAF for NGINX policy making it active
-# activePolicyUids is a dict { "policy_name": "active_uid", [...] }
-# Return True if at least one policy was enabled, False otherwise
-def makePolicyActive(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: str, activePolicyUids: dict, instanceGroupUid: str):
+def makePolicyActive(
+    nginxOneUrl: str,
+    nginxOneToken: str,
+    nginxOneNamespace: str,
+    activePolicyUids: dict,
+    instanceGroupUid: str
+) -> bool:
+    """
+    Publishes an F5 WAF for NGINX policy, marking it active.
+
+    Args:
+        nginxOneUrl (str): Console URL.
+        nginxOneToken (str): API Token.
+        nginxOneNamespace (str): Namespace.
+        activePolicyUids (dict): Dict of policy_name to active_uid.
+        instanceGroupUid (str): Target instance group UID.
+
+    Returns:
+        bool: True if at least one policy was published, False otherwise.
+    """
     doWeHavePolicies = False
 
-    for policyName in activePolicyUids:
+    for policyName, activeUid in activePolicyUids.items():
         body = {
             "publications": [
                 {
                     "policyContent": {
                         "name": f'{policyName}',
-                        "uid": f'{activePolicyUids[policyName]}'
+                        "uid": f'{activeUid}'
                     },
                     "instanceGroups": [
                         f'{instanceGroupUid}'
@@ -249,9 +328,11 @@ def makePolicyActive(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: st
         }
 
         doWeHavePolicies = True
-        r = requests.post(url=f'{nginxOneUrl}/api/platform/v1/security/publish',
-                          data=json.dumps(body),
-                          headers={'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nginxOneToken}"},
-                          verify=False)
+        url = f'{nginxOneUrl}/api/platform/v1/security/publish'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer APIToken {nginxOneToken}'
+        }
+        requests.post(url=url, data=json.dumps(body), headers=headers, verify=False)
 
     return doWeHavePolicies
