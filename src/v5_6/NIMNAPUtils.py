@@ -135,17 +135,17 @@ def checkDeclarationPolicies(declaration: dict):
                 if 'app_protect' in location:
                     if 'policy' in location['app_protect'] and location['app_protect']['policy'] \
                             and location['app_protect']['policy'] not in allPolicyNames:
-                        return 422, f"Unknown F5 WAF for NGINX WAF policy [{location['app_protect']['policy']}] " \
-                                    (f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}] "
+                        return 422, (f"Unknown F5 WAF for NGINX WAF policy [{location['app_protect']['policy']}] "
+                                     f"referenced by HTTP server [{httpServer['name']}] location [{location['uri']}] "
                                      f"it should be one of [{', '.join(allPolicyNames.keys())}]")
 
                     if 'log' in httpServer['app_protect'] and httpServer['app_protect']['log'] \
                             and httpServer['app_protect']['log']['profile_name'] \
                             and httpServer['app_protect']['log']['profile_name'] \
                             not in available_log_profiles:
-                        return 422, f"Invalid F5 WAF for NGINX WAF log profile " \
-                                    f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server " \
-                                    (f"[{httpServer['name']}] location [{location['uri']}]  "
+                        return 422, (f"Invalid F5 WAF for NGINX WAF log profile "
+                                    f"[{httpServer['app_protect']['log']['profile_name']}] referenced by HTTP server "
+                                    f"[{httpServer['name']}] location [{location['uri']}]  "
                                      f"it should be one of [{', '.join(available_log_profiles.keys())}]")
 
     return 200, ""

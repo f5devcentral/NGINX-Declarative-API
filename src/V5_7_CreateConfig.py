@@ -71,16 +71,14 @@ def _apply_nap_policy_patches(declaration_to_patch, current_declaration):
 
 
 def _apply_certificate_patches(declaration_to_patch, current_declaration):
-    # Support both .declaration.certificates and .declaration.http.certificates
+    # Patch .declaration.certificates
     certificates = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.certificates')
-    if certificates is None:
-        certificates = v5_7.MiscUtils.getDictKey(declaration_to_patch, 'declaration.http.certificates')
     if not certificates or not isinstance(certificates, list):
         return current_declaration
 
     for cert in certificates:
-        current_declaration = v5_7.DeclarationPatcher._patch_section_item(
-            current_declaration, ['declaration', 'certificates'], cert
+        current_declaration = v5_7.DeclarationPatcher.patchCertificates(
+            sourceDeclaration=current_declaration, patchedCertificates=cert
         )
     return current_declaration
 

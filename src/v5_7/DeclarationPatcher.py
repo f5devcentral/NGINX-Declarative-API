@@ -106,6 +106,7 @@ def patchStreamUpstream(sourceDeclaration: dict, patchedStreamUpstream: dict) ->
 def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict) -> dict:
     """
     Returns the patched declaration based on the patchedNAPPolicies.
+    Preserves existing versions and fields when a PATCH only updates active_tag or partial fields.
 
     Args:
         sourceDeclaration (dict): Source declaration dictionary.
@@ -114,10 +115,12 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict) -> dict:
     Returns:
         dict: Patched declaration dictionary.
     """
-    if 'declaration' not in sourceDeclaration or \
-       'http' not in sourceDeclaration['declaration'] or \
-       'policies' not in sourceDeclaration['declaration']['http']:
-        return sourceDeclaration
+    if 'declaration' not in sourceDeclaration or not isinstance(sourceDeclaration['declaration'], dict):
+        sourceDeclaration['declaration'] = {}
+    if 'http' not in sourceDeclaration['declaration'] or not isinstance(sourceDeclaration['declaration']['http'], dict):
+        sourceDeclaration['declaration']['http'] = {}
+    if 'policies' not in sourceDeclaration['declaration']['http'] or not isinstance(sourceDeclaration['declaration']['http']['policies'], list):
+        sourceDeclaration['declaration']['http']['policies'] = []
 
     allTargetPolicies = []
     haveWePatched = False
@@ -128,9 +131,9 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict) -> dict:
                 p.get('type') == patchedNAPPolicies.get('type') and
                 p.get('name') == patchedNAPPolicies.get('name')):
 
-            if patchedNAPPolicies.get('versions') and patchedNAPPolicies.get('active_tag'):
-                allTargetPolicies.append(patchedNAPPolicies)
-
+            # Merge patch fields into existing policy to preserve versions and active_tag
+            merged_policy = {**p, **patchedNAPPolicies}
+            allTargetPolicies.append(merged_policy)
             haveWePatched = True
         else:
             allTargetPolicies.append(p)
@@ -145,6 +148,7 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict) -> dict:
 def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict) -> dict:
     """
     Returns the patched declaration based on patchedCertificates.
+    Exclusively patches declaration.certificates.
 
     Args:
         sourceDeclaration (dict): Source declaration dictionary.
@@ -153,29 +157,4 @@ def patchCertificates(sourceDeclaration: dict, patchedCertificates: dict) -> dic
     Returns:
         dict: Patched declaration dictionary.
     """
-    if 'declaration' not in sourceDeclaration or \
-       'http' not in sourceDeclaration['declaration'] or \
-       'certificates' not in sourceDeclaration['declaration']['http']:
-        return sourceDeclaration
-
-    allTargetCertificates = []
-    haveWePatched = False
-
-    for c in sourceDeclaration['declaration']['http']['certificates']:
-        if (c.get('type') in ['certificate', 'key'] and
-                c.get('name') and
-                c.get('type') == patchedCertificates.get('type') and
-                c.get('name') == patchedCertificates.get('name')):
-
-            if c.get('contents'):
-                allTargetCertificates.append(patchedCertificates)
-
-            haveWePatched = True
-        else:
-            allTargetCertificates.append(c)
-
-    if not haveWePatched:
-        allTargetCertificates.append(patchedCertificates)
-
-    sourceDeclaration['declaration']['http']['certificates'] = allTargetCertificates
-    return sourceDeclaration
+    return _patch_section_item(sourceDeclaration, ['declaration', 'certificates'], patchedCertificates)
