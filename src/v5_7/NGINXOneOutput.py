@@ -244,7 +244,7 @@ def _poll_publication_status(
     Returns:
         Tuple[int, dict]: HTTP status code and response body dictionary.
     """
-    headers = {"Authorization": f"Bearer APIToken {nOneToken}"}
+    headers = {"Authorization": f"APIToken {nOneToken}"}
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}'
 
     isPending = True
@@ -373,7 +373,7 @@ def NGINXOneOutput(
     activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config'
-    headers = {'Content-Type': 'application/json', "Authorization": f"Bearer APIToken {nOneToken}"}
+    headers = {'Content-Type': 'application/json', "Authorization": f"APIToken {nOneToken}"}
     r = requests.put(url=url, data=json.dumps(stagedConfig), headers=headers, verify=False)
 
     if r.status_code not in [200, 202]:

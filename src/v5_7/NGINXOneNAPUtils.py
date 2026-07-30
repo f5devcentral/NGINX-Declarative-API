@@ -160,25 +160,28 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
     Returns:
         Tuple[int, str]: (status_code, error_message)
     """
+    valid_policy_keys = ', '.join(all_policy_names.keys())
+    valid_log_keys = ', '.join(available_log_profiles)
+
     for httpServer in servers:
         app_protect = httpServer.get('app_protect', {})
         if app_protect:
             pol = app_protect.get('policy')
             if pol and pol not in all_policy_names:
-                return 422, f"Unknown F5 WAF for NGINX policy [{pol}] referenced by HTTP server [{httpServer.get('name')}]"
+                return 422, f"Unknown F5 WAF for NGINX policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_policy_keys}]"
 
             log_prof = app_protect.get('log', {}).get('profile_name')
             if log_prof and log_prof not in available_log_profiles:
-                return 422, f"Invalid F5 WAF for NGINX log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}]"
+                return 422, f"Invalid F5 WAF for NGINX log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_log_keys}]"
 
         for location in httpServer.get('locations', []):
             loc_protect = location.get('app_protect', {})
             if loc_protect:
                 loc_pol = loc_protect.get('policy')
                 if loc_pol and loc_pol not in all_policy_names:
-                    return 422, f"Unknown F5 WAF for NGINX policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
+                    return 422, f"Unknown F5 WAF for NGINX policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it should be one of [{valid_policy_keys}]"
 
-                if app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
                     return 422, f"Invalid F5 WAF for NGINX log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
 
     return 200, ""
@@ -194,15 +197,15 @@ def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
     Returns:
         Tuple[int, str]: Status code (200 on success) and error description message.
     """
-    policies = (declaration.get('output', {}) or {}).get('nginxone', {}).get('policies')
-    if not policies:
+    decl_http = (declaration.get('declaration', {}) or {}).get('http')
+    if not decl_http or 'policies' not in decl_http:
         return 200, ""
 
-    status, msg, all_policy_names = _validate_policy_declarations(policies)
+    status, msg, all_policy_names = _validate_policy_declarations(decl_http['policies'])
     if status != 200:
         return status, msg
 
-    servers = declaration.get('declaration', {}).get('http', {}).get('servers')
+    servers = decl_http.get('servers')
     if servers:
         status, msg = _validate_server_and_location_policies(servers, all_policy_names)
         if status != 200:

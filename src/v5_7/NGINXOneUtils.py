@@ -26,7 +26,7 @@ def getConfigSyncGroupId(
         Tuple[int, str]: Status code (200 on success) and config sync group UID string (or error description).
     """
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/config-sync-groups?paginated=false'
-    headers = {"Authorization": f"Bearer APIToken {nOneToken}"}
+    headers = {"Authorization": f"APIToken {nOneToken}"}
 
     cSyncGroup = requests.get(url=url, verify=False, headers=headers)
 
