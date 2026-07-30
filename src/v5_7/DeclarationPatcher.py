@@ -126,12 +126,16 @@ def patchNAPPolicies(sourceDeclaration: dict, patchedNAPPolicies: dict) -> dict:
     haveWePatched = False
 
     for p in sourceDeclaration['declaration']['http']['policies']:
+        match_type = patchedNAPPolicies.get('type')
         if (p.get('type') == 'app_protect' and
                 p.get('name') and
-                p.get('type') == patchedNAPPolicies.get('type') and
+                (match_type is None or p.get('type') == match_type) and
                 p.get('name') == patchedNAPPolicies.get('name')):
 
             # Merge patch fields into existing policy to preserve versions and active_tag
+            if patchedNAPPolicies.get('versions') == []:
+                patchedNAPPolicies['versions'] = p.get('versions')
+
             merged_policy = {**p, **patchedNAPPolicies}
             allTargetPolicies.append(merged_policy)
             haveWePatched = True

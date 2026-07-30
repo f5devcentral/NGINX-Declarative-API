@@ -11,7 +11,7 @@ import v5_7.GitOps
 from NcgConfig import NcgConfig
 from fastapi.responses import Response, JSONResponse
 
-available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
+available_log_profiles = [ 'secops_dashboard', 'log_grpc_illegal', 'log_f5_arcsight', 'log_f5_splunk', 'log_all', 'log_blocked', 'log_illegal', 'log_grpc_all', 'log_grpc_blocked' ]
 
 
 def __definePolicyOnNMS__(
@@ -165,7 +165,7 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
                 if loc_pol and loc_pol not in all_policy_names:
                     return 422, f"Unknown F5 WAF for NGINX WAF policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it should be one of [{valid_policy_keys}]"
 
-                if app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
                     return 422, f"Invalid F5 WAF for NGINX WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]  it should be one of [{valid_log_keys}]"
 
     return 200, ""
@@ -173,7 +173,7 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
 
 def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
     """
-    Validates NAP policies defined inside the declaration dictionary.
+    Validates WAF policies defined inside the declaration dictionary.
 
     Args:
         declaration (dict): Declaration object.
