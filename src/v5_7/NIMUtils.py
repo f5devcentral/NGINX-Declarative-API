@@ -3,6 +3,8 @@ NGINX Instance Manager support utility functions
 """
 
 import json
+from collections import namedtuple
+
 import requests
 from typing import Tuple, Optional
 
@@ -28,16 +30,23 @@ def getNIMInstanceGroupUid(
     url = f'{nmsUrl}/api/platform/v1/instance-groups?limit=100'
     auth = (nmsUsername, nmsPassword)
 
-    ig = requests.get(url=url, auth=auth, verify=False)
-    if ig.status_code != 200:
-        if ig.status_code == 401:
-            return ig.status_code, "NGINX Instance Manager authentication failed"
-        else:
-            return ig.status_code, f"Error fetching instance group [{ig.text}]"
+    try:
+        ig = requests.get(url=url, auth=auth, verify=False)
+        status_code = ig.status_code
+        text = ig.text
+    except Exception as e:
+        status_code = 502
+        text = e
 
-    igJson = json.loads(ig.text)
+    if status_code != 200:
+        if status_code == 401:
+            return status_code, "NGINX Instance Manager authentication failed"
+        else:
+            return status_code, f"Error fetching instance group [{text}]"
+
+    igJson = json.loads(text)
     for item in igJson.get('items', []):
         if item.get('name') == instanceGroupName:
-            return 200, item.get('uid')
+            return 200, item.get('uid','')
 
     return 404, f"instance group [{instanceGroupName}] not found"

@@ -47,7 +47,7 @@ def __definePolicyOnNGINXOne__(
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer APIToken {nginxOneToken}'
+        'Authorization': f'APIToken {nginxOneToken}'
     }
 
     if polId != "":
@@ -71,7 +71,7 @@ def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: 
         requests.Response: HTTP response object.
     """
     url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies?paginated=false"
-    headers = {"Authorization": f"Bearer APIToken {nginxOneToken}"}
+    headers = {"Authorization": f"APIToken {nginxOneToken}"}
     return requests.get(url=url, headers=headers, verify=False)
 
 
@@ -110,7 +110,7 @@ def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: st
     url = f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies'
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer APIToken {nginxOneToken}'
+        'Authorization': f'APIToken {nginxOneToken}'
     }
     return requests.patch(url=url, headers=headers, verify=False, data=json.dumps(jsonPayload))
 
@@ -334,7 +334,7 @@ def makePolicyActive(
         url = f'{nginxOneUrl}/api/platform/v1/security/publish'
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': f'Bearer APIToken {nginxOneToken}'
+            'Authorization': f'APIToken {nginxOneToken}'
         }
         requests.post(url=url, data=json.dumps(body), headers=headers, verify=False)
 

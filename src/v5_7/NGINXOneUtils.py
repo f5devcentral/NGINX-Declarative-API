@@ -28,15 +28,21 @@ def getConfigSyncGroupId(
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/config-sync-groups?paginated=false'
     headers = {"Authorization": f"APIToken {nOneToken}"}
 
-    cSyncGroup = requests.get(url=url, verify=False, headers=headers)
+    try:
+        cSyncGroup = requests.get(url=url, verify=False, headers=headers)
+        status_code = cSyncGroup.status_code
+        text = cSyncGroup.text
+    except Exception as e:
+        status_code = 502
+        text = e
 
-    if cSyncGroup.status_code != 200:
-        if cSyncGroup.status_code == 401:
-            return cSyncGroup.status_code, "NGINX One authentication failed"
+    if status_code != 200:
+        if status_code == 401:
+            return status_code, "NGINX One authentication failed"
         else:
-            return cSyncGroup.status_code, f"Error fetching config sync group [{cSyncGroup.text}]"
+            return cSyncGroup.status_code, f"Error fetching config sync group [{text}]"
 
-    igJson = json.loads(cSyncGroup.text)
+    igJson = json.loads(text)
     for item in igJson.get('items', []):
         if item.get('name') == configSyncGroupName:
             return 200, item.get('object_id', '')

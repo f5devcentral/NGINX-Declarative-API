@@ -39,6 +39,11 @@ warnings.filterwarnings(
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
+if cfg.config['main']['debug']:
+    print("Running in debug mode")
+    import http.client
+    http.client.HTTPConnection.debuglevel = 1
+
 app = FastAPI(
     title=cfg.config['main']['banner'],
     version=cfg.config['main']['version'],

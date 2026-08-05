@@ -8,6 +8,7 @@ main:
   banner: "NGINX Declarative API"
   version: "5.7.0"
   url: "https://github.com/f5devcentral/NGINX-Declarative-API"
+  debug: false
 
 # Templates
 templates:
