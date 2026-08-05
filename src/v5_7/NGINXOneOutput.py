@@ -372,6 +372,20 @@ def NGINXOneOutput(
     napPolicies = json.loads(ppReply.body)
     activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
+    # Inject policy bundle payloads into NGINX configuration to be published
+    inject_payloads = []
+
+    for policy_name in activePolicyUids:
+        payload_item = {}
+        payload_item['object_id'] = activePolicyUids.get(policy_name)
+        payload_item['paths'] = []
+        payload_item['paths'].append(NcgConfig.config['nms']['nap_policies_dir_pum'] + "/" + policy_name + ".tgz")
+        payload_item['type'] = "nap_policy_version"
+        inject_payloads.append(payload_item)
+
+    stagedConfig['payloads'] = inject_payloads
+
+    # Publish configuration to NGINX One Console
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config'
     headers = {'Content-Type': 'application/json', "Authorization": f"APIToken {nOneToken}"}
     r = requests.put(url=url, data=json.dumps(stagedConfig), headers=headers, verify=False)
