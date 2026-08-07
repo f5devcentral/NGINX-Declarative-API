@@ -23,6 +23,8 @@ Thumbs.db
 /src/__pycache__/
 /src/v5_5/__pycache__/
 /src/v5_6/__pycache__/
+/tests/__pycache__/
+/v5_4/__pycache__/
 /contrib/devportal/redocly/src/__pycache__/
 
 # Test coverage artifacts #

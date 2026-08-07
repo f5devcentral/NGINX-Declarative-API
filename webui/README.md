@@ -4,11 +4,9 @@ Modern React TypeScript web interface for the NGINX Declarative API v5.5.
 
 ## Features
 
-- 🔐 JWT-based authentication (stored in localStorage)
-- 📝 Create and manage NGINX configurations
+- � Create and manage NGINX configurations
 - 🎨 Modern, responsive UI with dark theme
 - 🔄 Real-time status monitoring
-- 📊 Dashboard for configuration overview
 - 🧪 Automated test suite with Vitest
 - 🚀 Built with React 19, TypeScript, and Vite
 
@@ -150,25 +148,11 @@ docker run -p 8080:80 nginx-dapi-webui
 
 ## Usage
 
-### Login
-
-1. Navigate to the login page
-2. Enter your JWT token
-3. Click "Login"
-
-**Note:** The JWT token is stored in localStorage for convenience. This is not recommended for production use and should be replaced with a more secure authentication method (e.g., HTTP-only cookies, secure token refresh mechanism).
-
-### Dashboard
-
-- View all configurations
-- Monitor configuration status
-- Quick actions (view, delete)
-
 ### Create Configuration
 
 - Use JSON editor to create configurations
 - Based on v5.5 API schema
-- Support for NMS and NGINX One outputs
+- Support for NIM and NGINX One outputs
 
 ## API Endpoints
 
@@ -231,13 +215,11 @@ webui/
 
 ## Security Considerations
 
-- JWT tokens are currently stored in localStorage - not ideal for production
-- Consider implementing:
-  - HTTP-only cookies for token storage
-  - Token refresh mechanism
-  - CSRF protection
-  - Rate limiting
-  - Input validation and sanitization
+- Enable HTTPS/TLS in production
+- Configure CORS headers appropriately on the backend
+- Add rate limiting to API endpoints
+- Enable security headers (CSP, HSTS, X-Frame-Options)
+- Validate and sanitize all user inputs
 
 ## Contributing
 
