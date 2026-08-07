@@ -64,21 +64,21 @@ jobs:
 
       # Build dapi container (main Dockerfile)
       - name: Build dapi image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: .
           push: false
 
       # Build WebUI container
       - name: Build WebUI image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: webui/.
           push: false
 
       # Build DevPortal container
       - name: Build DevPortal image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: contrib/devportal/redocly/.
           push: false
