@@ -37,7 +37,7 @@ class NGINXPolicyVersion(BaseModel, extra="forbid"):
 
 class NGINXPolicy(BaseModel, extra="forbid"):
     type: str = ""
-    name: str = "" # Name must be identical to the policy name used in the App Protect policy JSON file
+    name: str = "" # Name must be identical to the policy name used in the WAF policy JSON file
     active_tag: str = ""
     versions: Optional[List[NGINXPolicyVersion]] = []
 
@@ -52,6 +52,7 @@ class NGINXPolicy(BaseModel, extra="forbid"):
         return self
 
 
+# https://docs.nginx.com/waf/logging/security-logs/#app_protect_security_log
 class AppProtectLogProfile(BaseModel, extra="forbid"):
     name: str
     format: Optional[str] = "default"
@@ -59,6 +60,11 @@ class AppProtectLogProfile(BaseModel, extra="forbid"):
     type: Optional[str] = "blocked"
     max_request_size: Optional[str] = "any"
     max_message_size: Optional[str] = "5k"
+    escaping_characters_from: Optional[str] = ""
+    escaping_characters_to: Optional[str] = ""
+    list_prefix: Optional[str] = ""
+    list_delimiter: Optional[str] = ","
+    list_suffix: Optional[str] = ""
 
     @model_validator(mode='after')
     def check_type(self) -> 'AppProtectLogProfile':
@@ -66,14 +72,14 @@ class AppProtectLogProfile(BaseModel, extra="forbid"):
 
         valid = ['all', 'illegal', 'blocked']
         if _type not in valid:
-            raise ValueError(f"Invalid NGINX App Protect log type [{_type}] must be one of {str(valid)}")
+            raise ValueError(f"Invalid WAF log type [{_type}] must be one of {str(valid)}")
 
         valid = ['default', 'grpc', 'arcsight', 'splunk', 'user-defined']
         if _format not in valid:
-            raise ValueError(f"Invalid NGINX App Protect log format [{_format}] must be one of {str(valid)}")
+            raise ValueError(f"Invalid WAF log format [{_format}] must be one of {str(valid)}")
 
         if _format == 'user-defined' and _format_string == "":
-            raise ValueError(f"NGINX App Protect log format {_format} requires format_string")
+            raise ValueError(f"WAF log format {_format} requires format_string")
 
         return self
 

@@ -351,10 +351,10 @@ def NIMOutput(
     newBaseStagedConfig = json.dumps(baseStagedConfig)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
-        print(f'Declaration [{configUid}] not changed')
+        print(f'[INFO] Declaration [{configUid}] not changed')
         return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
 
-    print(f'Declaration [{configUid}] changed, publishing' if configUid else 'New declaration created, publishing')
+    print(f'[INFO] Declaration [{configUid}] changed, publishing to [{nmsUrl}]' if configUid else f'[INFO] New declaration created, publishing to [{nmsUrl}]')
 
     returnCode, igUid = v5_7.NIMUtils.getNIMInstanceGroupUid(
         nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, instanceGroupName=nmsInstanceGroup
@@ -364,6 +364,23 @@ def NIMOutput(
             "status_code": 404,
             "message": {"status_code": 404, "message": {"code": returnCode, "content": igUid}},
             "headers": {'Content-Type': 'application/json'}
+        }
+
+    status, description = v5_7.NIMNAPUtils.checkLogProfiles(d)
+    if status != 200:
+        return {
+            "status_code": 422,
+            "message": {"status_code": status, "message": {"code": status, "content": description}},
+            "headers": {'Content-Type': 'application/json'}
+        }
+
+    status, profileName, nimReply = v5_7.NIMNAPUtils.provisionLogProfiles(
+        nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, declaration=d
+    )
+    if not status:
+        return {
+            "status_code": 422,
+            "message": {"status_code": 422, "message": {"code": 422, "content": f"Error creating WAF log profile [{profileName}]", "message": json.loads(nimReply)}}
         }
 
     status, description = v5_7.NIMNAPUtils.checkDeclarationPolicies(d)

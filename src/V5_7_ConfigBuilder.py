@@ -111,8 +111,10 @@ def build_config_files(ctx: ConfigBuildContext):
 
 def dispatch_output(ctx: ConfigBuildContext, decltype: str, declaration, apiversion: str,
                     runfromautosync: bool, configUid: str):
-    """Renders the final http/stream configs and publishes them to the
-    configured output (NGINX Instance Manager or NGINX One Console)."""
+    """
+    Renders the final http/stream configs and publishes them to the
+    configured output (NGINX Instance Manager or NGINX One Console).
+    """
     b64_http_conf, b64_stream_conf = _render_main_configs(ctx)
 
     decltype_lower = decltype.lower()

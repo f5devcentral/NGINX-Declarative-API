@@ -1,15 +1,14 @@
 """
-F5 WAF for NGINX support functions (NGINX One)
+F5 WAF for NGINX support functions (NGINX One Console)
 """
 
 import json
 import base64
 import requests
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, Dict
 
 import v5_7.GitOps
-from NcgConfig import NcgConfig
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import JSONResponse
 
 available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
 
@@ -132,7 +131,7 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
         active_tag = policy.get('active_tag')
 
         if name and name in all_policy_names:
-            return 422, f"Duplicated F5 WAF for NGINX policy [{name}]", {}
+            return 422, f"Duplicated WAF policy [{name}]", {}
 
         all_policy_names[name] = active_tag
 
@@ -140,7 +139,7 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
         for version in policy.get('versions', []):
             tag = version.get('tag')
             if tag and tag in all_version_tags:
-                return 422, f"Duplicated F5 WAF for NGINX policy tag [{tag}] for policy [{name}]", {}
+                return 422, f"Duplicated WAF policy tag [{tag}] for policy [{name}]", {}
             all_version_tags[tag] = "found"
 
         if active_tag and active_tag not in all_version_tags:
@@ -168,21 +167,21 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
         if app_protect:
             pol = app_protect.get('policy')
             if pol and pol not in all_policy_names:
-                return 422, f"Unknown F5 WAF for NGINX policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_policy_keys}]"
+                return 422, f"Unknown WAF policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_policy_keys}]"
 
             log_prof = app_protect.get('log', {}).get('profile_name')
             if log_prof and log_prof not in available_log_profiles:
-                return 422, f"Invalid F5 WAF for NGINX log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_log_keys}]"
+                return 422, f"Invalid WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_log_keys}]"
 
         for location in httpServer.get('locations', []):
             loc_protect = location.get('app_protect', {})
             if loc_protect:
                 loc_pol = loc_protect.get('policy')
                 if loc_pol and loc_pol not in all_policy_names:
-                    return 422, f"Unknown F5 WAF for NGINX policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it should be one of [{valid_policy_keys}]"
+                    return 422, f"Unknown WAF policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it must be one of [{valid_policy_keys}]"
 
                 if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
-                    return 422, f"Invalid F5 WAF for NGINX log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
+                    return 422, f"Invalid WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]"
 
     return 200, ""
 

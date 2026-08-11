@@ -71,12 +71,11 @@ server {
     include "{{ ncgconfig.nms.resolver_dir }}/{{ s.resolver | replace(" ", "_") }}.conf";
     {% endif -%}
 
-    {# --- Server NGINX App Protect WAF section start --- #}
+    {# --- Server F5 WAF for NGINX section start --- #}
 
     {% if s.app_protect -%}
     {% if s.app_protect.enabled == True -%}
     app_protect_enable on;
-    {% endif -%}
     {% if s.app_protect.policy -%}
     app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ s.app_protect.policy }}.tgz;
     {% endif -%}
@@ -88,8 +87,9 @@ server {
     {% endif -%}
     {% endif %}
     {% endif %}
+    {% endif -%}
     {% endif %}
-    {# --- Server NGINX App Protect WAF section end --- #}
+    {# --- Server F5 WAF for NGINX section end --- #}
 
     {# --- HTTP headers manipulation section start --- #}
     {%- if s.headers -%}
@@ -324,7 +324,6 @@ server {
         {% if loc.app_protect -%}
         {% if loc.app_protect.enabled == True -%}
         app_protect_enable on;
-        {% endif -%}
         {% if loc.app_protect.policy -%}
         app_protect_policy_file {{ ncgconfig.nms.nap_policies_dir_pum }}/{{ loc.app_protect.policy }}.tgz;
         {% endif %}
@@ -336,6 +335,7 @@ server {
         {% endif %}
         {% endif %}
         {% endif %}
+        {% endif -%}
         {% endif %}
 
         {% if loc.apigateway and loc.apigateway.api_gateway.enabled == True -%}

@@ -3,15 +3,12 @@ F5 WAF for NGINX support functions (NGINX Instance Manager)
 """
 
 import json
-import base64
 import requests
-from typing import Tuple, Dict, Any, List
+import base64
+from typing import Tuple, Dict
 
 import v5_7.GitOps
-from NcgConfig import NcgConfig
-from fastapi.responses import Response, JSONResponse
-
-available_log_profiles = [ 'secops_dashboard', 'log_grpc_illegal', 'log_f5_arcsight', 'log_f5_splunk', 'log_all', 'log_blocked', 'log_illegal', 'log_grpc_all', 'log_grpc_blocked' ]
+from fastapi.responses import JSONResponse
 
 
 def __definePolicyOnNMS__(
@@ -25,7 +22,7 @@ def __definePolicyOnNMS__(
     policyUid: str = ""
 ) -> requests.Response:
     """
-    Creates or updates an F5 WAF for NGINX policy on NGINX Instance Manager (NMS).
+    Creates or updates an F5 WAF for NGINX policy on NGINX Instance Manager.
 
     Args:
         nmsUrl (str): NMS base URL.
@@ -68,7 +65,7 @@ def __definePolicyOnNMS__(
 
 def __getAllPolicies__(nmsUrl: str, nmsUsername: str, nmsPassword: str) -> requests.Response:
     """
-    Retrieves all security policies from NMS.
+    Retrieves all security policies from NGINX Instance Manager.
 
     Args:
         nmsUrl (str): Base URL.
@@ -84,7 +81,7 @@ def __getAllPolicies__(nmsUrl: str, nmsUsername: str, nmsPassword: str) -> reque
 
 def __deletePolicy__(nmsUrl: str, nmsUsername: str, nmsPassword: str, policyUid: str) -> requests.Response:
     """
-    Deletes security policy by UID from NMS.
+    Deletes security policy by UID from NGINX Instance Manager.
 
     Args:
         nmsUrl (str): Base URL.
@@ -116,7 +113,7 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
         active_tag = policy.get('active_tag')
 
         if name and name in all_policy_names:
-            return 422, f"Duplicated F5 WAF for NGINX WAF policy [{name}]", {}
+            return 422, f"Duplicated WAF policy [{name}]", {}
 
         all_policy_names[name] = active_tag
 
@@ -124,7 +121,7 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
         for version in policy.get('versions', []):
             tag = version.get('tag')
             if tag and tag in all_version_tags:
-                return 422, f"Duplicated F5 WAF for NGINX WAF policy tag [{tag}] for policy [{name}]", {}
+                return 422, f"Duplicated WAF policy tag [{tag}] for policy [{name}]", {}
             all_version_tags[tag] = "found"
 
         if active_tag and active_tag not in all_version_tags:
@@ -133,7 +130,31 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
     return 200, "", all_policy_names
 
 
-def _validate_server_and_location_policies(servers: list, all_policy_names: dict) -> Tuple[int, str]:
+def _validate_log_profile_declarations(profiles: list) -> Tuple[int, str, Dict[str, str]]:
+    """
+    Validates WAF log profile name uniqueness.
+
+    Args:
+        profiles (list): List of profile declarations.
+
+    Returns:
+        Tuple[int, str, Dict[str, str]]: (status_code, error_message, map_of_valid_profile_names)
+    """
+    all_profile_names = []
+
+    for p in profiles:
+        if p.get('type') == "app_protect":
+            name = p.get('app_protect').get("name")
+
+            if name and name in all_profile_names:
+                return 422, f"Duplicated WAF log profile [{name}]", {}
+
+        all_profile_names.append(name)
+
+    return 200, "", all_profile_names
+
+
+def _validate_server_and_location_policies(servers: list, all_policy_names: dict, all_log_profile_names: dict) -> Tuple[int, str]:
     """
     Validates policy and log profile references inside servers and locations.
 
@@ -144,6 +165,9 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
     Returns:
         Tuple[int, str]: (status_code, error_message)
     """
+    available_log_profiles = ['secops_dashboard', 'log_grpc_illegal', 'log_f5_arcsight', 'log_f5_splunk', 'log_all',
+                              'log_blocked', 'log_illegal', 'log_grpc_all', 'log_grpc_blocked'] + all_log_profile_names
+
     valid_policy_keys = ', '.join(all_policy_names.keys())
     valid_log_keys = ', '.join(available_log_profiles)
 
@@ -152,21 +176,54 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
         if app_protect:
             pol = app_protect.get('policy')
             if pol and pol not in all_policy_names:
-                return 422, f"Unknown F5 WAF for NGINX WAF policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_policy_keys}]"
+                return 422, f"Unknown WAF policy [{pol}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_policy_keys}]"
 
             log_prof = app_protect.get('log', {}).get('profile_name')
             if log_prof and log_prof not in available_log_profiles:
-                return 422, f"Invalid F5 WAF for NGINX WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it should be one of [{valid_log_keys}]"
+                return 422, f"Invalid WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_log_keys}]"
 
         for location in httpServer.get('locations', []):
             loc_protect = location.get('app_protect', {})
             if loc_protect:
                 loc_pol = loc_protect.get('policy')
                 if loc_pol and loc_pol not in all_policy_names:
-                    return 422, f"Unknown F5 WAF for NGINX WAF policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it should be one of [{valid_policy_keys}]"
+                    return 422, f"Unknown WAF policy [{loc_pol}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it must be one of [{valid_policy_keys}]"
 
                 if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
-                    return 422, f"Invalid F5 WAF for NGINX WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}]  it should be one of [{valid_log_keys}]"
+                    return 422, f"Invalid WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it must be one of [{valid_log_keys}]"
+
+    return 200, ""
+
+
+
+def _validate_server_and_location_log_profiles(servers: list, all_log_profile_names: dict) -> Tuple[int, str]:
+    """
+    Validates policy and log profile references inside servers and locations.
+
+    Args:
+        servers (list): List of HTTP server definitions.
+        all_policy_names (dict): Dict of valid policy names.
+
+    Returns:
+        Tuple[int, str]: (status_code, error_message)
+    """
+    available_log_profiles = ['secops_dashboard', 'log_grpc_illegal', 'log_f5_arcsight', 'log_f5_splunk', 'log_all',
+                              'log_blocked', 'log_illegal', 'log_grpc_all', 'log_grpc_blocked'] + all_log_profile_names
+
+    valid_log_keys = ', '.join(available_log_profiles)
+
+    for httpServer in servers:
+        app_protect = httpServer.get('app_protect', {})
+        if app_protect:
+            log_prof = app_protect.get('log', {}).get('profile_name')
+            if log_prof and log_prof not in available_log_profiles:
+                return 422, f"Invalid WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_log_keys}]"
+
+        for location in httpServer.get('locations', []):
+            loc_protect = location.get('app_protect', {})
+            if loc_protect:
+                if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                    return 422, f"Invalid WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it must be one of [{valid_log_keys}]"
 
     return 200, ""
 
@@ -189,9 +246,40 @@ def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
     if status != 200:
         return status, msg
 
+    status, msg, all_log_profile_names = _validate_log_profile_declarations(decl_http['log_profiles'])
+    if status != 200:
+        return status, msg
+
     servers = decl_http.get('servers')
     if servers:
-        status, msg = _validate_server_and_location_policies(servers, all_policy_names)
+        status, msg = _validate_server_and_location_policies(servers, all_policy_names=all_policy_names, all_log_profile_names=all_log_profile_names)
+        if status != 200:
+            return status, msg
+
+    return 200, ""
+
+
+def checkLogProfiles(declaration: dict) -> Tuple[int, str]:
+    """
+    Validates WAF log profiles defined inside the declaration dictionary.
+
+    Args:
+        declaration (dict): Declaration object.
+
+    Returns:
+        Tuple[int, str]: Status code (200 on success) and error description string.
+    """
+    decl_http = (declaration.get('declaration', {}) or {}).get('http')
+    if not decl_http or 'log_profiles' not in decl_http:
+        return 200, ""
+
+    status, msg, all_policy_names = _validate_log_profile_declarations(decl_http['log_profiles'])
+    if status != 200:
+        return status, msg
+
+    servers = decl_http.get('servers')
+    if servers:
+        status, msg = _validate_server_and_location_log_profiles(servers, all_policy_names)
         if status != 200:
             return status, msg
 
@@ -205,10 +293,10 @@ def provisionPolicies(
     declaration: dict
 ) -> JSONResponse:
     """
-    Creates/updates F5 WAF policies on NMS for a given declaration.
+    Creates/updates F5 WAF policies on NGINX Instance Manager for a given declaration.
 
     Args:
-        nmsUrl (str): NMS URL.
+        nmsUrl (str): NGINX Instance Manager URL.
         nmsUsername (str): Username.
         nmsPassword (str): Password.
         declaration (dict): Configuration declaration dict.
@@ -280,7 +368,7 @@ def makePolicyActive(
     Publishes an F5 WAF policy making it active on NMS.
 
     Args:
-        nmsUrl (str): NMS Base URL.
+        nmsUrl (str): NGINX Instance Manager Base URL.
         nmsUsername (str): Username.
         nmsPassword (str): Password.
         activePolicyUids (dict): Policy name to active UID dict.
@@ -317,10 +405,10 @@ def makePolicyActive(
 
 def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, currentPolicies: dict) -> None:
     """
-    Removes unused/leftover F5 WAF policies from NMS.
+    Removes unused/leftover F5 WAF policies from NGINX Instance Manager.
 
     Args:
-        nmsUrl (str): NMS Base URL.
+        nmsUrl (str): NGINX Instance Manager Base URL.
         nmsUsername (str): Username.
         nmsPassword (str): Password.
         currentPolicies (dict): Currently active policies map.
@@ -343,3 +431,108 @@ def cleanPolicyLeftovers(nmsUrl: str, nmsUsername: str, nmsPassword: str, curren
 
     for uid in uidsToRemove:
         __deletePolicy__(nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, policyUid=uid)
+
+
+def provisionLogProfiles(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    declaration: dict
+) -> Tuple [bool, str, str]:
+    """
+    Creates/updates F5 WAF log profiles on NGINX Instance Manager for a given declaration.
+
+    Args:
+        nmsUrl (str): NGINX Instance Manager URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        declaration (dict): Configuration declaration dict.
+
+    Returns:
+        bool: Success status
+        str: if bool is False, log profile name that triggered the error
+    """
+
+    log_profiles = (declaration.get('declaration', {}) or {}).get('http', {}).get('log_profiles')
+    if log_profiles:
+        for p in log_profiles:
+            if p.get('type') == 'app_protect':
+                profileName = p.get('app_protect').get('name')
+                profileJson = {
+                    "filter": {
+                        "request_type": "illegal"
+                    },
+                    "content": {
+                        "max_request_size": "2k",
+                        "max_message_size": "32k",
+                        "format": "default"
+                    }
+                }
+
+                success, profileName, nimReply = __writeWAFLogProfile__(
+                nmsUrl=nmsUrl,
+                nmsUsername=nmsUsername, nmsPassword=nmsPassword, logProfileName=profileName, logProfileJson=profileJson)
+
+                if not success:
+                    return success, profileName, nimReply
+
+    return True, "", ""
+
+
+def __writeWAFLogProfile__(
+    nmsUrl: str,
+    nmsUsername: str,
+    nmsPassword: str,
+    logProfileName: str,
+    logProfileJson: dict
+) -> Tuple [bool, str, str]:
+    """
+    Writes F5 WAF log profile to NGINX Instance Manager.
+
+    Args:
+        nmsUrl (str): NGINX Instance Manager Base URL.
+        nmsUsername (str): Username.
+        nmsPassword (str): Password.
+        logProfileName (str): Log profile name.
+        logProfileJson (dict): Log profile JSON.
+
+   Returns:
+        bool: Success status
+        str: if bool is False, log profile name that triggered the error
+        str: the NGINX Instance Manager reply payload
+    """
+    url = f'{nmsUrl}/api/platform/v1/security/logprofiles'
+    auth = (nmsUsername, nmsPassword)
+    headers = {'Content-Type': 'application/json'}
+    r = requests.get(url=f'{url}/{logProfileName}', auth=auth, headers=headers, verify=False)
+
+    if r.status_code not in (200,404):
+        return False
+
+    logProfileCreationPayload = {
+        'metadata': {
+            'name': logProfileName
+        },
+        'content': base64.b64encode(bytes(json.dumps(logProfileJson), 'utf-8')).decode('utf-8')
+    }
+
+    if r.status_code == 200:
+        # Update existing WAF log profile
+        logProfileUid = json.loads(r.text)['metadata']['uid']
+        reply = requests.put(url=f'{url}/{logProfileUid}', auth=auth, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
+
+        if reply.status_code not in (200,412):
+            return False, logProfileName, reply.text
+
+        if reply.status_code == 412:
+            print(
+                f"[WARN] WAF log profile update [{logProfileName}] code [{json.loads(reply.text).get('code')}] - {json.loads(reply.text).get('message')}")
+    else:
+        # Create new WAF log profile
+        reply = requests.post(url=f'{url}', auth=auth, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
+
+        if reply.status_code != 201:
+            return False, logProfileName, reply.text
+
+    # WAF log profile successfully committed
+    return True, "", ""
