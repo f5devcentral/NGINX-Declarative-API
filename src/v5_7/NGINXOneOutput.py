@@ -352,6 +352,23 @@ def NGINXOneOutput(
             "headers": {'Content-Type': 'application/json'}
         }
 
+    status, description = v5_7.NGINXOneNAPUtils.checkLogProfiles(d)
+    if status != 200:
+        return {
+            "status_code": 422,
+            "message": {"status_code": status, "message": {"code": status, "content": description}},
+            "headers": {'Content-Type': 'application/json'}
+        }
+
+    status, profileName, logReply = v5_7.NGINXOneNAPUtils.provisionLogProfiles(
+        nginxOneUrl=nOneUrl, nginxOneToken=nOneToken, nginxOneNamespace=nOneNamespace, declaration=d
+    )
+    if not status:
+        return {
+            "status_code": 422,
+            "message": {"status_code": 422, "message": {"code": 422, "content": f"Error creating WAF log profile [{profileName}]", "message": logReply}}
+        }
+
     status, description = v5_7.NGINXOneNAPUtils.checkDeclarationPolicies(d)
     if status != 200:
         return {

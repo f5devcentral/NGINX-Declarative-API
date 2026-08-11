@@ -10,8 +10,6 @@ from typing import Tuple, Dict
 import v5_7.GitOps
 from fastapi.responses import JSONResponse
 
-available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard']
-
 
 def __definePolicyOnNGINXOne__(
     nginxOneUrl: str,
@@ -148,7 +146,31 @@ def _validate_policy_declarations(policies: list) -> Tuple[int, str, Dict[str, s
     return 200, "", all_policy_names
 
 
-def _validate_server_and_location_policies(servers: list, all_policy_names: dict) -> Tuple[int, str]:
+def _validate_log_profile_declarations(profiles: list) -> Tuple[int, str, Dict[str, str]]:
+    """
+    Validates WAF log profile name uniqueness.
+
+    Args:
+        profiles (list): List of profile declarations.
+
+    Returns:
+        Tuple[int, str, Dict[str, str]]: (status_code, error_message, map_of_valid_profile_names)
+    """
+    all_profile_names = []
+
+    for p in profiles:
+        if p.get('type') == "app_protect":
+            name = p.get('app_protect').get("name")
+
+            if name and name in all_profile_names:
+                return 422, f"Duplicated WAF log profile [{name}]", {}
+
+        all_profile_names.append(name)
+
+    return 200, "", all_profile_names
+
+
+def _validate_server_and_location_policies(servers: list, all_policy_names: dict, all_log_profile_names: dict) -> Tuple[int, str]:
     """
     Validates referenced policies and log profile names in HTTP servers and locations.
 
@@ -159,6 +181,8 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
     Returns:
         Tuple[int, str]: (status_code, error_message)
     """
+    available_log_profiles = ['log_all', 'log_blocked', 'log_illegal', 'secops_dashboard'] + all_log_profile_names
+
     valid_policy_keys = ', '.join(all_policy_names.keys())
     valid_log_keys = ', '.join(available_log_profiles)
 
@@ -186,6 +210,38 @@ def _validate_server_and_location_policies(servers: list, all_policy_names: dict
     return 200, ""
 
 
+def _validate_server_and_location_log_profiles(servers: list, all_log_profile_names: dict) -> Tuple[int, str]:
+    """
+    Validates policy and log profile references inside servers and locations.
+
+    Args:
+        servers (list): List of HTTP server definitions.
+        all_policy_names (dict): Dict of valid policy names.
+
+    Returns:
+        Tuple[int, str]: (status_code, error_message)
+    """
+    available_log_profiles = ['secops_dashboard', 'log_grpc_illegal', 'log_f5_arcsight', 'log_f5_splunk', 'log_all',
+                              'log_blocked', 'log_illegal', 'log_grpc_all', 'log_grpc_blocked'] + all_log_profile_names
+
+    valid_log_keys = ', '.join(available_log_profiles)
+
+    for httpServer in servers:
+        app_protect = httpServer.get('app_protect', {})
+        if app_protect:
+            log_prof = app_protect.get('log', {}).get('profile_name')
+            if log_prof and log_prof not in available_log_profiles:
+                return 422, f"Invalid WAF log profile [{log_prof}] referenced by HTTP server [{httpServer.get('name')}] it must be one of [{valid_log_keys}]"
+
+        for location in httpServer.get('locations', []):
+            loc_protect = location.get('app_protect', {})
+            if loc_protect:
+                if app_protect and app_protect.get('log', {}).get('profile_name') and app_protect['log']['profile_name'] not in available_log_profiles:
+                    return 422, f"Invalid WAF log profile [{app_protect['log']['profile_name']}] referenced by HTTP server [{httpServer.get('name')}] location [{location.get('uri')}] it must be one of [{valid_log_keys}]"
+
+    return 200, ""
+
+
 def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
     """
     Check NAP policies validity for the given declaration.
@@ -204,9 +260,40 @@ def checkDeclarationPolicies(declaration: dict) -> Tuple[int, str]:
     if status != 200:
         return status, msg
 
+    status, msg, all_log_profile_names = _validate_log_profile_declarations(decl_http['log_profiles'])
+    if status != 200:
+        return status, msg
+
     servers = decl_http.get('servers')
     if servers:
-        status, msg = _validate_server_and_location_policies(servers, all_policy_names)
+        status, msg = _validate_server_and_location_policies(servers, all_policy_names=all_policy_names, all_log_profile_names=all_log_profile_names)
+        if status != 200:
+            return status, msg
+
+    return 200, ""
+
+
+def checkLogProfiles(declaration: dict) -> Tuple[int, str]:
+    """
+    Validates WAF log profiles defined inside the declaration dictionary.
+
+    Args:
+        declaration (dict): Declaration object.
+
+    Returns:
+        Tuple[int, str]: Status code (200 on success) and error description string.
+    """
+    decl_http = (declaration.get('declaration', {}) or {}).get('http')
+    if not decl_http or 'log_profiles' not in decl_http:
+        return 200, ""
+
+    status, msg, all_policy_names = _validate_log_profile_declarations(decl_http['log_profiles'])
+    if status != 200:
+        return status, msg
+
+    servers = decl_http.get('servers')
+    if servers:
+        status, msg = _validate_server_and_location_log_profiles(servers, all_policy_names)
         if status != 200:
             return status, msg
 
@@ -338,3 +425,153 @@ def makePolicyActive(
         requests.post(url=url, data=json.dumps(body), headers=headers, verify=False)
 
     return doWeHavePolicies
+
+
+def provisionLogProfiles(
+    nginxOneUrl: str,
+    nginxOneToken: str,
+    nginxOneNamespace: str,
+    declaration: dict
+) -> Tuple [bool, str, str]:
+    """
+    Creates/updates F5 WAF log profiles on NGINX One Console for a given declaration.
+
+    Args:
+        nginxOneUrl (str): NGINX One Console URL.
+        nginxOneToken (str): Authentication token.
+        nginxOneNamespace (str): Namespace.
+        declaration (dict): Configuration declaration dict.
+
+    Returns:
+        bool: Success status
+        str: if bool is False, log profile name that triggered the error
+    """
+
+    allN1Cprofiles = __get_all_WAFLogProfiles__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
+
+    log_profiles = (declaration.get('declaration', {}) or {}).get('http', {}).get('log_profiles')
+    if log_profiles:
+        for p in log_profiles:
+            if p.get('type') == 'app_protect':
+                profileName = p.get('app_protect').get('name')
+                profileJson = {
+                    "filter": {
+                        "request_type": "illegal"
+                    },
+                    "content": {
+                        "max_request_size": "2k",
+                        "max_message_size": "32k",
+                        "format": "default"
+                    }
+                }
+
+                success, profileName, nimReply = __writeWAFLogProfile__(
+                nginxOneUrl=nginxOneUrl,
+                nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, logProfileName=profileName, logProfileJson=profileJson, allN1Cprofiles=allN1Cprofiles)
+
+                if not success:
+                    return success, profileName, nimReply
+
+    return True, "", ""
+
+
+def __writeWAFLogProfile__(
+    nginxOneUrl: str,
+    nginxOneToken: str,
+    nginxOneNamespace: str,
+    logProfileName: str,
+    logProfileJson: dict,
+    allN1Cprofiles: dict
+) -> Tuple [bool, str, str]:
+    """
+    Writes F5 WAF log profile to NGINX One Console.
+
+    Args:
+        nginxOneUrl (str): NGINX One Console URL.
+        nginxOneToken (str): Authentication token.
+        nginxOneNamespace (str): Namespace.
+        logProfileName (str): Log profile name.
+        logProfileJson (dict): Log profile JSON.
+
+   Returns:
+        bool: Success status
+        str: if bool is False, log profile name that triggered the error
+        str: the NGINX One Console reply payload
+    """
+
+    logProfileUid = __get_WAFLogProfile_id__(logProfileName=logProfileName,allN1Cprofiles=allN1Cprofiles)
+
+    logProfileCreationPayload_old = {
+        'metadata': {
+            'name': logProfileName
+        },
+        'content': base64.b64encode(bytes(json.dumps(logProfileJson), 'utf-8')).decode('utf-8')
+    }
+
+    logProfileCreationPayload = {
+        'name': logProfileName,
+        'config': base64.b64encode(bytes(json.dumps(logProfileJson), 'utf-8')).decode('utf-8')
+    }
+
+    baseUrl = f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/log-profiles'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'APIToken {nginxOneToken}'
+    }
+
+    if logProfileUid:
+        # Update existing WAF log profile
+        url = f'{baseUrl}/{logProfileUid}'
+        reply = requests.put(url=url, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
+
+        if reply.status_code != 200:
+            return False, logProfileName, reply.text
+    else:
+        # Create new WAF log profile
+        reply = requests.post(url=baseUrl, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
+
+        if reply.status_code != 201:
+            return False, logProfileName, reply.text
+
+    # WAF log profile successfully committed
+    return True, "", ""
+
+
+def __get_WAFLogProfile_id__(
+    logProfileName: str,
+    allN1Cprofiles: dict
+) -> str:
+    for n1cprofile in allN1Cprofiles.get('items'):
+        if n1cprofile.get('name') == logProfileName:
+            return n1cprofile.get('object_id')
+
+    return None
+
+
+def __get_all_WAFLogProfiles__(
+    nginxOneUrl: str,
+    nginxOneToken: str,
+    nginxOneNamespace: str
+) -> dict:
+    """
+    Gets all WAF log profiles from NGINX One Console.
+
+    Args:
+        nginxOneUrl (str): NGINX One Console URL.
+        nginxOneToken (str): Authentication token.
+        nginxOneNamespace (str): Namespace.
+
+   Returns:
+        dict: log profiles json list
+    """
+    url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/log-profiles?paginated=false"
+
+    headers = {
+        'Authorization': f'APIToken {nginxOneToken}'
+    }
+    r = requests.get(url=url, headers=headers, verify=False)
+
+    if r.status_code != 200:
+        return {"count": 0,"items":[]}
+
+    return json.loads(r.text)

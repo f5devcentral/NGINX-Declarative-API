@@ -507,7 +507,7 @@ def __writeWAFLogProfile__(
     r = requests.get(url=f'{url}/{logProfileName}', auth=auth, headers=headers, verify=False)
 
     if r.status_code not in (200,404):
-        return False
+        return False, "", ""
 
     logProfileCreationPayload = {
         'metadata': {
