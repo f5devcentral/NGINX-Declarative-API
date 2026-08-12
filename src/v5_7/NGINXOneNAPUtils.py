@@ -432,7 +432,7 @@ def provisionLogProfiles(
     nginxOneToken: str,
     nginxOneNamespace: str,
     declaration: dict
-) -> Tuple [bool, str, str]:
+) -> Tuple [bool, str, str, JSONResponse]:
     """
     Creates/updates F5 WAF log profiles on NGINX One Console for a given declaration.
 
@@ -444,35 +444,63 @@ def provisionLogProfiles(
 
     Returns:
         bool: Success status
-        str: if bool is False, log profile name that triggered the error
+        str: if bool is False, log profile name that triggered the error, "" otherwise
+        str: the NGINX One console reply
+        JSONResponse: an array of {logprofilename, id}
     """
 
     allN1Cprofiles = __get_all_WAFLogProfiles__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
+    allLogProfilesWithUIDs = []
 
     log_profiles = (declaration.get('declaration', {}) or {}).get('http', {}).get('log_profiles')
     if log_profiles:
         for p in log_profiles:
             if p.get('type') == 'app_protect':
-                profileName = p.get('app_protect').get('name')
-                profileJson = {
-                    "filter": {
-                        "request_type": "illegal"
-                    },
-                    "content": {
-                        "max_request_size": "2k",
-                        "max_message_size": "32k",
-                        "format": "default"
-                    }
-                }
+                waflogprofile = p.get('app_protect')
+                profileName = waflogprofile.get('name')
+                profileJson = {}
+                profileJson['filter'] = {}
+                profileJson['filter']['request_type'] = waflogprofile.get('type')
+                profileJson['content'] = {}
+
+                parm = waflogprofile.get('format')
+                if parm: profileJson['content']['format'] = parm
+                parm = waflogprofile.get('format_string')
+                if parm: profileJson['content']['format_string'] = parm
+                parm = waflogprofile.get('max_message_size')
+                if parm: profileJson['content']['max_message_size'] = parm
+                parm = waflogprofile.get('max_request_size')
+                if parm: profileJson['content']['max_request_size'] = parm
+                parm = waflogprofile.get('list_prefix')
+                if parm: profileJson['content']['list_prefix'] = parm
+                parm = waflogprofile.get('list_delimiter')
+                if parm: profileJson['content']['list_delimiter'] = parm
+                parm = waflogprofile.get('list_suffix')
+                if parm: profileJson['content']['list_suffix'] = parm
+
+                esc_from = waflogprofile.get('escaping_characters_from', '')
+                esc_to = waflogprofile.get('escaping_characters_to', '')
+
+                if esc_from and esc_to:
+                    profileJson['content']['escaping_characters'] = []
+
+                    for i in range(len(esc_from)):
+                        profileEscape = {"from": esc_from[i], "to": esc_to[i]}
+                        profileJson['content']['escaping_characters'].append(profileEscape)
 
                 success, profileName, nimReply = __writeWAFLogProfile__(
                 nginxOneUrl=nginxOneUrl,
                 nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace, logProfileName=profileName, logProfileJson=profileJson, allN1Cprofiles=allN1Cprofiles)
 
                 if not success:
-                    return success, profileName, nimReply
+                    return success, profileName, nimReply, allLogProfilesWithUIDs
 
-    return True, "", ""
+                allLogProfilesWithUIDs_item = {}
+                allLogProfilesWithUIDs_item['name'] = nimReply.get('name')
+                allLogProfilesWithUIDs_item['uid'] = nimReply.get('object_id')
+                allLogProfilesWithUIDs.append(allLogProfilesWithUIDs_item)
+
+    return True, "", "", allLogProfilesWithUIDs
 
 
 def __writeWAFLogProfile__(
@@ -495,7 +523,7 @@ def __writeWAFLogProfile__(
 
    Returns:
         bool: Success status
-        str: if bool is False, log profile name that triggered the error
+        str: log profile name that triggered the error
         str: the NGINX One Console reply payload
     """
 
@@ -534,7 +562,7 @@ def __writeWAFLogProfile__(
             return False, logProfileName, reply.text
 
     # WAF log profile successfully committed
-    return True, "", ""
+    return True, logProfileName, reply.text
 
 
 def __get_WAFLogProfile_id__(

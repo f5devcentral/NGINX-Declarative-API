@@ -360,7 +360,7 @@ def NGINXOneOutput(
             "headers": {'Content-Type': 'application/json'}
         }
 
-    status, profileName, logReply = v5_7.NGINXOneNAPUtils.provisionLogProfiles(
+    status, profileName, logReply, allProfileNamesWithUIDs = v5_7.NGINXOneNAPUtils.provisionLogProfiles(
         nginxOneUrl=nOneUrl, nginxOneToken=nOneToken, nginxOneNamespace=nOneNamespace, declaration=d
     )
     if not status:
@@ -399,6 +399,9 @@ def NGINXOneOutput(
         payload_item['paths'].append(NcgConfig.config['nms']['nap_policies_dir_pum'] + "/" + policy_name + ".tgz")
         payload_item['type'] = "nap_policy_version"
         inject_payloads.append(payload_item)
+
+    for waf_log_profile_name in allProfileNamesWithUIDs:
+        # TODO - add payloads for WAF log profile compiled bundles
 
     stagedConfig['payloads'] = inject_payloads
 

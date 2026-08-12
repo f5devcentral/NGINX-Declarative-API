@@ -457,17 +457,37 @@ def provisionLogProfiles(
     if log_profiles:
         for p in log_profiles:
             if p.get('type') == 'app_protect':
-                profileName = p.get('app_protect').get('name')
-                profileJson = {
-                    "filter": {
-                        "request_type": "illegal"
-                    },
-                    "content": {
-                        "max_request_size": "2k",
-                        "max_message_size": "32k",
-                        "format": "default"
-                    }
-                }
+                waflogprofile = p.get('app_protect')
+                profileName = waflogprofile.get('name')
+                profileJson = {}
+                profileJson['filter'] = {}
+                profileJson['filter']['request_type'] = waflogprofile.get('type')
+                profileJson['content'] = {}
+
+                parm = waflogprofile.get('format')
+                if parm: profileJson['content']['format'] = parm
+                parm = waflogprofile.get('format_string')
+                if parm: profileJson['content']['format_string'] = parm
+                parm = waflogprofile.get('max_message_size')
+                if parm: profileJson['content']['max_message_size'] = parm
+                parm = waflogprofile.get('max_request_size')
+                if parm: profileJson['content']['max_request_size'] = parm
+                parm = waflogprofile.get('list_prefix')
+                if parm: profileJson['content']['list_prefix'] = parm
+                parm = waflogprofile.get('list_delimiter')
+                if parm: profileJson['content']['list_delimiter'] = parm
+                parm = waflogprofile.get('list_suffix')
+                if parm: profileJson['content']['list_suffix'] = parm
+
+                esc_from = waflogprofile.get('escaping_characters_from', '')
+                esc_to = waflogprofile.get('escaping_characters_to', '')
+
+                if esc_from and esc_to:
+                    profileJson['content']['escaping_characters'] = []
+
+                    for i in range(len(esc_from)):
+                        profileEscape = {"from": esc_from[i], "to": esc_to[i] }
+                        profileJson['content']['escaping_characters'].append(profileEscape)
 
                 success, profileName, nimReply = __writeWAFLogProfile__(
                 nmsUrl=nmsUrl,
