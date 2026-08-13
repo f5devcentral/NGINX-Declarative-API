@@ -340,7 +340,7 @@ def NGINXOneOutput(
         print(f'[INFO] Declaration [{configUid}] not changed')
         return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
 
-    print(f'[INFO] Declaration [{configUid}] changed, publishing' if configUid else '[INFO] New declaration created, publishing')
+    print(f'[INFO] Declaration [{configUid}] changed, publishing to [{nOneUrl}]' if configUid else '[INFO] New declaration created, publishing to [{nOneUrl}]')
 
     returnCode, igUid = v5_7.NGINXOneUtils.getConfigSyncGroupId(
         nOneUrl=nOneUrl, nOneToken=nOneToken, nameSpace=nOneNamespace, configSyncGroupName=nOneConfigSyncGroup
