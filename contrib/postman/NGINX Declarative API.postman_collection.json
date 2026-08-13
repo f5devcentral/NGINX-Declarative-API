@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "15064dec-3d57-4040-b912-f78867f99caa",
+		"_postman_id": "12e35f80-44bd-4a4e-b635-f0969a78447c",
 		"name": "NGINX Declarative API",
 		"description": "Declarative REST API and GitOps automation layer for NGINX Instance Manager and NGINX One Console\n\n[https://github.com/f5devcentral/NGINX-Declarative-API/](https://github.com/f5devcentral/NGINX-Declarative-API/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-15064dec-3d57-4040-b912-f78867f99caa?action=share&source=collection_link&creator=1667416"
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-12e35f80-44bd-4a4e-b635-f0969a78447c?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
@@ -16812,6 +16812,194 @@
 										"body": {
 											"mode": "raw",
 											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server}}\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"layer4\": {\n            \"servers\": [\n                {\n                    \"name\": \"TCP_15432_service\"\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"TCP_15432_upstream\"\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "F5 WAF for NGINX",
+							"item": [
+								{
+									"name": "Create initial NGINX configuration with F5 WAF for NGINX",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nginxone\",\n        \"nginxone\": {\n            \"url\": \"{{nginxone_url}}\",\n            \"namespace\": \"{{nginxone_namespace}}\",\n            \"token\": \"{{nginxone_token}}\",\n            \"configsyncgroup\": \"{{nginxone_configsyncgroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\"\n            ]\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server}}\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": {\n                            \"destination\": \"/var/log/nginx/server-access.log\"\n                        },\n                        \"error\": {\n                            \"destination\": \"/var/log/nginx/server-error.log\"\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ],\n                    \"app_protect\": {\n                        \"enabled\": true,\n                        \"policy\": \"production-policy\",\n                        \"log\": {\n                            \"profile_name\": \"custom_waf_log_profile\",\n                            \"enabled\": true,\n                            \"destination\": \"127.0.0.1:514\"\n                        }\n                    }\n                }\n            ],\n            \"upstreams\": [\n                {\n                    \"name\": \"upstream_boutique\",\n                    \"origin\": [\n                        {\n                            \"server\": \"192.168.1.200:80\"\n                        }\n                    ]\n                }\n            ],\n            \"nginx_plus_api\": {\n                \"write\": false,\n                \"listen\": \"127.0.0.1:8080\",\n                \"allow_acl\": \"0.0.0.0/0\"\n            },\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"xss-blocked\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"This is a production-ready policy - XSS blocked\",\n                            \"contents\": {\n                                \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/nap-policy-xss-blocked.json\"\n                            }\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"This is a production-ready policy - XSS allowed\",\n                            \"contents\": {\n                                \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/nap-policy-xss-allowed.json\"\n                            }\n                        }\n                    ]\n                }\n            ],\n            \"log_profiles\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"app_protect\": {\n                        \"name\": \"custom_waf_log_profile\",\n                        \"format\": \"user-defined\",\n                        \"format_string\": \"client_ip=%ip_client%,client_port=%src_port%,request=%request%,violations=%violations%,signature_ids=%sig_ids%\",\n                        \"type\": \"blocked\",\n                        \"max_request_size\": \"5k\",\n                        \"max_message_size\": \"5k\",\n                        \"escaping_characters_from\": \"/\",\n                        \"escaping_characters_to\": \"|\",\n                        \"list_prefix\": \"[\",\n                        \"list_delimiter\": \"::\",\n                        \"list_suffix\": \"]\"\n                    }\n                }\n            ]\n        },\n        \"certificates\": [\n            {\n                \"type\": \"certificate\",\n                \"name\": \"test_cert\",\n                \"contents\": {\n                    \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/testcert.crt\"\n                }\n            },\n            {\n                \"type\": \"key\",\n                \"name\": \"test_key\",\n                \"contents\": {\n                    \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/testcert.key\"\n                }\n            }\n        ]\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Change active F5 WAF for NGINX policy",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\"\n            ]\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server}}\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"policies\": [\n                {\n                    \"type\": \"app_protect\",\n                    \"name\": \"production-policy\",\n                    \"active_tag\": \"xss-allowed\",\n                    \"versions\": [\n                        {\n                            \"tag\": \"xss-blocked\",\n                            \"displayName\": \"Production Policy - XSS blocked\",\n                            \"description\": \"Production-ready policy - XSS blocked\",\n                            \"contents\": {\n                                \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/nap-policy-xss-blocked.json\"\n                            }\n                        },\n                        {\n                            \"tag\": \"xss-allowed\",\n                            \"displayName\": \"Production Policy - XSS allowed\",\n                            \"description\": \"Production-ready policy - XSS allowed\",\n                            \"contents\": {\n                                \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/nap-policy-xss-allowed.json\"\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update TLS certificates",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": [\n                \"ngx_http_app_protect_module\"\n            ]\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server}}\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"certificates\": [\n            {\n                \"type\": \"certificate\",\n                \"name\": \"test_cert\",\n                \"contents\": {\n                    \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/testcert2.crt\"\n                }\n            },\n            {\n                \"type\": \"key\",\n                \"name\": \"test_key\",\n                \"contents\": {\n                    \"content\": \"{{github_gitops_root}}/{{ngc_api_version}}/testcert2.key\"\n                }\n            }\n        ]\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://{{ncg_host}}:{{ncg_port}}/{{ngc_api_version}}/config/{{configUid}}",
+											"protocol": "http",
+											"host": [
+												"{{ncg_host}}"
+											],
+											"port": "{{ncg_port}}",
+											"path": [
+												"{{ngc_api_version}}",
+												"config",
+												"{{configUid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Disable F5 WAF for NGINX",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var respData = JSON.parse(responseBody);",
+													"",
+													"tests[\"configUid is: \" +respData.configUid] = respData.configUid;",
+													"",
+													"pm.collectionVariables.set('configUid',respData.configUid);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"output\": {\n        \"type\": \"nms\",\n        \"nms\": {\n            \"url\": \"{{nim_host}}\",\n            \"username\": \"{{nim_username}}\",\n            \"password\": \"{{nim_password}}\",\n            \"instancegroup\": \"{{nim_instancegroup}}\",\n            \"synctime\": 0,\n            \"modules\": []\n        },\n        \"license\": {\n            \"endpoint\": \"{{nginx_reporting_server}}\",\n            \"token\": \"{{nginx_license_token}}\",\n            \"ssl_verify\": false,\n            \"grace_period\": false\n        }\n    },\n    \"declaration\": {\n        \"http\": {\n            \"servers\": [\n                {\n                    \"name\": \"Online boutique HTTPS\",\n                    \"names\": [\n                        \"www.online-boutique.lan\"\n                    ],\n                    \"listen\": {\n                        \"address\": \"0.0.0.0:443\",\n                        \"http2\": true,\n                        \"tls\": {\n                            \"certificate\": \"test_cert\",\n                            \"key\": \"test_key\",\n                            \"ciphers\": \"DEFAULT\",\n                            \"protocols\": [\n                                \"TLSv1.2\",\n                                \"TLSv1.3\"\n                            ]\n                        }\n                    },\n                    \"log\": {\n                        \"access\": {\n                            \"destination\": \"/var/log/nginx/server-access.log\"\n                        },\n                        \"error\": {\n                            \"destination\": \"/var/log/nginx/server-error.log\"\n                        }\n                    },\n                    \"locations\": [\n                        {\n                            \"uri\": \"/\",\n                            \"urimatch\": \"prefix\",\n                            \"upstream\": \"http://upstream_boutique\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"

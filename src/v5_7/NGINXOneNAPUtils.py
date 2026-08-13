@@ -496,8 +496,8 @@ def provisionLogProfiles(
                     return success, profileName, nimReply, allLogProfilesWithUIDs
 
                 allLogProfilesWithUIDs_item = {}
-                allLogProfilesWithUIDs_item['name'] = nimReply.get('name')
-                allLogProfilesWithUIDs_item['uid'] = nimReply.get('object_id')
+                allLogProfilesWithUIDs_item['name'] = profileName
+                allLogProfilesWithUIDs_item['uid'] = json.loads(nimReply).get('object_id')
                 allLogProfilesWithUIDs.append(allLogProfilesWithUIDs_item)
 
     return True, "", "", allLogProfilesWithUIDs

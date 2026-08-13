@@ -337,10 +337,10 @@ def NGINXOneOutput(
     newBaseStagedConfig = json.dumps(baseStagedConfig)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
-        print(f'Declaration [{configUid}] not changed')
+        print(f'[INFO] Declaration [{configUid}] not changed')
         return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
 
-    print(f'Declaration [{configUid}] changed, publishing' if configUid else 'New declaration created, publishing')
+    print(f'[INFO] Declaration [{configUid}] changed, publishing' if configUid else '[INFO] New declaration created, publishing')
 
     returnCode, igUid = v5_7.NGINXOneUtils.getConfigSyncGroupId(
         nOneUrl=nOneUrl, nOneToken=nOneToken, nameSpace=nOneNamespace, configSyncGroupName=nOneConfigSyncGroup
@@ -401,7 +401,12 @@ def NGINXOneOutput(
         inject_payloads.append(payload_item)
 
     for waf_log_profile_name in allProfileNamesWithUIDs:
-        # TODO - add payloads for WAF log profile compiled bundles
+        payload_item = {}
+        payload_item['object_id'] = waf_log_profile_name.get('uid')
+        payload_item['paths'] = []
+        payload_item['paths'].append(NcgConfig.config['nms']['nap_policies_dir_pum'] + "/" + waf_log_profile_name.get('name') + ".tgz")
+        payload_item['type'] = "nap_log_profile"
+        inject_payloads.append(payload_item)
 
     stagedConfig['payloads'] = inject_payloads
 
