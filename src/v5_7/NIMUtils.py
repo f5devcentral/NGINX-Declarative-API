@@ -7,6 +7,7 @@ from collections import namedtuple
 
 import requests
 from typing import Tuple, Optional
+from AppLogger import AppLogger, get_logger
 
 
 def getNIMInstanceGroupUid(
@@ -27,6 +28,8 @@ def getNIMInstanceGroupUid(
     Returns:
         Optional[str]: Instance group UID string if found, otherwise None.
     """
+    logger = get_logger()
+
     url = f'{nmsUrl}/api/platform/v1/instance-groups?limit=100'
     auth = (nmsUsername, nmsPassword)
 
@@ -47,6 +50,8 @@ def getNIMInstanceGroupUid(
     igJson = json.loads(text)
     for item in igJson.get('items', []):
         if item.get('name') == instanceGroupName:
-            return 200, item.get('uid','')
+            uid = item.get('uid','')
+            logger.debug(f"Found instance group [{instanceGroupName}] with uid [{uid}] NIM [{nmsUrl}]")
+            return 200, uid
 
     return 404, f"instance group [{instanceGroupName}] not found"

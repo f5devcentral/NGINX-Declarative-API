@@ -13,9 +13,11 @@ from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import warnings
 
+
 # NGINX Declarative API modules
 import NcgConfig
 from NcgRedis import NcgRedis
+from AppLogger import AppLogger, get_logger
 
 import V5_5_CreateConfig
 import V5_5_NginxConfigDeclaration
@@ -39,10 +41,10 @@ warnings.filterwarnings(
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
-if cfg.config['main']['debug']:
-    print("Running in debug mode")
-    import http.client
-    http.client.HTTPConnection.debuglevel = 1
+#if cfg.config['log']['level'] == 'DEBUG':
+#    print("Running in debug mode")
+#    import http.client
+#    http.client.HTTPConnection.debuglevel = 1
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
@@ -333,18 +335,34 @@ def get_schema_v5_7():
     schema = V5_7_NginxConfigDeclaration.ConfigDeclaration.model_json_schema()
     return JSONResponse(content=schema, headers={'Content-Type': 'application/json'})
 
+# NGINX Declarative API main
+def main():
+    AppLogger(
+        name=f"{cfg.config['main']['banner']} {cfg.config['main']['version']}",
+        level=cfg.config['log']['level'],
+        fmt="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stdout=cfg.config['log']['stdout']=="True",
+        stderr=cfg.config['log']['stderr']=="True",
+        file_path=cfg.config['log']['filename'] if cfg.config['log']['file'] == "True" else None,
+        syslog_host=cfg.config['log']['syslog_host'] if cfg.config['log']['syslog'] == "True" else None,
+        syslog_port=cfg.config['log']['syslog_port'] if cfg.config['log']['syslog'] == "True" else None
+    )
 
-if __name__ == '__main__':
-    print(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
+    logger = get_logger()
+    logger.info(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
 
-    print("Starting GitOps scheduler")
+    logger.info("Starting GitOps scheduler")
     threading.Thread(target=runGitOpsScheduler).start()
 
-    print("Starting Asynchronous declarations scheduler")
+    logger.info("Starting Asynchronous declarations scheduler")
     threading.Thread(target=runAsynchronousWorker, daemon=True).start()
 
     apiServerHost = cfg.config['apiserver']['host']
     apiServerPort = cfg.config['apiserver']['port']
 
-    print(f"Starting API server on {apiServerHost}:{apiServerPort}")
+    logger.info(f"Starting API server on {apiServerHost}:{apiServerPort}")
     uvicorn.run("main:app", host=apiServerHost, port=apiServerPort)
+
+if __name__ == '__main__':
+    main()

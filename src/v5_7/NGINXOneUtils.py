@@ -5,6 +5,7 @@ NGINX One support utility functions
 import json
 import requests
 from typing import Tuple
+from AppLogger import AppLogger, get_logger
 
 
 def getConfigSyncGroupId(
@@ -25,6 +26,8 @@ def getConfigSyncGroupId(
     Returns:
         Tuple[int, str]: Status code (200 on success) and config sync group UID string (or error description).
     """
+    logger = get_logger()
+
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nameSpace}/config-sync-groups?paginated=false'
     headers = {"Authorization": f"APIToken {nOneToken}"}
 
@@ -45,6 +48,8 @@ def getConfigSyncGroupId(
     igJson = json.loads(text)
     for item in igJson.get('items', []):
         if item.get('name') == configSyncGroupName:
-            return 200, item.get('object_id', '')
+            object_id = item.get('object_id','')
+            logger.debug(f"Found config sync group [{configSyncGroupName}] with id [{object_id}] N1C [{nOneUrl}]")
+            return 200, object_id
 
     return 404, f"config sync group [{configSyncGroupName}] not found"
