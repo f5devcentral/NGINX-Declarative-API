@@ -1,14 +1,5 @@
 """
 AppLogger: A thread-safe Python logging singleton module using standard library `logging`.
-
-Features:
-- Thread-safe Singleton pattern for application-wide logging consistency.
-- Customizable log format and date format.
-- Customizable log destinations:
-    * Standard output (stdout) and Standard error (stderr)
-    * Local file (with automatic directory creation)
-    * Syslog over TCP (via socket.SOCK_STREAM)
-- Configurable log levels (supports integer constants like `logging.DEBUG` or string names like `"DEBUG"`).
 """
 
 import logging
@@ -27,9 +18,7 @@ class AppLogger:
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
-        print("*** NEW 1 ***")
         if cls._instance is None:
-            print("*** NEW 2 ***")
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(AppLogger, cls).__new__(cls)
@@ -49,29 +38,14 @@ class AppLogger:
         syslog_port: int = 514,
         syslog_facility: int = logging.handlers.SysLogHandler.LOG_USER,
     ):
-        """
-        Initialize the AppLogger singleton. Subsequent calls return the same instance.
-        To reconfigure handlers or level after initialization, call `.configure(...)`.
+        if not getattr(self, "_initialized", False):
+            with self._lock:
+                if not getattr(self, "_initialized", False):
+                    self._logger = logging.getLogger(name)
+                    self._initialized = True
 
-        :param name: Name of the logger instance.
-        :param level: Logging level (e.g., logging.DEBUG, "INFO", "WARNING").
-        :param fmt: Log formatting string.
-        :param datefmt: Date format string for log entries.
-        :param stdout: If True, log to sys.stdout.
-        :param stderr: If True, log to sys.stderr.
-        :param file_path: Optional file path for file logging.
-        :param syslog_host: Optional IP/hostname for Syslog server over TCP.
-        :param syslog_port: TCP port for Syslog (default: 514).
-        :param syslog_facility: Syslog facility code.
-        """
-        if getattr(self, "_initialized", False):
-            return
-
-        with self._lock:
-            if getattr(self, "_initialized", False):
-                return
-
-            self._logger = logging.getLogger(name)
+        # Always reconfigure when instantiated with explicit arguments
+        if file_path is not None or syslog_host is not None or level != logging.INFO or not stdout or stderr:
             self.configure(
                 level=level,
                 fmt=fmt,
@@ -83,7 +57,6 @@ class AppLogger:
                 syslog_port=syslog_port,
                 syslog_facility=syslog_facility,
             )
-            self._initialized = True
 
     def configure(
         self,
@@ -100,7 +73,6 @@ class AppLogger:
         """
         Configure or update the underlying logger's level, format, and destination handlers.
         """
-        # Resolve log level string to integer if necessary
         if isinstance(level, str):
             resolved_level = logging.getLevelName(level.upper())
             if isinstance(resolved_level, int):
@@ -110,7 +82,7 @@ class AppLogger:
 
         self._logger.setLevel(level)
 
-        # Properly close and remove existing handlers to avoid duplicate log entries or resource leaks
+        # Properly close and remove existing handlers to avoid duplicates or resource leaks
         if self._logger.hasHandlers():
             for handler in self._logger.handlers[:]:
                 try:
@@ -119,10 +91,8 @@ class AppLogger:
                     pass
             self._logger.handlers.clear()
 
-        # Disable propagation to prevent duplicate entries if parent/root loggers have handlers
         self._logger.propagate = False
 
-        # Default format if none provided
         if not fmt:
             fmt = "[%(asctime)s] [%(levelname)s] [%(name)s] [%(filename)s:%(lineno)d] - %(message)s"
 
@@ -171,17 +141,12 @@ class AppLogger:
 
     @classmethod
     def get_logger(cls) -> logging.Logger:
-        """
-        Class method to easily retrieve the underlying standard `logging.Logger` instance anywhere in the app.
-        """
         return cls()._logger
 
     @property
     def logger(self) -> logging.Logger:
-        """Property to access the raw `logging.Logger` instance."""
         return self._logger
 
-    # Direct logging helper methods for convenience
     def debug(self, msg: str, *args, **kwargs) -> None:
         self._logger.debug(msg, *args, **kwargs)
 
@@ -201,7 +166,5 @@ class AppLogger:
         self._logger.exception(msg, *args, **kwargs)
 
 
-# Module-level convenience function
 def get_logger() -> logging.Logger:
-    """Helper function to return the application-wide logger singleton."""
     return AppLogger.get_logger()

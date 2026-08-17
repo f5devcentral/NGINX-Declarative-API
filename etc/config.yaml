@@ -10,12 +10,13 @@ main:
   url: "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 log:
-  level: DEBUG
-  stdout: "False"
-  stderr: "False"
-  file: "True"
+  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+  stdout: true
+  stderr: false
+  file: false
   filename: /tmp/nginx-dapi.log
-  syslog: "False"
+  syslog: false
   syslog_host: 192.168.2.5
   syslog_port: 514
 

@@ -15,7 +15,6 @@ from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import warnings
 
-
 # NGINX Declarative API modules
 import NcgConfig
 from NcgRedis import NcgRedis
@@ -41,32 +40,48 @@ warnings.filterwarnings(
 )
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
-
-# Set HTTP client in debug mode if needed
-if cfg.config['log']['level'] == 'DEBUG':
-    import http.client
-    http.client.HTTPConnection.debuglevel = 1
-
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
+
+
+def parse_bool(val) -> bool:
+    """Safely converts boolean or string representations ('True', 'False', True, False) to bool."""
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.strip().lower() in ("true", "1", "yes", "on")
+    return bool(val)
 
 
 def configure_logging():
     """
-    Initializes the AppLogger singleton and routes Uvicorn/FastAPI internal loggers
-    to use the singleton's handlers and standard formatting.
+    Initializes/reconfigures the AppLogger singleton from config.yaml and routes Uvicorn/FastAPI internal loggers.
     """
-    singleton = AppLogger(
-        name=f"{cfg.config['main']['banner']} {cfg.config['main']['version']}",
-        level=cfg.config['log']['level'],
+    log_cfg = cfg.config.get('log', {})
+
+    level = log_cfg.get('level', 'INFO')
+    stdout = parse_bool(log_cfg.get('stdout', True))
+    stderr = parse_bool(log_cfg.get('stderr', False))
+
+    file_enabled = parse_bool(log_cfg.get('file', False))
+    file_path = log_cfg.get('filename') if file_enabled else None
+
+    syslog_enabled = parse_bool(log_cfg.get('syslog', False))
+    syslog_host = log_cfg.get('syslog_host') if syslog_enabled else None
+    syslog_port = int(log_cfg.get('syslog_port', 514))
+
+    # Reconfigure singleton instance explicitly
+    singleton = AppLogger()
+    singleton.configure(
+        level=level,
         fmt="[%(asctime)s] [%(levelname)s] [%(filename)s:%(funcName)s:%(lineno)d] %(message)s",
-        stdout=cfg.config['log']['stdout'] == "True",
-        stderr=cfg.config['log']['stderr'] == "True",
-        file_path=cfg.config['log']['filename'] if cfg.config['log']['file'] == "True" else None,
-        syslog_host=cfg.config['log']['syslog_host'] if cfg.config['log']['syslog'] == "True" else None,
-        syslog_port=cfg.config['log']['syslog_port'] if cfg.config['log']['syslog'] == "True" else None
+        stdout=stdout,
+        stderr=stderr,
+        file_path=file_path,
+        syslog_host=syslog_host,
+        syslog_port=syslog_port,
     )
 
-    # Re-route Uvicorn and FastAPI internal loggers to use the AppLogger singleton handlers
+    # Route Uvicorn and FastAPI internal loggers to use the singleton handlers
     singleton_handlers = singleton.logger.handlers
     for logger_name in ("uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"):
         uv_logger = logging.getLogger(logger_name)
@@ -78,7 +93,7 @@ def configure_logging():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup event: initialize logging singleton
+    # Startup event: configure logging
     configure_logging()
     logger = get_logger()
     logger.info("FastAPI application startup complete.")
@@ -87,47 +102,55 @@ async def lifespan(app: FastAPI):
     logger.info("FastAPI application shutting down.")
 
 
+is_debug = cfg.config.get('log', {}).get('level') == 'DEBUG'
+
 app = FastAPI(
     title=cfg.config['main']['banner'],
     version=cfg.config['main']['version'],
     contact={"name": "GitHub", "url": cfg.config['main']['url']},
-    debug=cfg.config['log']['level'] == 'DEBUG',
+    debug=is_debug,
     lifespan=lifespan
 )
 
 
-# Comprehensive Request & Response Logging Middleware
+# HTTP Request Logging Middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger = get_logger()
     start_time = time.perf_counter()
+
     client_ip = request.client.host if request.client else "unknown"
     method = request.method
     path = request.url.path
     query = request.url.query
-    # Read and restore the raw request body stream so FastAPI route handlers can still parse Pydantic models
+
+    # Read and restore request body stream for Pydantic parsing
     body_bytes = await request.body()
+
     async def receive():
         return {"type": "http.request", "body": body_bytes}
+
     request._receive = receive
-    # Log detailed request headers and body payload when in DEBUG mode
-    if logger.isEnabledFor(logging.DEBUG) or cfg.config['log']['level'] == 'DEBUG':
+
+    if logger.isEnabledFor(logging.DEBUG):
         logger.debug(f"--> Incoming Request: {method} {path}" + (f"?{query}" if query else "") + f" from {client_ip}")
         logger.debug(f"--> Headers: {dict(request.headers)}")
         if body_bytes:
-            # Safely decode body as UTF-8 string
-            body_str = body_bytes.decode('utf-8', errors='ignore')
-            logger.debug(f"--> Body Payload:\n{body_str}")
+            logger.debug(f"--> Body Payload:\n{body_bytes.decode('utf-8', errors='ignore')}")
+
     try:
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start_time) * 1000
+
         log_msg = f"HTTP {method} {path} -> Status {response.status_code} ({duration_ms:.2f}ms)"
+
         if response.status_code >= 500:
             logger.error(log_msg)
         elif response.status_code >= 400:
             logger.warning(log_msg)
         else:
             logger.info(log_msg)
+
         return response
     except Exception as exc:
         duration_ms = (time.perf_counter() - start_time) * 1000
@@ -152,15 +175,19 @@ def runAsynchronousWorker():
     while True:
         time.sleep(cfg.config['nms']['asynchronous_publish_waittime'])
         item = redis.asyncQueue.get()
-        logger.info(f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
+        logger.info(
+            f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
         declaration = item['declaration']
 
         if item['apiVersion'] == 'v5.5':
-            response = V5_5_CreateConfig.patch_config(declaration = declaration, configUid = item['configUid'], apiversion = item['apiVersion'])
+            response = V5_5_CreateConfig.patch_config(declaration=declaration, configUid=item['configUid'],
+                                                      apiversion=item['apiVersion'])
         elif item['apiVersion'] == 'v5.6':
-            response = V5_6_CreateConfig.patch_config(declaration = declaration, configUid = item['configUid'], apiversion = item['apiVersion'])
+            response = V5_6_CreateConfig.patch_config(declaration=declaration, configUid=item['configUid'],
+                                                      apiversion=item['apiVersion'])
         elif item['apiVersion'] == 'v5.7':
-            response = V5_7_CreateConfig.patch_config(declaration = declaration, configUid = item['configUid'], apiversion = item['apiVersion'])
+            response = V5_7_CreateConfig.patch_config(declaration=declaration, configUid=item['configUid'],
+                                                      apiversion=item['apiVersion'])
 
         NcgRedis.redis.set(f"ncg.async.submission.{item['submissionUid']}", response.body.decode("utf-8"))
 
@@ -224,11 +251,12 @@ def post_config_v5_7(d: V5_7_NginxConfigDeclaration.ConfigDeclaration, response:
 # Modify declaration using v5.5 API
 @app.patch("/v5.5/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_5(d: V5_5_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    retcode, response = v5_5.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion = 'v5.5', configUid = configuid)
+    retcode, response = v5_5.Asynchronous.checkIfAsynch(declaration=d, method='PATCH', apiVersion='v5.5',
+                                                        configUid=configuid)
 
     if retcode is not None:
         # Request was asynchronous and it has been submitted to the FIFO queue
-        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
+        return JSONResponse(content=response, status_code=retcode, headers={'Content-Type': 'application/json'})
 
     return V5_5_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.5')
 
@@ -236,11 +264,12 @@ def patch_config_v5_5(d: V5_5_NginxConfigDeclaration.ConfigDeclaration, response
 # Modify declaration using v5.6 API
 @app.patch("/v5.6/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_6(d: V5_6_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    retcode, response = v5_6.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion = 'v5.6', configUid = configuid)
+    retcode, response = v5_6.Asynchronous.checkIfAsynch(declaration=d, method='PATCH', apiVersion='v5.6',
+                                                        configUid=configuid)
 
     if retcode is not None:
         # Request was asynchronous and it has been submitted to the FIFO queue
-        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
+        return JSONResponse(content=response, status_code=retcode, headers={'Content-Type': 'application/json'})
 
     return V5_6_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.6')
 
@@ -248,11 +277,12 @@ def patch_config_v5_6(d: V5_6_NginxConfigDeclaration.ConfigDeclaration, response
 # Modify declaration using v5.7 API
 @app.patch("/v5.7/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def patch_config_v5_7(d: V5_7_NginxConfigDeclaration.ConfigDeclaration, response: Response, configuid: str):
-    retcode, response = v5_7.Asynchronous.checkIfAsynch(declaration = d, method = 'PATCH', apiVersion = 'v5.7', configUid = configuid)
+    retcode, response = v5_7.Asynchronous.checkIfAsynch(declaration=d, method='PATCH', apiVersion='v5.7',
+                                                        configUid=configuid)
 
     if retcode is not None:
         # Request was asynchronous and it has been submitted to the FIFO queue
-        return JSONResponse(content=response, status_code = retcode, headers = {'Content-Type': 'application/json'})
+        return JSONResponse(content=response, status_code=retcode, headers={'Content-Type': 'application/json'})
 
     return V5_7_CreateConfig.patch_config(declaration=d, configUid=configuid, apiversion='v5.7')
 
@@ -346,7 +376,8 @@ def get_submission_status(configuid: str, submissionuid: str):
     if status is None:
         return JSONResponse(
             status_code=404,
-            content={'code': 404, 'details': {'message': f'submission {submissionuid} for declaration {configuid} not found'}},
+            content={'code': 404,
+                     'details': {'message': f'submission {submissionuid} for declaration {configuid} not found'}},
             headers={'Content-Type': 'application/json'}
         )
     else:
@@ -438,7 +469,6 @@ def main():
     apiServerPort = cfg.config['apiserver']['port']
 
     logger.info(f"Starting API server on {apiServerHost}:{apiServerPort}")
-    # Note: log_config=None prevents Uvicorn from applying its default ColourizedFormatter/AccessFormatter
     uvicorn.run("main:app", host=apiServerHost, port=apiServerPort, log_config=None)
 
 
