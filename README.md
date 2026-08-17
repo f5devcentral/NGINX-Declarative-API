@@ -47,9 +47,9 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 | API Version | F5 NGINX Instance Manager | F5 NGINX One Console | F5 NGINX Plus | F5 WAF for NGINX |
 |-------------|---------------------------|----------------------|---------------|------------------|
-| v5.5        | 2.20+                     | January 2027         | R33+          | 5.x              |
-| v5.6        | 2.20+                     | January 2027         | R33+          | 5.x              |
-| v5.7        | 2.22+                     | July 2027            | R35+          | 5.x              |
+| v5.5        | 2.20+                     | January 2026         | R33+          | 5.x              |
+| v5.6        | 2.20+                     | January 2026         | R33+          | 5.x              |
+| v5.7        | 2.22+                     | August 2026          | R35+          | 5.x              |
 
 >**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
 
@@ -207,9 +207,9 @@ See the [features list](/FEATURES.md)
 
 Usage details and JSON schema are available here:
 
-- [API v5.6](/USAGE-v5.6.md) - latest
-- [API v5.7](/USAGE-v5.7.md) - stable
-- [API v5.5](/USAGE-v5.5.md) - stable
+- [API v5.7](/USAGE-v5.7.md) - latest
+- [API v5.6](/USAGE-v5.6.md) - stable
+- [API v5.5](/USAGE-v5.5.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

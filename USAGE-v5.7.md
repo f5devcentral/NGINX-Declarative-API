@@ -45,6 +45,9 @@ The JSON schema is self explanatory. See also the [sample Postman collection](/c
       - `.declaration.http.policies[].versions[].displayName` the policy version's display name
       - `.declaration.http.policies[].versions[].description` the policy version's description
       - `.declaration.http.policies[].versions[].contents` this can be either base64-encoded or be a HTTP(S) URL that will be fetched dynamically from a source of truth
+    - `.declaration.http.log_profiles[]` an optional array of WAF log profiles
+      - `.declaration.http.log_profiles[].type` the log profile type ('app-protect')
+      - `.declaration.http.log_profiles[].app_protect` F5 WAF for NGINX log profile configuration
   - `.declaration.layer4` NGINX TCP/UDP definitions
   - `.declaration.resolvers` DNS resolvers definitions
   - `.declaration.certificates` an optional array of TLS certificates/keys/chains to be published
