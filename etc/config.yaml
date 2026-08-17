@@ -14,7 +14,7 @@ log:
   level: INFO
   stdout: true
   stderr: false
-  file: false
+  file: true
   filename: /tmp/nginx-dapi.log
   syslog: false
   syslog_host: 192.168.2.5

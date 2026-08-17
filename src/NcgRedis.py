@@ -26,7 +26,7 @@ class NcgRedis(object):
         if cls._instance is None:
             try:
                 cls.redis = redis.Redis(host, port)
-                logger.info(f"Connecting to redis at {host}:{port}")
+                logger.info(f"Connecting to Redis at {host}:{port}")
 
                 cls.redis.set('NGINX_Declarative_API','test')
                 cls.redis.delete('NGINX_Declarative_API')
@@ -34,9 +34,10 @@ class NcgRedis(object):
                 # Asynchronous queue
                 cls.asyncQueue = queue.Queue()
             except Exception as e:
-                logger.error(f"Cannot connect to redis on {host}:{port} : {e}")
+                logger.error(f"Cannot connect to Redis on {host}:{port} : {e}")
                 sys.exit(1)
 
+            logger.info("Redis connected")
             cls._instance = super(cls, NcgRedis).__new__(cls)
 
         return cls._instance

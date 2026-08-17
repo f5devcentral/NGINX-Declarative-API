@@ -40,7 +40,7 @@ warnings.filterwarnings(
 )
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
-redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
+is_debug = cfg.config.get('log', {}).get('level') == 'DEBUG'
 
 
 def parse_bool(val) -> bool:
@@ -101,8 +101,6 @@ async def lifespan(app: FastAPI):
     # Shutdown event
     logger.info("FastAPI application shutting down.")
 
-
-is_debug = cfg.config.get('log', {}).get('level') == 'DEBUG'
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
@@ -458,6 +456,7 @@ def main():
     configure_logging()
     logger = get_logger()
     logger.info(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
+    redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
     logger.info("Starting GitOps scheduler")
     threading.Thread(target=runGitOpsScheduler, daemon=True).start()
