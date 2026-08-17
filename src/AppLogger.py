@@ -27,7 +27,9 @@ class AppLogger:
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
+        print("*** NEW 1 ***")
         if cls._instance is None:
+            print("*** NEW 2 ***")
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(AppLogger, cls).__new__(cls)

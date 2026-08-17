@@ -29,6 +29,8 @@ from V5_7_NginxConfigDeclaration import *
 # F5 WAF for NGINX helper functions
 import v5_7.NIMNAPUtils
 
+from AppLogger import AppLogger, get_logger
+
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
@@ -293,6 +295,8 @@ def _persist_redis_state_and_schedule_autosync(
     Returns:
         str: Active configUid.
     """
+    logger = get_logger()
+
     if not runfromautosync:
         configUid = str(v5_7.MiscUtils.getuniqueid())
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
@@ -303,7 +307,7 @@ def _persist_redis_state_and_schedule_autosync(
     if nmsSynctime == 0:
         NcgRedis.declarationsList[configUid] = "static"
     elif not runfromautosync:
-        print(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
+        logger.info(f'Starting autosync for configUid {configUid} every {nmsSynctime} seconds')
         job = schedule.every(nmsSynctime).seconds.do(lambda: V5_7_CreateConfig.configautosync(configUid))
         NcgRedis.declarationsList[configUid] = job
         NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
@@ -328,6 +332,8 @@ def NIMOutput(
     Returns:
         dict: Response payload dictionary containing status_code, message, and headers.
     """
+    logger = get_logger()
+
     err, nmsUrl, nmsUsername, nmsPassword, nmsInstanceGroup, nmsSynctime = _validate_target_url_and_dns(d)
     if err:
         return err
@@ -351,10 +357,10 @@ def NIMOutput(
     newBaseStagedConfig = json.dumps(baseStagedConfig)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
-        print(f'[INFO] Declaration [{configUid}] not changed')
+        logger.info(f'Declaration [{configUid}] not changed')
         return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
 
-    print(f'[INFO] Declaration [{configUid}] changed, publishing to [{nmsUrl}]' if configUid else f'[INFO] New declaration created, publishing to [{nmsUrl}]')
+    logger.info(f'Declaration [{configUid}] changed, publishing to [{nmsUrl}]' if configUid else f'New declaration created, publishing to [{nmsUrl}]')
 
     returnCode, igUid = v5_7.NIMUtils.getNIMInstanceGroupUid(
         nmsUrl=nmsUrl, nmsUsername=nmsUsername, nmsPassword=nmsPassword, instanceGroupName=nmsInstanceGroup

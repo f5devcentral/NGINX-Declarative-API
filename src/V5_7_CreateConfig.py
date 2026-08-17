@@ -10,6 +10,7 @@ import v5_7.DeclarationPatcher
 import v5_7.MiscUtils
 
 from NcgRedis import NcgRedis
+from AppLogger import AppLogger, get_logger
 
 # pydantic models
 from V5_7_NginxConfigDeclaration import *
@@ -21,7 +22,8 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def configautosync(configUid):
-    print("Autosyncing configuid [" + configUid + "]")
+    logger = get_logger()
+    logger.info("Autosyncing configuid [" + configUid + "]")
 
     declaration = ''
     decl_from_redis = NcgRedis.redis.get(f'ncg.declaration.{configUid}')
@@ -36,11 +38,13 @@ def configautosync(configUid):
 # Return a JSON string:
 # { "status_code": nnn, "headers": {}, "message": {} }
 def createconfig(declaration: ConfigDeclaration, apiversion: str, runfromautosync: bool = False, configUid: str = ""):
+    logger = get_logger()
+
     try:
         # Pydantic JSON validation
         ConfigDeclaration(**declaration.model_dump())
     except ValidationError as e:
-        print(f"Invalid declaration {e}")
+        logger.error(f"Invalid declaration {e}")
 
     d = declaration.model_dump()
     decltype = d['output']['type']

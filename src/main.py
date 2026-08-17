@@ -3,13 +3,15 @@
 """
 NGINX Declarative API
 """
+from contextlib import asynccontextmanager
 import json
+import logging
 import threading
 import time
 
 import schedule
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import warnings
 
@@ -39,18 +41,99 @@ warnings.filterwarnings(
 )
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
+
+# Set HTTP client in debug mode if needed
+if cfg.config['log']['level'] == 'DEBUG':
+    import http.client
+    http.client.HTTPConnection.debuglevel = 1
+
 redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
-#if cfg.config['log']['level'] == 'DEBUG':
-#    print("Running in debug mode")
-#    import http.client
-#    http.client.HTTPConnection.debuglevel = 1
+
+def configure_logging():
+    """
+    Initializes the AppLogger singleton and routes Uvicorn/FastAPI internal loggers
+    to use the singleton's handlers and standard formatting.
+    """
+    singleton = AppLogger(
+        name=f"{cfg.config['main']['banner']} {cfg.config['main']['version']}",
+        level=cfg.config['log']['level'],
+        fmt="[%(asctime)s] [%(levelname)s] [%(filename)s:%(funcName)s:%(lineno)d] %(message)s",
+        stdout=cfg.config['log']['stdout'] == "True",
+        stderr=cfg.config['log']['stderr'] == "True",
+        file_path=cfg.config['log']['filename'] if cfg.config['log']['file'] == "True" else None,
+        syslog_host=cfg.config['log']['syslog_host'] if cfg.config['log']['syslog'] == "True" else None,
+        syslog_port=cfg.config['log']['syslog_port'] if cfg.config['log']['syslog'] == "True" else None
+    )
+
+    # Re-route Uvicorn and FastAPI internal loggers to use the AppLogger singleton handlers
+    singleton_handlers = singleton.logger.handlers
+    for logger_name in ("uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"):
+        uv_logger = logging.getLogger(logger_name)
+        uv_logger.handlers = singleton_handlers
+        uv_logger.propagate = False
+
+    return singleton
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup event: initialize logging singleton
+    configure_logging()
+    logger = get_logger()
+    logger.info("FastAPI application startup complete.")
+    yield
+    # Shutdown event
+    logger.info("FastAPI application shutting down.")
+
 
 app = FastAPI(
     title=cfg.config['main']['banner'],
     version=cfg.config['main']['version'],
-    contact={"name": "GitHub", "url": cfg.config['main']['url']}
+    contact={"name": "GitHub", "url": cfg.config['main']['url']},
+    debug=cfg.config['log']['level'] == 'DEBUG',
+    lifespan=lifespan
 )
+
+
+# Comprehensive Request & Response Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger = get_logger()
+    start_time = time.perf_counter()
+    client_ip = request.client.host if request.client else "unknown"
+    method = request.method
+    path = request.url.path
+    query = request.url.query
+    # Read and restore the raw request body stream so FastAPI route handlers can still parse Pydantic models
+    body_bytes = await request.body()
+    async def receive():
+        return {"type": "http.request", "body": body_bytes}
+    request._receive = receive
+    # Log detailed request headers and body payload when in DEBUG mode
+    if logger.isEnabledFor(logging.DEBUG) or cfg.config['log']['level'] == 'DEBUG':
+        logger.debug(f"--> Incoming Request: {method} {path}" + (f"?{query}" if query else "") + f" from {client_ip}")
+        logger.debug(f"--> Headers: {dict(request.headers)}")
+        if body_bytes:
+            # Safely decode body as UTF-8 string
+            body_str = body_bytes.decode('utf-8', errors='ignore')
+            logger.debug(f"--> Body Payload:\n{body_str}")
+    try:
+        response = await call_next(request)
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        log_msg = f"HTTP {method} {path} -> Status {response.status_code} ({duration_ms:.2f}ms)"
+        if response.status_code >= 500:
+            logger.error(log_msg)
+        elif response.status_code >= 400:
+            logger.warning(log_msg)
+        else:
+            logger.info(log_msg)
+        return response
+    except Exception as exc:
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.exception(f"HTTP {method} {path} -> Unhandled Exception: {exc} ({duration_ms:.2f}ms)")
+        raise exc
+
 
 #
 # GitOps autosync scheduler
@@ -65,10 +148,11 @@ def runGitOpsScheduler():
 # Asynchronous declaration worker
 #
 def runAsynchronousWorker():
+    logger = get_logger()
     while True:
         time.sleep(cfg.config['nms']['asynchronous_publish_waittime'])
         item = redis.asyncQueue.get()
-        print(f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
+        logger.info(f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
         declaration = item['declaration']
 
         if item['apiVersion'] == 'v5.5':
@@ -256,6 +340,7 @@ def get_config_status(configuid: str):
 @app.get("/v5.6/config/{configuid}/submission/{submissionuid}", status_code=200, response_class=PlainTextResponse)
 @app.get("/v5.7/config/{configuid}/submission/{submissionuid}", status_code=200, response_class=PlainTextResponse)
 def get_submission_status(configuid: str, submissionuid: str):
+    logger = get_logger()
     status = redis.redis.get('ncg.async.submission.' + submissionuid)
 
     if status is None:
@@ -270,7 +355,7 @@ def get_submission_status(configuid: str, submissionuid: str):
         if 'details' in jsonStatus and 'message' in jsonStatus['details']:
             # Remove the redis entry for ncg.async.submission if configuration publish has been run from the FIFO queue
             # If the submission is still pending in the queue, it is not removed
-            print(f"Removing status for submission id {submissionuid} for config {configuid}")
+            logger.info(f"Removing status for submission id {submissionuid} for config {configuid}")
             redis.redis.delete('ncg.async.submission.' + submissionuid)
 
         return JSONResponse(
@@ -285,6 +370,7 @@ def get_submission_status(configuid: str, submissionuid: str):
 @app.delete("/v5.6/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 @app.delete("/v5.7/config/{configuid}", status_code=200, response_class=PlainTextResponse)
 def delete_config(configuid: str = ""):
+    logger = get_logger()
     if configuid not in redis.declarationsList:
         return JSONResponse(
             status_code=404,
@@ -303,10 +389,10 @@ def delete_config(configuid: str = ""):
 
     if job != "static":
         # Kills autosync GitOps config thread
-        print(f"Terminating autosync for declaration [{configuid}]")
+        logger.info(f"Terminating autosync for declaration [{configuid}]")
         schedule.cancel_job(job)
     else:
-        print(f"Deleting declaration configuid [{configuid}]")
+        logger.info(f"Deleting declaration configuid [{configuid}]")
 
     return JSONResponse(
         status_code=200,
@@ -335,25 +421,15 @@ def get_schema_v5_7():
     schema = V5_7_NginxConfigDeclaration.ConfigDeclaration.model_json_schema()
     return JSONResponse(content=schema, headers={'Content-Type': 'application/json'})
 
+
 # NGINX Declarative API main
 def main():
-    AppLogger(
-        name=f"{cfg.config['main']['banner']} {cfg.config['main']['version']}",
-        level=cfg.config['log']['level'],
-        fmt="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        stdout=cfg.config['log']['stdout']=="True",
-        stderr=cfg.config['log']['stderr']=="True",
-        file_path=cfg.config['log']['filename'] if cfg.config['log']['file'] == "True" else None,
-        syslog_host=cfg.config['log']['syslog_host'] if cfg.config['log']['syslog'] == "True" else None,
-        syslog_port=cfg.config['log']['syslog_port'] if cfg.config['log']['syslog'] == "True" else None
-    )
-
+    configure_logging()
     logger = get_logger()
     logger.info(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
 
     logger.info("Starting GitOps scheduler")
-    threading.Thread(target=runGitOpsScheduler).start()
+    threading.Thread(target=runGitOpsScheduler, daemon=True).start()
 
     logger.info("Starting Asynchronous declarations scheduler")
     threading.Thread(target=runAsynchronousWorker, daemon=True).start()
@@ -362,7 +438,9 @@ def main():
     apiServerPort = cfg.config['apiserver']['port']
 
     logger.info(f"Starting API server on {apiServerHost}:{apiServerPort}")
-    uvicorn.run("main:app", host=apiServerHost, port=apiServerPort)
+    # Note: log_config=None prevents Uvicorn from applying its default ColourizedFormatter/AccessFormatter
+    uvicorn.run("main:app", host=apiServerHost, port=apiServerPort, log_config=None)
+
 
 if __name__ == '__main__':
     main()

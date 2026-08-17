@@ -10,6 +10,8 @@ from typing import Tuple, Dict
 import v5_7.GitOps
 from fastapi.responses import JSONResponse
 
+from AppLogger import AppLogger, get_logger
+
 
 def __definePolicyOnNMS__(
     nmsUrl: str,
@@ -521,6 +523,8 @@ def __writeWAFLogProfile__(
         str: if bool is False, log profile name that triggered the error
         str: the NGINX Instance Manager reply payload
     """
+    logger = get_logger()
+
     url = f'{nmsUrl}/api/platform/v1/security/logprofiles'
     auth = (nmsUsername, nmsPassword)
     headers = {'Content-Type': 'application/json'}
@@ -545,8 +549,8 @@ def __writeWAFLogProfile__(
             return False, logProfileName, reply.text
 
         if reply.status_code == 412:
-            print(
-                f"[WARN] WAF log profile update [{logProfileName}] code [{json.loads(reply.text).get('code')}] - {json.loads(reply.text).get('message')}")
+            logger.warning(
+                f"WAF log profile update [{logProfileName}] code [{json.loads(reply.text).get('code')}] - {json.loads(reply.text).get('message')}")
     else:
         # Create new WAF log profile
         reply = requests.post(url=f'{url}', auth=auth, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)

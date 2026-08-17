@@ -11,9 +11,9 @@ main:
 
 log:
   level: DEBUG
-  stdout: "True"
+  stdout: "False"
   stderr: "False"
-  file: "False"
+  file: "True"
   filename: /tmp/nginx-dapi.log
   syslog: "False"
   syslog_host: 192.168.2.5

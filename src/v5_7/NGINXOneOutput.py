@@ -27,6 +27,8 @@ from V5_7_NginxConfigDeclaration import *
 # F5 WAF for NGINX helper functions
 import v5_7.NGINXOneNAPUtils
 
+from AppLogger import AppLogger, get_logger
+
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
 from NcgRedis import NcgRedis
@@ -279,6 +281,8 @@ def _persist_redis_state_and_schedule_autosync(
     Returns:
         str: Active configUid.
     """
+    logger = get_logger()
+
     if not runfromautosync:
         configUid = str(v5_7.MiscUtils.getuniqueid())
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
@@ -289,7 +293,7 @@ def _persist_redis_state_and_schedule_autosync(
     if nOneSynctime == 0:
         NcgRedis.declarationsList[configUid] = "static"
     elif not runfromautosync:
-        print(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
+        logger.info(f'Starting autosync for configUid {configUid} every {nOneSynctime} seconds')
         job = schedule.every(nOneSynctime).seconds.do(lambda: V5_7_CreateConfig.configautosync(configUid))
         NcgRedis.declarationsList[configUid] = job
         NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
@@ -314,6 +318,8 @@ def NGINXOneOutput(
     Returns:
         dict: Response payload containing status_code, message, and headers.
     """
+    logger = get_logger()
+
     err, nOneUrl, nOneToken, nOneConfigSyncGroup, nOneNamespace, nOneSynctime = _validate_target_url_and_dns(d)
     if err:
         return err
@@ -337,10 +343,10 @@ def NGINXOneOutput(
     newBaseStagedConfig = json.dumps(baseStagedConfig)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
-        print(f'[INFO] Declaration [{configUid}] not changed')
+        logger.info(f'Declaration [{configUid}] not changed')
         return {"status_code": 200, "message": {"status_code": 200, "message": {"code": 200, "content": "no changes"}}}
 
-    print(f'[INFO] Declaration [{configUid}] changed, publishing to [{nOneUrl}]' if configUid else '[INFO] New declaration created, publishing to [{nOneUrl}]')
+    logger.info(f'Declaration [{configUid}] changed, publishing to [{nOneUrl}]' if configUid else f'New declaration created, publishing to [{nOneUrl}]')
 
     returnCode, igUid = v5_7.NGINXOneUtils.getConfigSyncGroupId(
         nOneUrl=nOneUrl, nOneToken=nOneToken, nameSpace=nOneNamespace, configSyncGroupName=nOneConfigSyncGroup
