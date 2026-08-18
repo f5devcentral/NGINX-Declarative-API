@@ -82,3 +82,10 @@ jobs:
         with:
           context: contrib/devportal/redocly/.
           push: false
+
+      # Build MCP container
+      - name: Build MCP image
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        with:
+          context: contrib/mcp/.
+          push: false
