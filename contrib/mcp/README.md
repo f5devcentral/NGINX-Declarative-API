@@ -66,15 +66,7 @@ to your `claude_desktop_config.json`.
 
 Use [docker compose](/contrib/docker-compose)
 
-The server then listens on `http://<host>:8800/mcp` and can be added as a remote MCP connector — see
-
-* [`examples/claude_desktop_config.http.json`](examples/claude_desktop_config.http.json)
-* [`examples/claude_desktop_config.stdio.json`](examples/claude_desktop_config.stdio.json)
-
-and
-
-* [`examples/antigravity_mcp_config.http.json`](examples/antigravity_mcp_config.http.json)
-* [`examples/antigravity_mcp_config.stdio.json`](examples/antigravity_mcp_config.stdio.json)
+The server then listens by default on `http://<host>:8800/mcp` and can be added as a remote MCP connector
 
 ## Using it from other MCP clients
 
