@@ -316,7 +316,8 @@ def provisionPolicies(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: s
     all_policy_names_and_versions = {}
     all_policy_active_names_and_uids = {}
 
-    policies = (declaration.get('declaration', {}) or {}).get('http', {}).get('policies')
+    http_decl = (declaration.get('declaration', {}) or {}).get('http', {})
+    policies = http_decl.get('policies', {}) if http_decl else []
     if policies:
         for p in policies:
             policy_name = p.get('name')
