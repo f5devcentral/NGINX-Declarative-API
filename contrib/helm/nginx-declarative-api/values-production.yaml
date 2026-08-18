@@ -83,6 +83,21 @@ webui:
     maxReplicas: 4
     targetCPUUtilizationPercentage: 70
 
+mcp:
+  image:
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-mcp"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+
 ingress:
   enabled: true
   className: nginx
@@ -92,7 +107,9 @@ ingress:
     # cert-manager.io/cluster-issuer: letsencrypt-prod
   host: nginx-dapi.example.com
   webuiHost: nginx-dapi-ui.example.com
+  mcpHost: nginx-dapi-mcp.example.com
   tls: []
+
   # tls:
   #   - secretName: nginx-dapi-tls
   #     hosts:

@@ -456,7 +456,7 @@ def provisionLogProfiles(
     """
 
     http_decl = (declaration.get('declaration', {}) or {}).get('http', {})
-    log_profiles = http_decl.get('log_profiles', {})
+    log_profiles = http_decl.get('log_profiles', {}) if http_decl else []
     if log_profiles:
         for p in log_profiles:
             if p.get('type') == 'app_protect':

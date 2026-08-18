@@ -144,9 +144,9 @@ async def log_requests(request: Request, call_next):
         log_msg = f"HTTP {method} {path} -> Status {response.status_code} ({duration_ms:.2f}ms)"
 
         if response.status_code >= 500:
-            logger.error(log_msg)
+            logger.error(log_msg, stacklevel=3)
         elif response.status_code >= 400:
-            logger.warning(log_msg)
+            logger.warning(log_msg, stacklevel=3)
         else:
             logger.info(log_msg)
 

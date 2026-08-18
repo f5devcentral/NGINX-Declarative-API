@@ -5,8 +5,8 @@ description: >
   and GitOps automation layer for NGINX Plus, NGINX Instance Manager, and
   NGINX One Console.
 type: application
-version: 1.0.0
-appVersion: "5.5.2"
+version: 5.7.0
+appVersion: "5.7.0"
 home: https://github.com/f5devcentral/NGINX-Declarative-API
 sources:
   - https://github.com/f5devcentral/NGINX-Declarative-API

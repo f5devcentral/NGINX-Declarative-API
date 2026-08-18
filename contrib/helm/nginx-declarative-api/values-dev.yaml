@@ -42,12 +42,27 @@ webui:
       cpu: 200m
       memory: 128Mi
 
+mcp:
+  image:
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-mcp"
+    tag: "latest"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
 ingress:
   enabled: true
   className: nginx
   host: nginx-dapi.example.com
   webuiHost: nginx-dapi-ui.example.com
+  mcpHost: nginx-dapi-mcp.example.com
   tls: []
 
 networkPolicy:
   enabled: false
+

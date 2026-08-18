@@ -47,3 +47,19 @@ spec:
     matchLabels:
       {{- include "nginx-declarative-api.devportal.selectorLabels" . | nindent 6 }}
 {{- end }}
+{{- if and .Values.mcp.enabled .Values.mcp.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nginx-declarative-api.fullname" . }}-mcp
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.mcp.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.mcp.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.mcp.selectorLabels" . | nindent 6 }}
+{{- end }}
+

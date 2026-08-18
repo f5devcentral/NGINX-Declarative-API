@@ -9,14 +9,18 @@
 #   ./helm.sh install nginx-dapi . \
 #       --namespace nginx-dapi --create-namespace \
 #       --set nginxDapi.image.repository=registry.example.com/nginx-declarative-api \
-#       --set nginxDapi.image.tag=5.5.2 \
+#       --set nginxDapi.image.tag=5.7.0 \
 #       --set devportal.image.repository=registry.example.com/nginx-declarative-api-devportal \
-#       --set devportal.image.tag=5.5.2
+#       --set devportal.image.tag=5.7.0 \
+#       --set mcp.image.repository=registry.example.com/nginx-declarative-api-mcp \
+#       --set mcp.image.tag=5.7.0
 #
 #   ./helm.sh upgrade nginx-dapi . \
 #       --namespace nginx-dapi \
-#       --set nginxDapi.image.tag=5.5.2 \
-#       --set devportal.image.tag=5.5.2
+#       --set nginxDapi.image.tag=5.7.0 \
+#       --set devportal.image.tag=5.7.0 \
+#       --set mcp.image.tag=5.7.0
+
 #
 # The script extracts the value of --set nginxDapi.image.tag (or
 # --set appVersion) and writes it into Chart.yaml before calling helm,

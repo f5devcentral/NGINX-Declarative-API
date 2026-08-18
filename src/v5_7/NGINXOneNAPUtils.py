@@ -452,7 +452,8 @@ def provisionLogProfiles(
     allN1Cprofiles = __get_all_WAFLogProfiles__(nginxOneUrl=nginxOneUrl, nginxOneToken=nginxOneToken, nginxOneNamespace=nginxOneNamespace)
     allLogProfilesWithUIDs = []
 
-    log_profiles = (declaration.get('declaration', {}) or {}).get('http', {}).get('log_profiles')
+    http_decl = (declaration.get('declaration', {}) or {}).get('http', {})
+    log_profiles = http_decl.get('log_profiles', {}) if http_decl else []
     if log_profiles:
         for p in log_profiles:
             if p.get('type') == 'app_protect':
