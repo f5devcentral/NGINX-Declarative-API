@@ -196,3 +196,43 @@ ServiceAccount name — webui.
 {{- default "default" .Values.webui.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+mcp selector labels.
+*/}}
+{{- define "nginx-declarative-api.mcp.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nginx-declarative-api.name" . }}-mcp
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+mcp full labels.
+*/}}
+{{- define "nginx-declarative-api.mcp.labels" -}}
+{{ include "nginx-declarative-api.labels" . }}
+{{ include "nginx-declarative-api.mcp.selectorLabels" . }}
+app.kubernetes.io/component: mcp
+app.kubernetes.io/version: {{ .Values.mcp.image.tag | quote }}
+{{- with .Values.global.podLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+ServiceAccount name — mcp.
+*/}}
+{{- define "nginx-declarative-api.mcp.serviceAccountName" -}}
+{{- if .Values.mcp.serviceAccount.create }}
+{{- default (printf "%s-mcp" (include "nginx-declarative-api.fullname" .)) .Values.mcp.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.mcp.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+MCP service name — fixed to "mcp".
+*/}}
+{{- define "nginx-declarative-api.mcp.serviceName" -}}
+mcp
+{{- end }}
+

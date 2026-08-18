@@ -30,6 +30,7 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
  -w <port>                      - Custom port for Web UI (default: 3000, only for full mode)
  -d <port>                      - Custom port for Developer Portal (default: 5001)
  -r <port>                      - Custom port for Redis (default: 6379)
+ -M <port>                      - Custom port for MCP Server (default: 8800)
 
  === Examples:
 
@@ -39,7 +40,8 @@ NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
  Deploy dev mode with custom ports:             ./nginx-dapi.sh -c start -m dev -a 8080 -d 8081 -r 6380
  Deploy with custom Web UI port:                ./nginx-dapi.sh -c start -w 8080
  Deploy with custom DevPortal port:             ./nginx-dapi.sh -c start -d 8081
- Deploy with all custom ports:                  ./nginx-dapi.sh -c start -a 8080 -w 8081 -d 8082 -r 6380
+ Deploy with custom MCP Server port:            ./nginx-dapi.sh -c start -M 8090
+ Deploy with all custom ports:                  ./nginx-dapi.sh -c start -a 8080 -w 8081 -d 8082 -r 6380 -M 8090
  Remove NGINX Declarative API:                  ./nginx-dapi.sh -c stop
  Build docker images:                           ./nginx-dapi.sh -c build
 ```
@@ -55,10 +57,11 @@ $ ./nginx-dapi.sh -c build
 [...]
 
 $ docker images
-REPOSITORY                        TAG       IMAGE ID       CREATED          SIZE
-nginx-declarative-api-webui       latest    65d93e68ab9f   1 minutes ago    62.4MB
-nginx-declarative-api             latest    baa9086d4779   1 minutes ago    123MB
-nginx-declarative-api-devportal   latest    6df48ac0c209   1 minutes ago    400MB
+IMAGE                                                         ID             DISK USAGE   CONTENT SIZE   EXTRA
+ghcr.io/f5devcentral/nginx-declarative-api-devportal:latest   01f457fd5336        279MB             0B        
+ghcr.io/f5devcentral/nginx-declarative-api-mcp:latest         7cd4c50cdcc7        169MB             0B        
+ghcr.io/f5devcentral/nginx-declarative-api-webui:latest       90db23dada16       54.3MB             0B        
+ghcr.io/f5devcentral/nginx-declarative-api:latest             3809571bbc8b        115MB             0B   
 ```
 
 ## How to run
@@ -70,18 +73,19 @@ Starting:
 
 ```commandline
 $ ./nginx-dapi.sh -c start
--> Deploying NGINX Declarative API
+-> Deploying NGINX Declarative API (full mode)
    NGINX Declarative API port: 5000
    Web UI port: 3000
    Developer Portal port: 5001
    Redis port: 6379
-[+] Building 0.0s (0/0)
-[+] Running 5/5
- ✔ Network nginx-dapi_dapi-network  Created 
- ✔ Container redis                  Started 
- ✔ Container devportal              Started 
- ✔ Container nginx-dapi             Started
- ✔ Container nginx-dapi-webui       Started 
+   MCP port: 8800
+[+] up 6/6
+ ✔ Network nginx-dapi_dapi-network Created                                                                                                                                                                    0.0s
+ ✔ Container redis                 Started                                                                                                                                                                    0.3s
+ ✔ Container devportal             Started                                                                                                                                                                    0.3s
+ ✔ Container nginx-dapi-mcp        Started                                                                                                                                                                    0.2s
+ ✔ Container nginx-dapi            Started                                                                                                                                                                    0.3s
+ ✔ Container nginx-dapi-webui      Started   
 ```
 
 Access the Web UI at <http://localhost:3000>
@@ -146,19 +150,20 @@ $ npm run dev  # Defaults to port 5000
 Starting with custom ports (useful when default ports are in use):
 
 ```commandline
-$ ./nginx-dapi.sh -c start -a 8080 -w 8081 -d 8082 -r 6380
--> Deploying NGINX Declarative API
+$ ./nginx-dapi.sh -c start -a 8080 -w 8081 -d 8082 -r 6380 -M 8090
+-> Deploying NGINX Declarative API (full mode)
    NGINX Declarative API port: 8080
    Web UI port: 8081
    Developer Portal port: 8082
    Redis port: 6380
-[+] Building 0.0s (0/0)
-[+] Running 4/4
- ✔ Network nginx-dapi_dapi-network  Created 
- ✔ Container redis                  Started 
- ✔ Container devportal              Started 
- ✔ Container nginx-dapi             Started
- ✔ Container nginx-dapi-webui       Started 
+   MCP port: 8090
+[+] up 6/6
+ ✔ Network nginx-dapi_dapi-network Created                                                                                                                                                                    0.0s
+ ✔ Container nginx-dapi-mcp        Started                                                                                                                                                                    0.3s
+ ✔ Container redis                 Started                                                                                                                                                                    0.2s
+ ✔ Container devportal             Started                                                                                                                                                                    0.2s
+ ✔ Container nginx-dapi            Started                                                                                                                                                                    0.3s
+ ✔ Container nginx-dapi-webui      Started     
 ```
 
 Stopping:

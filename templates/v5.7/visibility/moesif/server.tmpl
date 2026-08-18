@@ -1,0 +1,21 @@
+# Moesif integration - https://www.moesif.com/docs/server-integration/nginx-openresty/
+# URI: {{ loc.uri }}
+# application ID: {{ vis.moesif.application_id }}
+
+# Define the variables Moesif requires
+set $moesif_user_id nil;
+set $moesif_company_id nil;
+set $moesif_req_body nil;
+set $moesif_res_body nil;
+
+# Optionally, set moesif_user_id and moesif_company_id such from a request header or NGINX var to identify customer
+header_filter_by_lua_block  {
+  ngx.var.moesif_user_id = ngx.req.get_headers()["X-User-Id"]
+  ngx.var.moesif_company_id = ngx.req.get_headers()["X-Company-Id"]
+}
+
+# Add Moesif plugin
+access_by_lua_file {{ vis.moesif.plugin_path }}/read_req_body.lua;
+body_filter_by_lua_file {{ vis.moesif.plugin_path }}/read_res_body.lua;
+log_by_lua_file {{ vis.moesif.plugin_path }}/send_event.lua;
+

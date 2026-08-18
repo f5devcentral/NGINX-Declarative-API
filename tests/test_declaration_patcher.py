@@ -1,16 +1,21 @@
 """
-Tests for v5_5/DeclarationPatcher.py and v5_4/DeclarationPatcher.py
+Tests for v5_5/DeclarationPatcher.py and v5_6/DeclarationPatcher.py
 
 Each patcher function follows a consistent contract:
   - add:    name not yet present → appended
   - update: name already present, len > 1 → replaced
   - delete: name already present, len == 1 (name-only dict) → removed
+
+Note: v5_6 moved NGINX App Protect WAF policy and TLS certificate/key patching
+from output.nms.{policies,certificates} (v5_5) to
+declaration.http.{policies,certificates}, so those two test classes build
+their fixtures accordingly per version.
 """
 import copy
 import pytest
 
 import v5_5.DeclarationPatcher as patcher_v55
-import v5_4.DeclarationPatcher as patcher_v54
+import v5_6.DeclarationPatcher as patcher_v56
 
 
 # ---------------------------------------------------------------------------
@@ -34,6 +39,12 @@ def _decl_with_nms_policies(*policies):
 
 def _decl_with_nms_certificates(*certs):
     return {'output': {'nms': {'certificates': list(certs)}}}
+
+def _decl_with_http_policies(*policies):
+    return {'declaration': {'http': {'policies': list(policies)}}}
+
+def _decl_with_http_certificates(*certs):
+    return {'declaration': {'http': {'certificates': list(certs)}}}
 
 
 # ---------------------------------------------------------------------------
@@ -67,8 +78,8 @@ class TestPatchHttpServer:
         assert 'srv1' not in names
         assert 'srv2' in names
 
-    def test_v54_add_server(self):
-        result = patcher_v54.patchHttpServer({}, {'name': 'srv1', 'listen': '80'})
+    def test_v56_add_server(self):
+        result = patcher_v56.patchHttpServer({}, {'name': 'srv1', 'listen': '80'})
         assert result['declaration']['http']['servers'][0]['name'] == 'srv1'
 
 
@@ -89,8 +100,8 @@ class TestPatchHttpUpstream:
         assert 'up1' not in names
         assert 'up2' in names
 
-    def test_v54_add_upstream(self):
-        result = patcher_v54.patchHttpUpstream({}, {'name': 'up1', 'origin': []})
+    def test_v56_add_upstream(self):
+        result = patcher_v56.patchHttpUpstream({}, {'name': 'up1', 'origin': []})
         assert result['declaration']['http']['upstreams'][0]['name'] == 'up1'
 
 
@@ -121,8 +132,8 @@ class TestPatchStreamServer:
         assert 'srv1' not in names
         assert 'srv2' in names
 
-    def test_v54_add_server(self):
-        result = patcher_v54.patchStreamServer({}, {'name': 'l4srv', 'listen': '3306'})
+    def test_v56_add_server(self):
+        result = patcher_v56.patchStreamServer({}, {'name': 'l4srv', 'listen': '3306'})
         assert result['declaration']['layer4']['servers'][0]['name'] == 'l4srv'
 
 
@@ -196,10 +207,11 @@ class TestPatchNAPPolicies:
         result = patcher_v55.patchNAPPolicies(decl, delete_req)
         assert result['output']['nms']['policies'] == []
 
-    def test_v54_add_policy(self):
-        decl = _decl_with_nms_policies()
-        result = patcher_v54.patchNAPPolicies(decl, copy.deepcopy(self.BASE_POLICY))
-        assert result['output']['nms']['policies'][0]['name'] == 'my-policy'
+    def test_v56_add_policy(self):
+        # v5_6 keeps policies under declaration.http.policies, not output.nms.policies
+        decl = _decl_with_http_policies()
+        result = patcher_v56.patchNAPPolicies(decl, copy.deepcopy(self.BASE_POLICY))
+        assert result['declaration']['http']['policies'][0]['name'] == 'my-policy'
 
 
 # ---------------------------------------------------------------------------
@@ -250,7 +262,8 @@ class TestPatchCertificates:
         assert 'my-cert' not in names
         assert 'other-key' in names
 
-    def test_v54_add_certificate(self):
-        decl = _decl_with_nms_certificates()
-        result = patcher_v54.patchCertificates(decl, copy.deepcopy(self.BASE_CERT))
-        assert result['output']['nms']['certificates'][0]['name'] == 'my-cert'
+    def test_v56_add_certificate(self):
+        # v5_6 keeps certificates under declaration.http.certificates, not output.nms.certificates
+        decl = _decl_with_http_certificates()
+        result = patcher_v56.patchCertificates(decl, copy.deepcopy(self.BASE_CERT))
+        assert result['declaration']['http']['certificates'][0]['name'] == 'my-cert'

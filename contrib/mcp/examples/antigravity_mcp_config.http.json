@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "nginx-declarative-api": {
+      "serverUrl": "http://localhost:8800/mcp"
+    }
+  }
+}

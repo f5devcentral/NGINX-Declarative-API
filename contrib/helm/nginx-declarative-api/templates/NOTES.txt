@@ -23,6 +23,17 @@ Components deployed
 {{- else }}
 ⬜ devportal    → disabled
 {{- end }}
+{{- if .Values.webui.enabled }}
+✅ webui        → {{ include "nginx-declarative-api.fullname" . }}-webui:{{ .Values.webui.service.port }}
+{{- else }}
+⬜ webui        → disabled
+{{- end }}
+{{- if .Values.mcp.enabled }}
+✅ mcp          → {{ include "nginx-declarative-api.fullname" . }}-mcp:{{ .Values.mcp.service.port }}
+{{- else }}
+⬜ mcp          → disabled
+{{- end }}
+
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Accessing the API

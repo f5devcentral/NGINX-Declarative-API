@@ -6,7 +6,7 @@
 # so that "helm list" shows the correct APP VERSION.
 # Override at deploy time with:  --set appVersion=5.5.1
 # ==============================================================================
-appVersion: "5.5.2"
+appVersion: "5.7.0"
 
 # ==============================================================================
 # Global settings
@@ -411,6 +411,102 @@ webui:
     automountServiceAccountToken: false
 
 # ==============================================================================
+# MCP Server (Model Context Protocol)
+# ==============================================================================
+mcp:
+  enabled: true
+
+  image:
+    repository: "ghcr.io/f5devcentral/nginx-declarative-api-mcp"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  # Port that server.py runs on in streamable-http mode
+  containerPort: 8001
+
+  # Optional CLI arguments passed to container entrypoint
+  args: []
+
+  service:
+    type: ClusterIP
+    port: 8001
+    # nodePort: 30002   # only used when type=NodePort
+    annotations: {}
+
+  # NDAPI_BASE_URL, NDAPI_VERSION, MCP_TRANSPORT, MCP_HTTP_HOST, and MCP_HTTP_PORT are
+  # automatically injected by the deployment template. Add extra environment variables here if needed.
+  env: []
+  envFrom: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    existingClaim: ""
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    automountServiceAccountToken: false
+
+# ==============================================================================
 # Ingress
 # ==============================================================================
 ingress:
@@ -428,6 +524,11 @@ ingress:
   # Leave empty to disable the webui ingress rule.
   # Override at install time with:  --set ingress.webuiHost=nginx-dapi-ui.example.com
   webuiHost: ""
+
+  # Optional separate hostname for the MCP Server (SSE endpoint).
+  # Leave empty to disable the mcp ingress rule.
+  # Override at install time with:  --set ingress.mcpHost=nginx-dapi-mcp.example.com
+  mcpHost: ""
 
   tls: []
   # - secretName: nginx-dapi-tls

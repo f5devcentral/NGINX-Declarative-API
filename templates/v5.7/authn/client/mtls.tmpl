@@ -1,0 +1,29 @@
+{%- if authprofile.mtls.enabled|lower != "off" -%}
+ssl_verify_client {{ authprofile.mtls.enabled }};
+{% if authprofile.mtls.client_certificates -%}
+ssl_client_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.mtls.client_certificates }}.crt;
+{% endif %}
+
+{% if authprofile.mtls.trusted_ca_certificates -%}
+ssl_trusted_certificate {{ ncgconfig.nms.certs_dir }}/{{ authprofile.mtls.trusted_ca_certificates }}.crt;
+{% endif %}
+
+{# --- OCSP section start --- #}
+{%- if authprofile.mtls.ocsp and authprofile.mtls.ocsp.enabled|lower != "off" -%}
+ssl_ocsp {{ authprofile.mtls.ocsp.enabled }};
+{% if authprofile.mtls.ocsp.responder -%}
+ssl_ocsp_responder {{ authprofile.mtls.ocsp.responder }};
+{% endif %}
+{% endif %}
+{# --- OCSP section end --- #}
+
+{# --- TLS stapling section start --- #}
+{%- if authprofile.mtls.stapling and authprofile.mtls.stapling.enabled == True -%}
+ssl_stapling on;
+ssl_stapling_verify {% if authprofile.mtls.stapling.verify == True %}on{% else %}off{% endif %};
+{% if authprofile.mtls.stapling.responder -%}
+ssl_stapling_responder {{ authprofile.mtls.stapling.responder }};
+{% endif -%}
+{%- endif %}
+{# --- TLS stapling section end --- #}
+{% endif %}

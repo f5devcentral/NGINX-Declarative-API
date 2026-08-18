@@ -21,6 +21,7 @@ This tool is ideal for managing NGINX in **modern, dynamic infrastructures** suc
 - ✅ **Error Reduction**: Built-in validation for accurate and optimized configurations.
 - ✅ **Dynamic Updates**: Handle frequent configuration changes in highly dynamic environments.
 - ✅ **Seamless Scalability**: Simplifies managing NGINX setups in high-scale distributed architectures.
+- ✅ **MCP Server**: Provides the ability to configure NGINX using natural language.
 
 
 GitOps integration is supported: source of truth is checked for updates (F5 WAF for NGINX policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
@@ -45,12 +46,13 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 
 ## 🚀 Supported releases
 
-- [F5 NGINX Instance Manager 2.20+](https://docs.nginx.com/nginx-instance-manager/)
-- [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
-- [F5 NGINX Plus R33+](https://docs.nginx.com/nginx/)
-- [F5 WAF for NGINX](https://docs.nginx.com/waf/)
+| API Version | F5 NGINX Instance Manager | F5 NGINX One Console | F5 NGINX Plus | F5 WAF for NGINX |
+|-------------|---------------------------|----------------------|---------------|------------------|
+| v5.5        | 2.20+                     | January 2026         | R33+          | 5.x              |
+| v5.6        | 2.20+                     | January 2026         | R33+          | 5.x              |
+| v5.7        | 2.22+                     | August 2026          | R35+          | 5.x              |
 
-**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
+>**Note**: F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/) and the `.output.license` section in the declarative JSON is required.
 
 ## 🛠️ Architecture
 
@@ -59,27 +61,27 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 title: NGINX Declarative API architecture
 ---
 stateDiagram-v2
-    DevOps: User
-    Client: REST Client
-    Pipeline: CI/CD Pipeline
+    Client: **REST Client**
+    Pipeline: **CI/CD Pipeline**
     NIM: NGINX Instance Manager
     N1: NGINX One Console
     AGENT1: NGINX Agent
     NGINX1: NGINX
     AGENT2: NGINX Agent
     NGINX2: NGINX
-    INPUT: Input
     SOT: Source of Truth
     NDAPI: NGINX Declarative API
     DEVP: Developer Portal Service
     OUTPUT: Output
     REDIS: Redis
     3RDPARTY: 3rd Party integrations
+    MCP: MCP Server
+    MCPC: **MCP Client**
 
-    DevOps --> Pipeline
-    Pipeline --> INPUT
-    Client --> INPUT
-    INPUT --> NDAPI
+    MCPC --> MCP
+    MCP --> NDAPI
+    Pipeline --> NDAPI
+    Client --> NDAPI
     NDAPI --> OUTPUT
     NDAPI --> SOT
     SOT --> NDAPI
@@ -202,12 +204,22 @@ end
 
 See the [features list](/FEATURES.md)
 
+### 🤖 MCP server (Model Context Protocol)
+
+[contrib/mcp](/contrib/mcp) provides an MCP server that lets LLMs (Claude Desktop, Claude Code, or any MCP-compatible client) drive the NGINX Declarative API using
+natural language.
+
+Creating, updating, retrieving, and deleting declarations, and checking asynchronous submission status, without the user hand-writing JSON or REST calls.
+
+See the [MCP Server README](/contrib/mcp/README.md) for setup.
+
 ## 🔧 How to use
 
 Usage details and JSON schema are available here:
 
-- [API v5.6](/USAGE-v5.6.md) - latest
-- [API v5.5](/USAGE-v5.5.md) - stable
+- [API v5.7](/USAGE-v5.7.md) - latest
+- [API v5.6](/USAGE-v5.6.md) - stable
+- [API v5.5](/USAGE-v5.5.md) - deprecated
 
 A sample Postman collection and usage instructions can be found [here](/contrib/postman)
 

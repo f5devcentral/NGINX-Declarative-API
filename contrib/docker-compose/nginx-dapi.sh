@@ -15,7 +15,8 @@ $0 [options]\n\n
 -a <port>\t\t\t- Custom port for NGINX Declarative API (default: 5000)\n
 -w <port>\t\t\t- Custom port for Web UI (default: 3000, only for full mode)\n
 -d <port>\t\t\t- Custom port for Developer Portal (default: 5001)\n
--r <port>\t\t\t- Custom port for Redis (default: 6379)\n\n
+-r <port>\t\t\t- Custom port for Redis (default: 6379)\n
+-M <port>\t\t\t- Custom port for MCP Server (default: 8800)\n\n
 === Examples:\n\n
 Deploy NGINX Declarative API (full):\t\t$0 -c start\n
 Deploy in dev mode (no webui container):\t$0 -c start -m dev\n
@@ -23,7 +24,8 @@ Deploy with custom Declarative API port:\t$0 -c start -a 8080\n
 Deploy dev mode with custom ports:\t\t$0 -c start -m dev -a 8080 -d 8081 -r 6380\n
 Deploy with custom Web UI port:\t\t$0 -c start -w 8080\n
 Deploy with custom DevPortal port:\t\t$0 -c start -d 8081\n
-Deploy with all custom ports:\t\t\t$0 -c start -a 8080 -w 8081 -d 8082 -r 6380\n
+Deploy with custom MCP Server port:\t\t$0 -c start -M 8090\n
+Deploy with all custom ports:\t\t\t$0 -c start -a 8080 -w 8081 -d 8082 -r 6380 -M 8090\n
 Remove NGINX Declarative API:\t\t\t$0 -c stop\n
 Build docker images:\t\t\t\t$0 -c build\n
 "
@@ -38,13 +40,13 @@ exit 1
 nginx_dapi_start() {
 
 # Docker compose variables
-USERNAME=`whoami`
-export USERID=`id -u $USERNAME`
-export USERGROUP=`id -g $USERNAME`
+export USERID=${USERID:-$(id -u 2>/dev/null || echo 1000)}
+export USERGROUP=${USERGROUP:-$(id -g 2>/dev/null || echo 1000)}
 export DAPI_PORT=${DAPI_PORT:-5000}
 export WEBUI_PORT=${WEBUI_PORT:-3000}
 export DEVPORTAL_PORT=${DEVPORTAL_PORT:-5001}
 export REDIS_PORT=${REDIS_PORT:-6379}
+export MCP_PORT=${MCP_PORT:-8800}
 
 echo "-> Deploying NGINX Declarative API ($DEPLOY_MODE mode)"
 echo "   NGINX Declarative API port: $DAPI_PORT"
@@ -55,7 +57,8 @@ else
 fi
 echo "   Developer Portal port: $DEVPORTAL_PORT"
 echo "   Redis port: $REDIS_PORT"
-COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML up -d --remove-orphans
+echo "   MCP port: $MCP_PORT"
+COMPOSE_HTTP_TIMEOUT=240 $COMPOSE_CMD -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML up -d --remove-orphans
 }
 
 #
@@ -64,12 +67,11 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 nginx_dapi_stop() {
 
 # Docker compose variables
-USERNAME=`whoami`
-export USERID=`id -u $USERNAME`
-export USERGROUP=`id -g $USERNAME`
+export USERID=${USERID:-$(id -u 2>/dev/null || echo 1000)}
+export USERGROUP=${USERGROUP:-$(id -g 2>/dev/null || echo 1000)}
 
 echo "-> Undeploying NGINX Declarative API"
-COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML down
+COMPOSE_HTTP_TIMEOUT=240 $COMPOSE_CMD -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML down
 }
 
 #
@@ -78,13 +80,12 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 nginx_dapi_build() {
 
 # Docker compose variables
-USERNAME=`whoami`
-export USERID=`id -u $USERNAME`
-export USERGROUP=`id -g $USERNAME`
+export USERID=${USERID:-$(id -u 2>/dev/null || echo 1000)}
+export USERGROUP=${USERGROUP:-$(id -g 2>/dev/null || echo 1000)}
 
 echo "-> Building NGINX Declarative API Docker images"
 
-COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML build
+COMPOSE_HTTP_TIMEOUT=240 $COMPOSE_CMD -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML build
 }
 
 #
@@ -94,7 +95,15 @@ COMPOSE_HTTP_TIMEOUT=240 docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_YAML
 PROJECT_NAME="nginx-dapi"
 DEPLOY_MODE="full"
 
-while getopts 'hc:m:a:w:d:r:' OPTION
+if command -v docker-compose &> /dev/null; then
+  COMPOSE_CMD="docker-compose"
+elif docker compose version &> /dev/null; then
+  COMPOSE_CMD="docker compose"
+else
+  COMPOSE_CMD="docker-compose"
+fi
+
+while getopts 'hc:m:a:w:d:r:M:' OPTION
 do
   case "$OPTION" in
     h)
@@ -117,6 +126,9 @@ do
     ;;
     r)
       REDIS_PORT=$OPTARG
+    ;;
+    M)
+      MCP_PORT=$OPTARG
     ;;
   esac
 done

@@ -1,0 +1,8 @@
+{
+    "policy": {
+        "name": "nms_app_protect_default_policy",
+        "template": {
+            "name": "POLICY_TEMPLATE_NGINX_BASE"
+        }
+    }
+}

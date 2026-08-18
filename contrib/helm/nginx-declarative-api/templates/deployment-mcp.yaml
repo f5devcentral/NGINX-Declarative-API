@@ -1,0 +1,105 @@
+{{- if .Values.mcp.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp
+  namespace: {{ include "nginx-declarative-api.namespace" . }}
+  labels:
+    {{- include "nginx-declarative-api.mcp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.mcp.autoscaling.enabled }}
+  replicas: {{ .Values.mcp.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nginx-declarative-api.mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-declarative-api.mcp.selectorLabels" . | nindent 8 }}
+        {{- with .Values.global.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/values: {{ toYaml .Values.mcp | sha256sum }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "nginx-declarative-api.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "nginx-declarative-api.mcp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.mcp.podSecurityContext | nindent 8 }}
+      containers:
+        - name: mcp
+          image: "{{ .Values.mcp.image.repository }}:{{ .Values.mcp.image.tag }}"
+          imagePullPolicy: {{ .Values.mcp.image.pullPolicy }}
+          {{- with .Values.mcp.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.mcp.containerPort }}
+              protocol: TCP
+          env:
+            - name: NDAPI_BASE_URL
+              value: "http://nginx-dapi:{{ .Values.nginxDapi.service.port }}"
+            - name: NDAPI_VERSION
+              value: "v5.7"
+            - name: MCP_TRANSPORT
+              value: "streamable-http"
+            - name: MCP_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MCP_HTTP_PORT
+              value: {{ .Values.mcp.containerPort | quote }}
+            {{- with .Values.mcp.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.mcp.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.mcp.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.mcp.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.mcp.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.mcp.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.mcp.persistence.enabled .Values.mcp.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.mcp.persistence.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
+            {{- with .Values.mcp.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.mcp.persistence.enabled .Values.mcp.extraVolumes }}
+      volumes:
+        {{- if .Values.mcp.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ if .Values.mcp.persistence.existingClaim }}{{ .Values.mcp.persistence.existingClaim }}{{ else }}{{ include "nginx-declarative-api.fullname" . }}-mcp{{ end }}
+        {{- end }}
+        {{- with .Values.mcp.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.mcp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mcp.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mcp.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

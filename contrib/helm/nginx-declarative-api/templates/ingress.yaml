@@ -42,4 +42,17 @@ spec:
                 port:
                   number: {{ .Values.webui.service.port }}
     {{- end }}
+    {{- if and .Values.mcp.enabled .Values.ingress.mcpHost }}
+    - host: {{ .Values.ingress.mcpHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp
+                port:
+                  number: {{ .Values.mcp.service.port }}
+    {{- end }}
 {{- end }}
+

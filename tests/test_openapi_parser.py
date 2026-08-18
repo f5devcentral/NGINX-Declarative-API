@@ -1,15 +1,15 @@
 """
 Tests for v5_5/OpenAPIParser.py
 
-The v5_4 implementation is identical, so a single test suite covers both.
+The v5_6 implementation is identical, so a single test suite covers both.
 """
 import pytest
 
 import v5_5.OpenAPIParser as oap_module
-import v5_4.OpenAPIParser as oap_v54_module
+import v5_6.OpenAPIParser as oap_v56_module
 
 OpenAPIParser = oap_module.OpenAPIParser
-OpenAPIParser_v54 = oap_v54_module.OpenAPIParser
+OpenAPIParser_v56 = oap_v56_module.OpenAPIParser
 
 
 # ---------------------------------------------------------------------------
@@ -86,8 +86,8 @@ class TestVersion:
         parser = OpenAPIParser(MINIMAL_SCHEMA)
         assert parser.version() is None
 
-    def test_v54_version(self):
-        parser = OpenAPIParser_v54(OPENAPI_3_SCHEMA)
+    def test_v56_version(self):
+        parser = OpenAPIParser_v56(OPENAPI_3_SCHEMA)
         assert parser.version() == '3.0.0'
 
 
@@ -106,8 +106,8 @@ class TestInfo:
         parser = OpenAPIParser(MINIMAL_SCHEMA)
         assert parser.info() is None
 
-    def test_v54_info(self):
-        parser = OpenAPIParser_v54(SWAGGER_2_SCHEMA)
+    def test_v56_info(self):
+        parser = OpenAPIParser_v56(SWAGGER_2_SCHEMA)
         assert parser.info()['title'] == 'Old API'
 
 
@@ -140,8 +140,8 @@ class TestServers:
         parser = OpenAPIParser(MINIMAL_SCHEMA)
         assert parser.servers() == []
 
-    def test_v54_servers(self):
-        parser = OpenAPIParser_v54(OPENAPI_3_SCHEMA)
+    def test_v56_servers(self):
+        parser = OpenAPIParser_v56(OPENAPI_3_SCHEMA)
         assert len(parser.servers()) == 2
 
 
@@ -208,7 +208,7 @@ class TestPaths:
         assert 'get' in methods
         assert 'summary' not in methods
 
-    def test_v54_paths(self):
-        parser = OpenAPIParser_v54(OPENAPI_3_SCHEMA)
+    def test_v56_paths(self):
+        parser = OpenAPIParser_v56(OPENAPI_3_SCHEMA)
         paths = parser.paths()
         assert any(p['path'] == '/users' for p in paths)

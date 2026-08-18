@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "nginx-declarative-api": {
+      "command": "/absolute/path/to/NGINX-Declarative-API/contrib/mcp/.venv/bin/python",
+      "args": ["-m", "nginx_declarative_api_mcp.server"],
+      "env": {
+        "NDAPI_BASE_URL": "http://localhost:5000",
+        "NDAPI_VERSION": "v5.7",
+        "NDAPI_AUTH_MODE": "apikey",
+        "NDAPI_API_KEY": "changeme",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}

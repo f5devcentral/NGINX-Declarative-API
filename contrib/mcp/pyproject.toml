@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nginx-declarative-api-mcp"
+version = "0.1.0"
+description = "MCP server exposing the NGINX Declarative API (v5.7) to LLMs via natural language"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "NGINX Declarative API contributors" }]
+dependencies = [
+    "mcp>=1.9.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.7.0",
+    "python-dotenv>=1.0.1",
+]
+
+[project.scripts]
+nginx-declarative-api-mcp = "nginx_declarative_api_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
