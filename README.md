@@ -77,7 +77,11 @@ stateDiagram-v2
     OUTPUT: Output
     REDIS: Redis
     3RDPARTY: 3rd Party integrations
+    MCP: MCP Server
+    MCPC: MCP Client
 
+    MCPC --> MCP
+    MCP --> NDAPI
     DevOps --> Pipeline
     Pipeline --> INPUT
     Client --> INPUT
