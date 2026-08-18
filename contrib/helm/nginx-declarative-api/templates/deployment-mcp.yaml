@@ -44,10 +44,16 @@ spec:
               containerPort: {{ .Values.mcp.containerPort }}
               protocol: TCP
           env:
-            - name: NGINX_DECLARATIVE_API_URL
+            - name: NDAPI_BASE_URL
               value: "http://nginx-dapi:{{ .Values.nginxDapi.service.port }}"
-            - name: NGINX_DECLARATIVE_API_VERSION
+            - name: NDAPI_VERSION
               value: "v5.7"
+            - name: MCP_TRANSPORT
+              value: "streamable-http"
+            - name: MCP_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MCP_HTTP_PORT
+              value: {{ .Values.mcp.containerPort | quote }}
             {{- with .Values.mcp.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

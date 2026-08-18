@@ -423,17 +423,11 @@ mcp:
 
   replicaCount: 1
 
-  # Port that server.py runs on in SSE mode
+  # Port that server.py runs on in streamable-http mode
   containerPort: 8001
 
-  # CLI arguments passed to server.py to run in SSE mode for Kubernetes
-  args:
-    - "--transport"
-    - "sse"
-    - "--host"
-    - "0.0.0.0"
-    - "--port"
-    - "8001"
+  # Optional CLI arguments passed to container entrypoint
+  args: []
 
   service:
     type: ClusterIP
@@ -441,8 +435,8 @@ mcp:
     # nodePort: 30002   # only used when type=NodePort
     annotations: {}
 
-  # NGINX_DECLARATIVE_API_URL and NGINX_DECLARATIVE_API_VERSION are automatically
-  # injected by the deployment template. Add extra environment variables here if needed.
+  # NDAPI_BASE_URL, NDAPI_VERSION, MCP_TRANSPORT, MCP_HTTP_HOST, and MCP_HTTP_PORT are
+  # automatically injected by the deployment template. Add extra environment variables here if needed.
   env: []
   envFrom: []
 

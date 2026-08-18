@@ -166,7 +166,7 @@ The Web UI runs an nginx reverse proxy that forwards API calls from the browser 
 
 The MCP Server module provides a Model Context Protocol interface allowing AI assistants and LLM tools to construct, validate, submit, update, and manage NGINX Declarative API configurations using natural language.
 
-In Kubernetes, the MCP Server runs in SSE (Server-Sent Events) mode on port 8001 by default and connects to the NGINX Declarative API via `NGINX_DECLARATIVE_API_URL`.
+In Kubernetes, the MCP Server runs in streamable-http mode on port 8001 by default and connects to the NGINX Declarative API via `NDAPI_BASE_URL`.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
@@ -175,8 +175,8 @@ In Kubernetes, the MCP Server runs in SSE (Server-Sent Events) mode on port 8001
 | `mcp.image.repository` | Container image repository | `ghcr.io/f5devcentral/nginx-declarative-api-mcp` |
 | `mcp.image.tag` | Image tag | `latest` |
 | `mcp.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `mcp.containerPort` | Container port for SSE transport | `8001` |
-| `mcp.args` | CLI arguments passed to `server.py` | `["--transport", "sse", "--host", "0.0.0.0", "--port", "8001"]` |
+| `mcp.containerPort` | Container port for HTTP transport | `8001` |
+| `mcp.args` | Optional CLI arguments passed to container entrypoint | `[]` |
 | `mcp.service.type` | Kubernetes Service type | `ClusterIP` |
 | `mcp.service.port` | Service port | `8001` |
 | `mcp.env` | Additional environment variables for MCP Server | `[]` |
@@ -212,7 +212,7 @@ mcp:
 
 ### In-cluster service discovery
 
-The MCP Server connects to the NGINX Declarative API in-cluster using `NGINX_DECLARATIVE_API_URL`:
+The MCP Server connects to the NGINX Declarative API in-cluster using `NDAPI_BASE_URL`:
 ```
 http://nginx-dapi:5000
 ```
