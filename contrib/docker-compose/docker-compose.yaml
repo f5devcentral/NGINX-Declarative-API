@@ -61,7 +61,7 @@ services:
     build:
       context: ../mcp
       dockerfile: Dockerfile
-    image: ghcr.io/f5devcentral/nginx-dapi-mcp
+    image: ghcr.io/f5devcentral/nginx-declarative-api-mcp
     container_name: nginx-dapi-mcp
     restart: unless-stopped
     environment:

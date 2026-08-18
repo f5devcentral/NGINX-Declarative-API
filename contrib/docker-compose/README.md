@@ -58,10 +58,10 @@ $ ./nginx-dapi.sh -c build
 
 $ docker images
 IMAGE                                                         ID             DISK USAGE   CONTENT SIZE   EXTRA
-ghcr.io/f5devcentral/nginx-dapi-mcp:latest                    7cd4c50cdcc7        169MB             0B        
 ghcr.io/f5devcentral/nginx-declarative-api-devportal:latest   01f457fd5336        279MB             0B        
+ghcr.io/f5devcentral/nginx-declarative-api-mcp:latest         7cd4c50cdcc7        169MB             0B        
 ghcr.io/f5devcentral/nginx-declarative-api-webui:latest       90db23dada16       54.3MB             0B        
-ghcr.io/f5devcentral/nginx-declarative-api:latest             3809571bbc8b        115MB             0B        
+ghcr.io/f5devcentral/nginx-declarative-api:latest             3809571bbc8b        115MB             0B   
 ```
 
 ## How to run
