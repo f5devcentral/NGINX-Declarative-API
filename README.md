@@ -21,6 +21,7 @@ This tool is ideal for managing NGINX in **modern, dynamic infrastructures** suc
 - ✅ **Error Reduction**: Built-in validation for accurate and optimized configurations.
 - ✅ **Dynamic Updates**: Handle frequent configuration changes in highly dynamic environments.
 - ✅ **Seamless Scalability**: Simplifies managing NGINX setups in high-scale distributed architectures.
+- ✅ **MCP Server**: Provides the ability to configure NGINX using natural language.
 
 
 GitOps integration is supported: source of truth is checked for updates (F5 WAF for NGINX policies, TLS certificates, keys and chains/bundles, Swagger/OpenAPI definitions, snippets) and NGINX configurations are automatically kept in sync.
@@ -202,6 +203,12 @@ end
 ## 🌟 Supported features
 
 See the [features list](/FEATURES.md)
+
+### MCP server (Model Context Protocol)
+
+`contrib/mcp` provides an MCP server that lets LLMs (Claude Desktop, Claude Code, or any MCP-compatible client) drive the NGINX Declarative API using
+natural language. Creating, updating, retrieving, and deleting declarations, and checking asynchronous submission status, without the user hand-writing JSON or REST calls.
+See `contrib/mcp/README.md` for setup.
 
 ## 🔧 How to use
 

@@ -41,6 +41,7 @@ warnings.filterwarnings(
 
 cfg = NcgConfig.NcgConfig(configFile="../etc/config.yaml")
 is_debug = cfg.config.get('log', {}).get('level') == 'DEBUG'
+redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
 
 def parse_bool(val) -> bool:
@@ -347,6 +348,7 @@ def get_config_declaration_v5_7(configuid: str):
 @app.get("/v5.6/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 @app.get("/v5.7/config/{configuid}/status", status_code=200, response_class=PlainTextResponse)
 def get_config_status(configuid: str):
+    global redis
     status = redis.redis.get('ncg.status.' + configuid)
 
     if status is None:
@@ -456,7 +458,6 @@ def main():
     configure_logging()
     logger = get_logger()
     logger.info(f"{cfg.config['main']['banner']} {cfg.config['main']['version']}")
-    redis = NcgRedis(host=cfg.config['redis']['host'], port=cfg.config['redis']['port'])
 
     logger.info("Starting GitOps scheduler")
     threading.Thread(target=runGitOpsScheduler, daemon=True).start()

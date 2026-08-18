@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "nginx-declarative-api": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8800/mcp"
+      ]
+    }
+  }
+}

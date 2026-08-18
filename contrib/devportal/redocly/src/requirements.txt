@@ -1,4 +1,2 @@
-typing
 uvicorn
 fastapi
-uuid

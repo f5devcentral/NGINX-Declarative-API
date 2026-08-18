@@ -455,7 +455,8 @@ def provisionLogProfiles(
         str: if bool is False, log profile name that triggered the error
     """
 
-    log_profiles = (declaration.get('declaration', {}) or {}).get('http', {}).get('log_profiles')
+    http_decl = (declaration.get('declaration', {}) or {}).get('http', {})
+    log_profiles = http_decl.get('log_profiles', {})
     if log_profiles:
         for p in log_profiles:
             if p.get('type') == 'app_protect':

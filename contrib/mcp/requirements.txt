@@ -1,0 +1,8 @@
+# mcp>=2.0.0 (released 2026-07-28) renamed FastMCP -> MCPServer and moved
+# mcp.server.fastmcp -> mcp.server.mcpserver. server.py/tools.py in this
+# module detect and support both the >=2.0.0 and the legacy 1.x import paths,
+# so either line below works; the unbounded one tracks the current SDK.
+mcp>=1.9.0
+httpx>=0.27.0
+pydantic>=2.7.0
+python-dotenv>=1.0.1
