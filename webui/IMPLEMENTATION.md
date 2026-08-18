@@ -1,81 +1,81 @@
-# NGINX Declarative API - Web UI Implementation Summary
+# NGINX Declarative API - Web UI Implementation Details
 
 ## Overview
 
-A modern, full-featured React 19 TypeScript web interface has been created for the NGINX Declarative API v5.5. The UI provides a user-friendly way to manage NGINX configurations through the declarative API.
+A React 19 TypeScript single-page application for creating and submitting NGINX Declarative API v5.6 configurations. The UI renders a structured form and submits the resulting JSON to the backend API.
 
-## 🎯 Features Implemented
+## Features Implemented
 
-### Authentication
+### Configuration Form
 
-- ✅ JWT-based authentication
-- ✅ Token stored in localStorage (with security disclaimer)
-- ✅ Protected routes
-- ✅ Automatic token injection in API requests
-- ✅ Auto-logout on 401 errors
-
-### UI Pages
-
-- ✅ **Login Page** - JWT token input with validation
-- ✅ **Dashboard** - Overview of configurations with status monitoring
-- ✅ **Create Configuration** - JSON editor for creating new configs
-- ✅ **Configuration Management** - View, edit, delete operations
+- Output section — target NGINX Instance Manager or NGINX One Console, with license (JWT token upload, boolean enforce-initial-report toggle)
+- HTTP section — policies, TLS certificates, and log profiles (moved to declaration body in v5.6), plus profiles (rate limiting, auth, authz, caching, maps, log), servers, and upstreams
+- Sticky sidebar navigation with IntersectionObserver-based active-section highlighting
+- Layer 4 section — TCP/UDP servers and upstreams
+- API Gateway editor — per-location OpenAPI schema integration (URL / file upload / base64)
 
 ### API Integration
 
-All v5.5 endpoints are integrated:
+All v5.6 endpoints are integrated:
 
-- ✅ POST /v5.5/config - Create configuration
-- ✅ GET /v5.5/config/{configUid} - Retrieve configuration
-- ✅ PATCH /v5.5/config/{configUid} - Update configuration
-- ✅ DELETE /v5.5/config/{configUid} - Delete configuration
-- ✅ GET /v5.5/config/{configUid}/status - Get status
-- ✅ GET /v5.5/config/{configUid}/submission/{submissionUid} - Get async submission status
+- POST /v5.6/config — Create configuration
+- GET /v5.6/config/{configUid} — Retrieve configuration
+- PATCH /v5.6/config/{configUid} — Update configuration
+- DELETE /v5.6/config/{configUid} — Delete configuration
+- GET /v5.6/config/{configUid}/status — Get status
+- GET /v5.6/config/{configUid}/submission/{submissionUid} — Get async submission status
 
 ### Testing
 
-- ✅ Test setup with Vitest
-- ✅ Component tests (LoginPage)
-- ✅ Store tests (AuthStore)
-- ✅ Hook tests (useConfig)
-- ✅ Coverage reporting configured
+- Vitest + React Testing Library
+- 91 tests across 5 files
+- Component tests (ConfigForm API Gateway, validation, profile dropdowns, OutputSection)
+- Page-level integration tests (CreateConfigPage)
+- Coverage reporting configured
 
 ### DevOps
 
-- ✅ Docker support with multi-stage build
-- ✅ NGINX reverse proxy configuration
-- ✅ Integration with docker-compose
-- ✅ Configurable ports
-- ✅ Development and production builds
+- Docker support with multi-stage build
+- NGINX reverse proxy configuration
+- Integration with docker-compose
+- Configurable ports
+- Development and production builds
 
 ## 📁 Project Structure
 
 ```text
 webui/
 ├── src/
-│   ├── api/                  # API client layer
-│   │   └── config.ts         # Config API methods
 │   ├── components/           # Reusable components
+│   │   ├── ConfigForm.tsx    # Root form (thin wrapper)
+│   │   ├── ConfigForm.css
 │   │   ├── Header.tsx
 │   │   ├── Layout.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── hooks/                # Custom React hooks
-│   │   └── useConfig.ts      # React Query hooks for API
-│   ├── lib/                  # Libraries & utilities
-│   │   └── axios.ts          # Axios instance with interceptors
+│   │   └── configForm/       # Form sub-modules
+│   │       ├── types.ts      # All TypeScript interfaces
+│   │       ├── defaults.ts   # Factory functions, parseConfig, toJson
+│   │       ├── primitives.tsx
+│   │       ├── ApiGatewayEditor.tsx
+│   │       ├── LocationEditors.tsx
+│   │       ├── LocationsEditor.tsx
+│   │       ├── TlsEditor.tsx
+│   │       ├── ServersSection.tsx
+│   │       ├── UpstreamsSection.tsx
+│   │       ├── ProfilesSection.tsx
+│   │       ├── HttpSection.tsx
+│   │       ├── OutputSection.tsx
+│   │       └── Layer4Section.tsx
 │   ├── pages/                # Page components
-│   │   ├── LoginPage.tsx
-│   │   ├── DashboardPage.tsx
 │   │   └── CreateConfigPage.tsx
-│   ├── store/                # State management
-│   │   └── authStore.ts      # Zustand auth store
 │   ├── test/                 # Test files
 │   │   ├── setup.ts
-│   │   ├── LoginPage.test.tsx
-│   │   ├── authStore.test.ts
-│   │   └── useConfig.test.tsx
+│   │   ├── ConfigForm.agw.test.tsx
+│   │   ├── ConfigForm.agw.validation.test.tsx
+│   │   ├── ConfigForm.agw.profiles.test.tsx
+│   │   ├── ConfigForm.output.test.tsx
+│   │   └── CreateConfigPage.test.tsx
 │   ├── types/                # TypeScript definitions
-│   │   └── index.ts          # API & app types
+│   │   └── index.ts
 │   ├── App.tsx               # Main app with routing
 │   ├── main.tsx              # Entry point
 │   └── index.css             # Global styles
@@ -83,24 +83,21 @@ webui/
 ├── nginx.conf                # NGINX config for production
 ├── vite.config.ts            # Vite configuration
 ├── tsconfig.json             # TypeScript config
-├── package.json              # Dependencies
-└── README.md                 # Web UI documentation
+└── package.json              # Dependencies
 ```
 
 ## 🛠 Technology Stack
 
-|Category|Technology|Purpose|
+| Category | Technology | Purpose |
 |-|-|-|
-|**Framework**|React 19|UI library|
-|**Language**|TypeScript|Type safety|
-|**Build Tool**|Vite|Fast dev server & build|
-|**Routing**|React Router v7|Client-side routing|
-|**State Management**|Zustand|Auth state|
-|**Server State**|TanStack Query|API state & caching|
-|**HTTP Client**|Axios|API requests|
-|**UI Feedback**|React Hot Toast|Notifications|
-|**Testing**|Vitest + Testing Library|Unit & component tests|
-|**Code Quality**|ESLint + Prettier|Linting & formatting|
+| **Framework** | React 19 | UI library |
+| **Language** | TypeScript | Type safety |
+| **Build Tool** | Vite | Fast dev server & build |
+| **Routing** | React Router v7 | Client-side routing |
+| **HTTP Client** | Axios | API requests |
+| **JSON Editor** | Monaco Editor | Schema-aware JSON editing |
+| **UI Feedback** | React Hot Toast | Notifications |
+| **Testing** | Vitest + Testing Library | Unit & component tests |
 
 ## 🚀 Getting Started
 
@@ -112,7 +109,7 @@ npm install
 npm run dev
 ```
 
-Access at <http://localhost:3000>
+Access at <http://localhost:5173\>
 
 ### Running Tests
 
@@ -132,7 +129,6 @@ npm run preview
 ### Docker
 
 ```bash
-# From repo root
 cd contrib/docker-compose
 
 # Build all images including Web UI
@@ -147,44 +143,20 @@ cd contrib/docker-compose
 
 **Access Points:**
 
-- Web UI: <http://localhost:3000> (or custom port)
-- API: <http://localhost:5000> (or custom port)
-- DevPortal: <http://localhost:5001> (or custom port)
-
-## 🔐 Security Notes
-
-**Current Implementation (Development):**
-
-- JWT tokens stored in localStorage
-- Simple Bearer token authentication
-- CORS handled by backend
-
-**⚠️ Production Recommendations:**
-
-1. Use HTTP-only cookies for token storage
-2. Implement token refresh mechanism
-3. Add CSRF protection
-4. Enable rate limiting
-5. Use HTTPS/TLS in production
-6. Implement proper session management
-7. Add input validation and sanitization
-8. Consider OAuth2/OIDC for enterprise use
+- Web UI: <http://localhost:3000\> (or custom port)
+- API: <http://localhost:5000\> (or custom port)
+- DevPortal: <http://localhost:5001\> (or custom port)
 
 ## 📋 Type Definitions
 
-The UI includes comprehensive TypeScript types based on the OpenAPI spec:
+Key TypeScript interfaces (see `src/components/configForm/types.ts`):
 
 ```typescript
-interface ConfigDeclaration {
-  output?: {
-    type?: 'nms' | 'nginxone';
-    license?: LicenseConfig;
-    nms?: NMSConfig;
-    nginxone?: NginxOneConfig;
-  };
+interface ConfigData {
+  output?: OutputConfig;
   declaration?: {
-    http?: HttpConfig[];
-    layer4?: Layer4Config[];
+    http?: HttpConfig;
+    layer4?: Layer4Config;
     resolvers?: ResolverConfig[];
   };
 }
@@ -207,44 +179,16 @@ interface ConfigDeclaration {
 - Smooth animations and transitions
 - Responsive grid layouts
 - Status indicators with color coding
-- Monaco-style code editor aesthetics
 
 ## 📊 API Request Flow
 
 ```text
-User Action → React Component → React Query Hook → API Service → Axios → Backend API
-                                        ↓
-                              Cache & State Update
-                                        ↓
-                                  UI Re-render
+User Action → React Component → Fetch/Axios → Backend API
+                    ↓
+            State Update (useState)
+                    ↓
+              UI Re-render
 ```
-
-## 🧪 Test Coverage
-
-Tests implemented for:
-
-- ✅ Authentication store (login/logout)
-- ✅ Login page rendering
-- ✅ Config creation hook
-- ✅ API service layer (mocked)
-
-Run `npm run test:coverage` for detailed coverage report.
-
-## 🔄 State Management
-
-**Client State (Zustand):**
-
-- Authentication state
-- User token
-- Login/logout actions
-
-**Server State (TanStack Query):**
-
-- Configuration data
-- Status monitoring
-- Submission tracking
-- Automatic refetching
-- Optimistic updates
 
 ## 🌐 API Proxy Configuration
 
@@ -268,46 +212,25 @@ location /v5.5/ {
 
 ## 📦 Docker Multi-Stage Build
 
-1. **Build stage:** Node.js 24 Alpine
-   - Install dependencies
-   - Build production bundle
+1. **Build stage:** Node.js 24 Alpine — install dependencies, build production bundle
+2. **Production stage:** NGINX Alpine — copy built files, serve with NGINX, proxy API requests to backend
 
-2. **Production stage:** NGINX Alpine
-   - Copy built files
-   - Serve with NGINX
-   - Proxy API requests to backend
+## 🧪 Test Coverage
 
-## 🎯 Future Enhancements
+Tests implemented for:
 
-### Planned Features
-
-- [ ] Form builder for visual config creation
-- [ ] Configuration templates library
-- [ ] Bulk operations
-- [ ] Configuration diff viewer
-- [ ] Export/import configurations
-- [ ] Real-time collaboration
-- [ ] Audit log viewer
-- [ ] Advanced search and filtering
-- [ ] Configuration validation preview
-- [ ] Integration with CI/CD pipelines
-
-### Technical Improvements
-
-- [ ] HTTP-only cookie authentication
-- [ ] Token refresh mechanism
-- [ ] WebSocket support for real-time updates
-- [ ] Advanced Monaco editor integration
-- [ ] Configuration schema validation
-- [ ] Offline support with service workers
-- [ ] Internationalization (i18n)
-- [ ] Accessibility (WCAG 2.1 AA)
+- API Gateway section toggle and OpenAPI schema modes
+- Field validation (required error messages)
+- Profile dropdown population from HTTP-level profiles
+- Live profile name propagation to API Gateway location dropdowns
+- Page-level integration (submit, JSON editor round-trip, status polling)
 
 ## 📚 Related Documentation
 
-- [Web UI README](../webui/README.md) - Detailed Web UI documentation
+- [Web UI README](README.md) - Setup and usage guide
 - [USAGE-v5.5.md](../USAGE-v5.5.md) - API v5.5 usage guide
 - [Docker Compose README](../contrib/docker-compose/README.md) - Deployment guide
+- [OpenAPI Spec](../openapi.json) - Complete API specification
 
 ## 🤝 Contributing
 
@@ -315,15 +238,9 @@ When contributing to the Web UI:
 
 1. Follow TypeScript best practices
 2. Write tests for new features
-3. Use Prettier for code formatting
-4. Update type definitions when API changes
-5. Document new components and hooks
-6. Ensure accessibility standards
+3. Update type definitions when API changes
+4. Document new components
 
 ## 📄 License
 
 Apache License 2.0 - See [LICENSE.md](../LICENSE.md)
-
----
-
-Built with ❤️ for the NGINX Declarative API project

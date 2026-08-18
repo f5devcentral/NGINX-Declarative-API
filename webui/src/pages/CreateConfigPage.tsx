@@ -10,7 +10,7 @@ import './CreateConfigPage.css';
 
 const nimTemplate: ConfigDeclaration = {
   output: {
-    type: 'nms',
+    type: 'nim',
     nms: {
       url: 'https://nginx-instance-manager.example.com',
       username: 'admin',
@@ -52,7 +52,7 @@ const nimTemplate: ConfigDeclaration = {
 
 const nginxOneTemplate: ConfigDeclaration = {
   output: {
-    type: 'nginxone',
+    type: 'n1c',
     nginxone: {
       url: 'https://nginx-one.example.com',
       namespace: 'default',
@@ -98,7 +98,7 @@ const nginxOneTemplate: ConfigDeclaration = {
 
 const apiGatewayTemplate: ConfigDeclaration = {
   output: {
-    type: 'nms',
+    type: 'nim',
     nms: {
       url: 'https://nginx-instance-manager.example.com',
       username: 'admin',
@@ -195,16 +195,36 @@ export const CreateConfigPage = () => {
     }
     try {
       JSON.parse(jsonValue); // validate JSON before copying
-      await navigator.clipboard.writeText(jsonValue);
-      setCopied(true);
-      toast.success('Configuration copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       if (error instanceof SyntaxError) {
         toast.error('Invalid JSON: ' + error.message);
-      } else {
-        toast.error('Failed to copy to clipboard');
       }
+      return;
+    }
+    // Try Clipboard API first, fall back to execCommand for HTTP contexts
+    const doCopy = async (): Promise<void> => {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(jsonValue);
+        return;
+      }
+      // Fallback: use a temporary textarea + execCommand
+      const el = document.createElement('textarea');
+      el.value = jsonValue;
+      el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(el);
+      if (!ok) throw new Error('execCommand copy failed');
+    };
+    try {
+      await doCopy();
+      setCopied(true);
+      toast.success('Configuration copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy to clipboard');
     }
   };
 
@@ -286,7 +306,7 @@ export const CreateConfigPage = () => {
           <div className="templates-grid">
             <div className="template-card" onClick={() => loadTemplate(nimTemplate)}>
               <h4>NGINX Instance Manager</h4>
-              <p>HTTP configuration for a NIM instance group</p>
+              <p>HTTP configuration for an NGINX Instance Manager instance group</p>
             </div>
             <div className="template-card" onClick={() => loadTemplate(nginxOneTemplate)}>
               <h4>NGINX One Console</h4>
@@ -334,8 +354,8 @@ export const CreateConfigPage = () => {
                 value={jsonValue}
                 path="nginx-dapi-config.json"
                 onMount={handleEditorMount}
-                onChange={(val) => { setJsonValue(val ?? ''); setIsDirty(true); }}
                 options={{
+                  readOnly: true,
                   fontSize: 13,
                   tabSize: 2,
                   minimap: { enabled: false },

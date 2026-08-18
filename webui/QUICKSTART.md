@@ -46,8 +46,8 @@ Open browser: <http://localhost:3000>
 
 ### Step 4: Create Your First Configuration
 
-1. Click "Create Config" in navigation
-2. Edit the JSON declaration
+1. Fill in the Output section (choose NIM or NGINX One target)
+2. Add HTTP or Layer 4 configuration as needed
 3. Click "Create Configuration"
 
 Example minimal config:
@@ -172,12 +172,10 @@ Dev server runs at <http://localhost:3000> with auto-reload.
 
 ## 🎯 Next Steps
 
-1. ✅ Login to Web UI
-2. ✅ Explore the Dashboard
-3. ✅ Create a test configuration
-4. 📖 Read the API v5.5 usage guide in `/USAGE-v5.5.md` for API details
-5. 📚 Check [Web UI Documentation](README.md)
-6. 🧪 Try the Postman collection in `/contrib/postman`
+1. ✅ Create a test configuration
+2. 📖 Read the API v5.5 usage guide in `/USAGE-v5.5.md` for API details
+3. 📚 Check [Web UI Documentation](README.md)
+4. 🧪 Try the Postman collection in `/contrib/postman`
 
 ## 💡 Tips
 

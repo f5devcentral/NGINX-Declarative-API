@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -46,7 +46,7 @@ jobs:
         run: npm run test:coverage -- --run
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           files: coverage.xml,webui/coverage/lcov.info
           flags: python,webui
@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Log in to the Container registry
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -74,7 +74,7 @@ jobs:
       # Build and push dapi container (main Dockerfile)
       - name: Extract metadata (tags, labels) for dapi container
         id: meta-dapi
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -84,7 +84,7 @@ jobs:
             type=sha
 
       - name: Build and push dapi image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: .
           push: true
@@ -94,7 +94,7 @@ jobs:
       # Build and push WebUI container
       - name: Extract metadata (tags, labels) for WebUI container
         id: meta-webui
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-webui
           tags: |
@@ -104,7 +104,7 @@ jobs:
             type=sha
 
       - name: Build and push WebUI image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: webui/.
           push: true
@@ -114,7 +114,7 @@ jobs:
       # Build and push DevPortal container
       - name: Extract metadata (tags, labels) for DevPortal container
         id: meta-devportal
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-devportal
           tags: |
@@ -124,7 +124,7 @@ jobs:
             type=sha
 
       - name: Build and push DevPortal image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: contrib/devportal/redocly/.
           push: true

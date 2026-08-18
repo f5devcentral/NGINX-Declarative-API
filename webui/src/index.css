@@ -7,6 +7,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* ── Sticky header height — update here if header padding/content changes ── */
+  --header-height: 5rem;
+
   /* ── Accent (same in both modes) ───────────────────────────── */
   --accent:       #009639;
   --accent-light: #00bf47;
