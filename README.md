@@ -61,16 +61,14 @@ A **blog article** to automate NGINX API Gateway management from OpenAPI schemas
 title: NGINX Declarative API architecture
 ---
 stateDiagram-v2
-    DevOps: User
-    Client: REST Client
-    Pipeline: CI/CD Pipeline
+    Client: **REST Client**
+    Pipeline: **CI/CD Pipeline**
     NIM: NGINX Instance Manager
     N1: NGINX One Console
     AGENT1: NGINX Agent
     NGINX1: NGINX
     AGENT2: NGINX Agent
     NGINX2: NGINX
-    INPUT: Input
     SOT: Source of Truth
     NDAPI: NGINX Declarative API
     DEVP: Developer Portal Service
@@ -78,14 +76,12 @@ stateDiagram-v2
     REDIS: Redis
     3RDPARTY: 3rd Party integrations
     MCP: MCP Server
-    MCPC: MCP Client
+    MCPC: **MCP Client**
 
     MCPC --> MCP
     MCP --> NDAPI
-    DevOps --> Pipeline
-    Pipeline --> INPUT
-    Client --> INPUT
-    INPUT --> NDAPI
+    Pipeline --> NDAPI
+    Client --> NDAPI
     NDAPI --> OUTPUT
     NDAPI --> SOT
     SOT --> NDAPI
