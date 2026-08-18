@@ -204,11 +204,14 @@ end
 
 See the [features list](/FEATURES.md)
 
-### MCP server (Model Context Protocol)
+### 🤖 MCP server (Model Context Protocol)
 
-`contrib/mcp` provides an MCP server that lets LLMs (Claude Desktop, Claude Code, or any MCP-compatible client) drive the NGINX Declarative API using
-natural language. Creating, updating, retrieving, and deleting declarations, and checking asynchronous submission status, without the user hand-writing JSON or REST calls.
-See `contrib/mcp/README.md` for setup.
+[contrib/mcp](/contrib/mcp) provides an MCP server that lets LLMs (Claude Desktop, Claude Code, or any MCP-compatible client) drive the NGINX Declarative API using
+natural language.
+
+Creating, updating, retrieving, and deleting declarations, and checking asynchronous submission status, without the user hand-writing JSON or REST calls.
+
+See the [MCP Server README](/contrib/mcp/README.md) for setup.
 
 ## 🔧 How to use
 
