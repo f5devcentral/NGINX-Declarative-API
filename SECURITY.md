@@ -12,11 +12,11 @@ The NGINX Declarative API project takes security seriously. This document outlin
 
 Security fixes are applied to the **latest stable release** only. We strongly encourage all users to stay on the most recent version.
 
-| Version | Supported          |
-|---------|--------------------|
-| 5.5.x   | ✅ Yes (latest)    |
-| 5.4.x   | ⚠️ Critical fixes only |
-| < 5.4   | ❌ No              |
+| Version | Supported             |
+|---------|-----------------------|
+| 5.7.x   | ✅ Yes (latest)       |
+| 5.6.x   | ⚠️Critical fixes only |
+| < 5.6   | ❌ No                 |
 
 ---
 
