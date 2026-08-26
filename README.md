@@ -6,7 +6,7 @@
 NGINX Declarative API enables users to manage **NGINX configurations** in a modern **declarative style**. Instead of modifying configurations manually or using low-level APIs, this project simplifies operational workflows by allowing users to express desired configurations as a single JSON object.
 The API abstracts the complexity of managing NGINX configurations, empowering developers, operators, and automation systems to integrate seamlessly with NGINX.
 
-This project supports [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) and [F5 NGINX One Console](https://docs.nginx.com/nginx-one/)
+This project supports [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) and [F5 NGINX One Console](https://docs.nginx.com/nginx-one-console/)
 
 ## 📚 Overview
 
