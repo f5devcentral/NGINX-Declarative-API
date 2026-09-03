@@ -42,7 +42,7 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "jsdom": "^29.0.1",
     "prettier": "^3.2.4",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vite": "^8.0.2",
     "vitest": "^4.1.1"
   },
