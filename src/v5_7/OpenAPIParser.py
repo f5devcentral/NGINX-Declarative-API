@@ -3,6 +3,7 @@ OpenAPI schema parser support functions
 """
 
 import json
+from multiprocessing import context
 from typing import Dict, Any, List, Optional
 
 
@@ -108,7 +109,9 @@ class OpenAPIParser:
             'details': {
                 'description': methodInfo.get('description', ''),
                 'summary': methodInfo.get('summary', ''),
-                'operationId': methodInfo.get('operationId', '')
+                'operationId': methodInfo.get('operationId', ''),
+                'requestBodyRequired': methodInfo.get('requestBody', {}).get('required', False),
+                'bodyContentType': next(iter(list(methodInfo.get('requestBody', {}).get('content', {}).keys())),'')
             },
             'parameters': []
         }
