@@ -178,6 +178,7 @@ def runAsynchronousWorker():
             f"Processing asynchronous declaration: API [{item['apiVersion']}] method [{item['method']}] configUid [{item['configUid']}] submissionUid [{item['submissionUid']}]")
         declaration = item['declaration']
 
+        response = None
         if item['apiVersion'] == 'v5.5':
             response = V5_5_CreateConfig.patch_config(declaration=declaration, configUid=item['configUid'],
                                                       apiversion=item['apiVersion'])
@@ -188,7 +189,8 @@ def runAsynchronousWorker():
             response = V5_7_CreateConfig.patch_config(declaration=declaration, configUid=item['configUid'],
                                                       apiversion=item['apiVersion'])
 
-        NcgRedis.redis.set(f"ncg.async.submission.{item['submissionUid']}", response.body.decode("utf-8"))
+        if response:
+            NcgRedis.redis.set(f"ncg.async.submission.{item['submissionUid']}", response.body.decode("utf-8"))
 
         redis.asyncQueue.task_done()
 

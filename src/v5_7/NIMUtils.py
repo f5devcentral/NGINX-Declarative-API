@@ -3,7 +3,6 @@ NGINX Instance Manager support utility functions
 """
 
 import json
-from collections import namedtuple
 
 import requests
 from typing import Tuple, Optional

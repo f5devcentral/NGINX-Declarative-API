@@ -3,7 +3,6 @@ Asynchronous declarations support
 """
 
 import json
-import pickle
 from typing import Optional, Tuple, Dict, Any
 
 import v5_7.MiscUtils

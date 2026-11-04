@@ -8,7 +8,7 @@ import json
 import pickle
 import time
 import schedule
-from typing import Dict, Any, Tuple, Optional
+from typing import Tuple, Optional
 from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlparse
 from datetime import datetime
@@ -254,6 +254,7 @@ def _poll_publication_status(
     jsonResponse = {}
     deployment_status_code = 200
 
+    checkJson = {}
     while isPending:
         time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
         deploymentCheck = requests.get(

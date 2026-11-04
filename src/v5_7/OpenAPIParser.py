@@ -2,8 +2,6 @@
 OpenAPI schema parser support functions
 """
 
-import json
-from multiprocessing import context
 from typing import Dict, Any, List, Optional
 
 
@@ -104,17 +102,18 @@ class OpenAPIParser:
         if method.upper() not in self.httpMethods:
             return None
 
-        m = {
-            'method': method,
-            'details': {
-                'description': methodInfo.get('description', ''),
-                'summary': methodInfo.get('summary', ''),
-                'operationId': methodInfo.get('operationId', ''),
-                'requestBodyRequired': methodInfo.get('requestBody', {}).get('required', False),
-                'bodyContentType': next(iter(list(methodInfo.get('requestBody', {}).get('content', {}).keys())),'')
-            },
-            'parameters': []
-        }
+        m = {}
+        m['method'] = method
+        m['details'] = {}
+        m['details']['description'] = methodInfo.get('description', '')
+        m['details']['summary'] = methodInfo.get('summary', '')
+        m['details']['operationId'] = methodInfo.get('operationId', '')
+        m['details']['requestBodyRequired'] = methodInfo.get('requestBody', {}).get('required', False)
+        m['details']['requestBodyContentType'] = []
+        m['parameters'] = []
+
+        for rbct in list(methodInfo.get('requestBody', {}).get('content', {}).keys()):
+            m['details']['requestBodyContentType'].append(rbct)
 
         raw_params = methodInfo.get('parameters')
         if raw_params and isinstance(raw_params, list):

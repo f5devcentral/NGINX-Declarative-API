@@ -5,7 +5,7 @@ API Gateway Developer Portal support functions
 import json
 import base64
 import requests
-from typing import Tuple, Any, Dict
+from typing import Tuple, Any
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
@@ -30,12 +30,13 @@ def buildDevPortal(openapischema: str) -> Tuple[int, Any]:
         host = NcgConfig.config['devportal']['host']
         port = NcgConfig.config['devportal']['port']
         uri = NcgConfig.config['devportal']['uri']
+        timeout = NcgConfig.config['devportal']['timeout']
         url = f"http://{host}:{port}{uri}"
 
         response = requests.post(
             url,
             headers={'Content-Type': 'application/json'},
-            data=openapischema
+            data=openapischema, timeout=timeout
         )
         return response.status_code, json.loads(response.text)
     except Exception:

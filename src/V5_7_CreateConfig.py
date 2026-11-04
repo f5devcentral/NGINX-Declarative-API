@@ -10,7 +10,7 @@ import v5_7.DeclarationPatcher
 import v5_7.MiscUtils
 
 from NcgRedis import NcgRedis
-from AppLogger import AppLogger, get_logger
+from AppLogger import get_logger
 
 # pydantic models
 from V5_7_NginxConfigDeclaration import *

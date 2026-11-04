@@ -3,14 +3,33 @@
 # Base URI: {{ declaration.location.uri }}
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri }}
 
-{%- for path in declaration.paths -%}
-{%- for method in path.methods %}
+{% for path in declaration.paths %}
+
+# Enforce mandatory request body check
+{% if declaration.location.apigateway.api_gateway.enforce_bodies %}
+map $request_method-$host-$uri-$http_content_type-$request_body $is_request_body_ok_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+{% for method in path.methods %}
+{% if method.details.requestBodyRequired %}
+{% set prefix = method.method | upper ~ '-' ~ server ~ '-' ~ declaration.location.uri ~ path.path ~ '-' %}
+{% set cts = namespace(items=[]) %}
+{% for contentType in method.details.requestBodyContentType %}
+{% set cts.items = cts.items + ['\\Q' ~ contentType ~ '\\E'] %}
+{% endfor %}
+  ~^\Q{{ prefix }}\E{% if cts.items %}(?!(?:{{ cts.items | join('|') }})-){% endif %}[\s\S]*$ 0;
+{% endif %}
+{% endfor %}
+  default 1;
+}
+{% endif %}
+
+{% for method in path.methods %}
+
 {%- set queryStringParms = namespace(allParams = '') %}
 {%- for parm in method.parameters -%}
 {%- if parm.required | lower == "true" and parm.in | lower == "query" %}
 {%- set queryStringParms.allParams = queryStringParms.allParams + ' ' + parm.name %}
 {%- endif %}
-{%- endfor -%}
+{%- endfor %}
 
 
 {% if queryStringParms.allParams != '' %}
@@ -34,7 +53,7 @@ map "" $required_params_{{ method.method }}_{{ server | replace('.','_') }}{{ de
 map $request_method$host$uri-$arg_{{ parm.name }} $wrongvalue_{{ method.method }}_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }}_{{ parm.name }}
 {
 {% for enum in parm.schema.enum %}
-  "{{ method.method|upper }}{{ server }}{{ declaration.location.uri }}{{ path.path }}-{{ enum }}" 0;
+  "{{ method.method | upper }}{{ server }}{{ declaration.location.uri }}{{ path.path }}-{{ enum }}" 0;
 {% set allParamsValues.missing = allParamsValues.missing + "$wrongvalue_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('-','_') | replace('/','_') + path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name + "-" + enum %}
 {% endfor %}
   default 1;

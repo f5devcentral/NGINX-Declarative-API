@@ -8,7 +8,6 @@ Or via the console script (after `pip install -e .`):
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 import sys
 

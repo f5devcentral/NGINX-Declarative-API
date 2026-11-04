@@ -8,7 +8,7 @@ import yaml
 import uuid
 import socket
 import base64
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Tuple, Optional
 
 
 def getDictKey(_dict: dict, key_lookup: str, separator: str = '.') -> Optional[Any]:

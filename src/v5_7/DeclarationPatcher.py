@@ -2,7 +2,7 @@
 Declaration parsing functions
 """
 
-from typing import Dict, Any, List
+from typing import List
 
 
 def _patch_section_item(sourceDeclaration: dict, section_path: List[str], patched_item: dict) -> dict:

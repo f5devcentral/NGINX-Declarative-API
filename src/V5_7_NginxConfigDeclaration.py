@@ -344,7 +344,7 @@ class APIGatewayAuthorization(BaseModel, extra="forbid"):
 
 class APIGatewayCache(BaseModel, extra="forbid"):
     profile: str
-    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    key: Optional[str] = "$scheme$proxy_host$request_uri"
     validity: Optional[List[CacheObjectTTL]] = []
     enforceOnPaths: Optional[bool] = True
     paths: Optional[List[str]] = []
@@ -838,7 +838,7 @@ class CacheObjectTTL(BaseModel, extra="forbid"):
 
 class CacheItem(BaseModel, extra="forbid"):
     profile: Optional[str] = ""
-    key: Optional[str] = "$scheme$proxy_host$request_uri";
+    key: Optional[str] = "$scheme$proxy_host$request_uri"
     validity: Optional[List[CacheObjectTTL]] = []
 
     @model_validator(mode='after')
@@ -963,6 +963,8 @@ class API_Gateway(BaseModel, extra="forbid"):
     enabled: Optional[bool] = False
     strip_uri: Optional[bool] = False
     server_url: Optional[str] = ""
+    enforce_methods: Optional[bool] = True
+    enforce_bodies: Optional[bool] = True
 
 
 class DevPortal_Redocly(BaseModel, extra="forbid"):

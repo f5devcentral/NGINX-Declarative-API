@@ -8,7 +8,7 @@ import json
 import pickle
 import time
 import schedule
-from typing import Dict, Any, Tuple, Optional
+from typing import Tuple, Optional
 from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlparse
 
