@@ -6,7 +6,7 @@
 # Main variables
 main:
   banner: "NGINX Declarative API"
-  version: "5.7.0"
+  version: "5.7.1"
   url: "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 log:
@@ -73,7 +73,7 @@ devportal:
   host: "devportal"
   port: 5000
   uri: "/v1/devportal"
-  timeout: 3s
+  timeout: 5s
 
 # Staged configuration directories
 nms:
@@ -100,7 +100,7 @@ nms:
   # Time (in seconds) to wait between two subsequent asynchronous submissions publish requests through PATCH
   asynchronous_publish_waittime: 30
 
-  # NGINX App Protect support
+  # F5 WAF for NGINX
   nap_policies_dir: "/etc/nginx/waf/policies"
   nap_logformats_dir: "/etc/nginx/waf/logformats"
   nap_logformats_template: "logformat.tmpl"

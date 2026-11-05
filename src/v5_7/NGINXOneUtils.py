@@ -45,7 +45,11 @@ def getConfigSyncGroupId(
         else:
             return cSyncGroup.status_code, f"Error fetching config sync group [{text}]"
 
-    igJson = json.loads(text)
+    try:
+        igJson = json.loads(text)
+    except Exception as e:
+        return 502, f"NGINX Instance Manager unreachable at [{nOneUrl}]"
+
     for item in igJson.get('items', []):
         if item.get('name') == configSyncGroupName:
             object_id = item.get('object_id','')

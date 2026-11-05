@@ -8,6 +8,8 @@ from pydantic import BaseModel, model_validator
 
 import re
 
+from v5_7 import MiscUtils
+
 # Regexp to check names
 alphanumRegexp = r'^[a-zA-Z0-9\ \-\_]+$'
 
@@ -235,6 +237,15 @@ class Listen(BaseModel, extra="forbid"):
     http2: Optional[bool] = False
     tls: Optional[Tls] = None
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'Listen':
+        address = self.address
+
+        if not MiscUtils.validate_host(v=address, port_mode="optional"):
+            raise ValueError(f"Invalid address [{address}] should be a valid FQDN, IPv4, or IPv6 address, and optional port")
+
+        return self
+
 class ListenL4(BaseModel, extra="forbid"):
     address: Optional[str] = ""
     protocol: Optional[str] = "tcp"
@@ -242,7 +253,7 @@ class ListenL4(BaseModel, extra="forbid"):
 
     @model_validator(mode='after')
     def check_type(self) -> 'ListenL4':
-        protocol, tls = self.protocol, self.tls
+        address, protocol, tls = self.address, self.protocol, self.tls
 
         valid = ['tcp', 'udp']
         if protocol not in valid:
@@ -250,6 +261,9 @@ class ListenL4(BaseModel, extra="forbid"):
 
         if protocol != 'tcp' and tls and tls.certificate:
             raise ValueError("TLS termination over UDP is not supported")
+
+        if not MiscUtils.validate_host(v=address, port_mode="required"):
+            raise ValueError(f"Invalid address [{address}] should be a valid FQDN, IPv4, or IPv6 address, and port")
 
         return self
 
@@ -516,6 +530,16 @@ class ObjectFromSourceOfTruth(BaseModel, extra="forbid"):
     content: str = ""
     authentication: Optional[List[LocationAuthServer]] = []
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'ObjectFromSourceOfTruth':
+        _content = self.content
+
+        prefixes = ["http://", "https://"]
+        if _content != "" and (not _content.lower().startswith(tuple(prefixes)) and MiscUtils.isBase64(_content) == False):
+            raise ValueError(f"Invalid content [{_content}] must be either an HTTP(S) URL or a base64-encoded string")
+
+        return self
+
 
 class NjsHook_js_body_filter(BaseModel, extra="forbid"):
     buffer_type: Optional[str] = ""
@@ -766,9 +790,13 @@ class Resolver(BaseModel, extra="forbid"):
     @model_validator(mode='after')
     def check_type(self) -> 'Resolver':
         name = self.name
+        address = self.address
 
         if not re.search(alphanumRegexp,name):
             raise ValueError(f"Invalid resolver name [{name}] should match regexp {alphanumRegexp}")
+
+        if not MiscUtils.validate_host(v=address, port_mode="none"):
+            raise ValueError(f"Invalid address [{address}] should be a valid FQDN, IPv4, or IPv6 address")
 
         return self
 

@@ -8,8 +8,16 @@ import yaml
 import uuid
 import socket
 import base64
-from typing import Any, Tuple, Optional
+import ipaddress
+from typing import Any, Tuple, Optional, Literal
 
+
+PortMode = Literal["none", "optional", "required"]
+FQDN_REGEX = re.compile(
+    r"^(?=.{1,253}$)"
+    r"(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+"
+    r"(?!-)(?!\d+$)[A-Za-z0-9-]{2,63}(?<!-)$"
+)
 
 def getDictKey(_dict: dict, key_lookup: str, separator: str = '.') -> Optional[Any]:
     """
@@ -133,3 +141,74 @@ def isBase64(s: str) -> bool:
         return base64.b64encode(base64.b64decode(s)) == bytes(s, "utf-8")
     except Exception:
         return False
+
+
+def _is_valid_port(port_str: str) -> bool:
+    return (
+        port_str.isascii()
+        and port_str.isdigit()
+        and not port_str.startswith("0")
+        and 1 <= int(port_str) <= 65535
+    )
+
+
+def _is_valid_address(host: str, allow_wildcard: bool = False) -> bool:
+    if allow_wildcard and host == "*":
+        return True
+    # 1. Check IPv4 or IPv6
+    try:
+        ipaddress.ip_address(host)
+        return True
+    except ValueError:
+        pass
+    # 2. Check FQDN (with IDN / Punycode support)
+    candidate = host[:-1] if host.endswith(".") else host
+    if not candidate:
+        return False
+    try:
+        ascii_host = candidate.encode("idna").decode("ascii")
+    except UnicodeError:
+        return False
+    return bool(FQDN_REGEX.match(ascii_host))
+
+
+def validate_host(v: str, port_mode: PortMode = "optional") -> bool:
+    allow_wildcard = port_mode in ("optional", "required")
+    # 1. Handle bracketed IPv6: [2001:db8::1] or [2001:db8::1]:8080
+    if v.startswith("["):
+        if v.endswith("]"):
+            if port_mode == "required":
+                return False
+            host = v[1:-1]
+        elif "]:" in v:
+            if port_mode == "none":
+                return False
+            host, port_str = v[1:].rsplit("]:", 1)
+            if not _is_valid_port(port_str):
+                return False
+        else:
+            return False
+        try:
+            ipaddress.IPv6Address(host)
+            return True
+        except ValueError:
+            return False
+    # 2. Handle unbracketed input containing colon(s)
+    if ":" in v:
+        # When port is forbidden or optional, check if `v` is a raw IPv6 address first
+        if port_mode in ("none", "optional"):
+            try:
+                ipaddress.IPv6Address(v)
+                return True
+            except ValueError:
+                if port_mode == "none":
+                    return False
+        # Otherwise, split the last ":port" segment
+        host, port_str = v.rsplit(":", 1)
+        if not _is_valid_port(port_str):
+            return False
+        return _is_valid_address(host, allow_wildcard=allow_wildcard)
+    # 3. Handle unbracketed input without colons (no port present)
+    if port_mode == "required":
+        return False
+    return _is_valid_address(v, allow_wildcard=allow_wildcard)

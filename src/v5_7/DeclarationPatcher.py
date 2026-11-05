@@ -5,7 +5,7 @@ Declaration parsing functions
 from typing import List
 
 
-def _patch_section_item(sourceDeclaration: dict, section_path: List[str], patched_item: dict) -> dict:
+def _patch_section_item(sourceDeclaration: dict, section_path: List[str], patched_item: dict, key_field: str = 'name') -> dict:
     """
     Generic helper to safely navigate a nested dictionary structure and patch/delete/add an item by name.
 
@@ -18,7 +18,7 @@ def _patch_section_item(sourceDeclaration: dict, section_path: List[str], patche
         dict: The updated sourceDeclaration dictionary.
     """
     current = sourceDeclaration
-    for i, key in enumerate(section_path[:-1]):
+    for key in section_path[:-1]:
         if key not in current or not isinstance(current[key], dict):
             current[key] = {}
         current = current[key]
@@ -31,18 +31,21 @@ def _patch_section_item(sourceDeclaration: dict, section_path: List[str], patche
     have_we_patched = False
 
     for s in current[target_key]:
-        if s.get('name') == patched_item.get('name'):
-            # Patching existing item. Item with only 'name' (len == 1) indicates deletion.
-            if len(patched_item) > 1:
+        if s.get(key_field) == patched_item.get(key_field):
+            # Patching existing item.
+            # For named items, only 'name' (len == 1) indicates deletion.
+            # For maps (match + variable required by Pydantic), empty entries indicates deletion.
+            is_delete = (
+                len(patched_item) == 1
+                or (key_field == 'variable' and not patched_item.get('entries'))
+            )
+            if not is_delete:
                 all_target_items.append(patched_item)
             have_we_patched = True
         else:
             all_target_items.append(s)
-
     if not have_we_patched:
-        # Item is new, append to target list
         all_target_items.append(patched_item)
-
     current[target_key] = all_target_items
     return sourceDeclaration
 
