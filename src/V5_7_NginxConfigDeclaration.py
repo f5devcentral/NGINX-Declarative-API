@@ -4,7 +4,7 @@ JSON declaration structure - NGINX Declarative API v5.7
 
 from __future__ import annotations
 from typing import List, Optional
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, HttpUrl, TypeAdapter, ValidationError
 
 import re
 
@@ -110,22 +110,41 @@ class LogProfile(BaseModel, extra="forbid"):
 
 
 class OutputNMS(BaseModel, extra="forbid"):
-    url: str = ""
+    url: str = HttpUrl
     username: str = ""
     password: str = ""
     instancegroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'OutputNMS':
+        _url = self.url
+        try:
+            TypeAdapter(HttpUrl).validate_python(_url)
+        except ValidationError as e:
+            raise ValueError(f"Malformed URL [{_url}]") from e
+
+        return self
+
 
 class OutputNGINXOne(BaseModel, extra="forbid"):
-    url: str = ""
+    url: str = HttpUrl
     namespace: str = ""
     token: str = ""
     configsyncgroup: str = ""
     synctime: Optional[int] = 0
     modules: Optional[List[str]] = []
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'OutputNGINXOne':
+        _url = self.url
+        try:
+            TypeAdapter(HttpUrl).validate_python(_url)
+        except ValidationError as e:
+            raise ValueError(f"Malformed URL [{_url}]") from e
+
+        return self
 
 class License(BaseModel, extra="forbid"):
     endpoint: Optional[str] = "product.connect.nginx.com"
@@ -384,9 +403,6 @@ class AuthClientJWT(BaseModel, extra="forbid"):
     def check_type(self) -> 'AuthClientJWT':
         jwt_type, key = self.jwt_type, self.key
 
-        #if not key.strip():
-        #    raise ValueError(f"Invalid: JWT key must not be empty")
-
         valid = ['signed', 'encrypted', 'nested']
         if jwt_type not in valid:
             raise ValueError(f"Invalid JWT type [{jwt_type}] must be one of {str(valid)}")
@@ -409,7 +425,7 @@ class AuthClientOIDC(BaseModel, extra="forbid"):
     issuer: str = ""
     client_id: str = ""
     client_secret: str = ""
-    config_url: Optional[str] = ""
+    config_url: Optional[HttpUrl] = ""
     cookie_name: Optional[str] = ""
     extra_auth_args: Optional[str] = ""
     redirect_uri: Optional[str] = "/oidc_callback"
@@ -418,10 +434,36 @@ class AuthClientOIDC(BaseModel, extra="forbid"):
     logout_token_hint: Optional[bool] = False
     scope: Optional[str] = "openid"
     session_store: Optional[str] = ""
+    session_sync_leeway: Optional[str] = "0"
     session_timeout: Optional[str] = "8h"
     ssl_crl: Optional[str] = ""
     ssl_trusted_certificate: Optional[str] = ""
     userinfo: Optional[bool] = False
+
+    @model_validator(mode='after')
+    def check_type(self) -> 'AuthClientOIDC':
+        _issuer, _config_url, _redirect_uri, _logout_uri, _post_logout_uri = self.issuer, self.config_url, self.redirect_uri, self.logout_uri, self.post_logout_uri
+
+        if _issuer:
+            try:
+                TypeAdapter(HttpUrl).validate_python(_issuer)
+            except ValidationError as e:
+                raise ValueError(f"Malformed issuer URL [{_issuer}]") from e
+
+        if _config_url:
+            try:
+                TypeAdapter(HttpUrl).validate_python(_config_url)
+            except ValidationError as e:
+                raise ValueError(f"Malformed config URL [{_config_url}]") from e
+
+        if _redirect_uri and _redirect_uri.startswith("/") == False:
+            raise ValueError(f"Invalid redirect URI [{_redirect_uri}]")
+        if _logout_uri and _logout_uri.startswith("/") == False:
+            raise ValueError(f"Invalid logout URI [{_logout_uri}]")
+        if _post_logout_uri and _post_logout_uri.startswith("/") == False:
+            raise ValueError(f"Invalid post logout URI [{_post_logout_uri}]")
+
+        return self
 
 
 class AuthServerToken(BaseModel, extra="forbid"):
@@ -795,7 +837,7 @@ class Resolver(BaseModel, extra="forbid"):
         if not re.search(alphanumRegexp,name):
             raise ValueError(f"Invalid resolver name [{name}] should match regexp {alphanumRegexp}")
 
-        if not MiscUtils.validate_host(v=address, port_mode="none"):
+        if not MiscUtils.validate_host(v=address, port_mode="optional_no_wildcard"):
             raise ValueError(f"Invalid address [{address}] should be a valid FQDN, IPv4, or IPv6 address")
 
         return self
@@ -993,11 +1035,31 @@ class API_Gateway(BaseModel, extra="forbid"):
     server_url: Optional[str] = ""
     enforce_methods: Optional[bool] = True
     enforce_bodies: Optional[bool] = True
+    enforce_parameters: Optional[bool] = True
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'API_Gateway':
+        _server_url = self.server_url
+
+        if _server_url:
+            try:
+                TypeAdapter(HttpUrl).validate_python(_server_url)
+            except ValidationError as e:
+                raise ValueError(f"Malformed URL [{_server_url}]") from e
+
+        return self
 
 class DevPortal_Redocly(BaseModel, extra="forbid"):
     uri: Optional[str] = "/devportal.html"
 
+    @model_validator(mode='after')
+    def check_type(self) -> 'DevPortal_Redocly':
+        _uri = self.uri
+
+        if _uri and _uri.startswith("/") == False:
+            raise ValueError(f"Invalid developer portal URI [{_uri}]")
+
+        return self
 
 class DevPortal_Backstage(BaseModel, extra="forbid"):
     name: str = ""

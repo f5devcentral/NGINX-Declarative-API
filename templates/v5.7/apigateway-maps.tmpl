@@ -7,18 +7,21 @@
 
 # Enforce mandatory request body check
 {% if declaration.location.apigateway.api_gateway.enforce_bodies %}
-map $request_method-$host-$uri-$http_content_type-$request_body $is_request_body_ok_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+map $request_method-$host-$uri-$http_content_type-$http_content_length $is_request_body_check_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
+{% set bodiesToBeChecked = namespace() %}
+{% set bodiesToBeChecked.found = false %}
 {% for method in path.methods %}
 {% if method.details.requestBodyRequired %}
+{% set bodiesToBeChecked.found = true %}
 {% set prefix = method.method | upper ~ '-' ~ server ~ '-' ~ declaration.location.uri ~ path.path ~ '-' %}
 {% set cts = namespace(items=[]) %}
 {% for contentType in method.details.requestBodyContentType %}
 {% set cts.items = cts.items + ['\\Q' ~ contentType ~ '\\E'] %}
 {% endfor %}
-  ~^\Q{{ prefix }}\E{% if cts.items %}(?!(?:{{ cts.items | join('|') }})-){% endif %}[\s\S]*$ 0;
+  ~^\Q{{ prefix }}\E{% if cts.items %}(?:{{ cts.items | join('|') }}){% endif %}-(?!0+$)[^\s]+$ 1;
 {% endif %}
 {% endfor %}
-  default 1;
+  default {% if bodiesToBeChecked.found %}0{% else %}1{% endif %};
 }
 {% endif %}
 

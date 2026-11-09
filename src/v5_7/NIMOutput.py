@@ -38,7 +38,7 @@ from NcgRedis import NcgRedis
 
 def _validate_target_url_and_dns(d: dict) -> Tuple[Optional[dict], str, str, str, str, int]:
     """
-    Validates NMS URL, DNS resolution, and synctime settings.
+    Validates NGINX Instance Manager URL, DNS resolution, and synctime settings.
 
     Returns:
         Tuple[Optional[dict], str, str, str, str, int]:
@@ -245,7 +245,7 @@ def _poll_publication_status(
     nmsPassword: str
 ) -> Tuple[int, dict]:
     """
-    Polls NMS deployment status until complete.
+    Polls NGINX Instance Manager deployment status until complete.
 
     Returns:
         Tuple[int, dict]: Status code and response details dict.
@@ -268,7 +268,7 @@ def _poll_publication_status(
             jsonResponse = {"message": f"deployment not found at {rel_link}"}
             isPending = False
 
-        if 'details' in checkJson and not checkJson['details'].get('pending'):
+        if checkJson.get('status',{}) not in ["unknown", "pending"]:
             isPending = False
 
     if 'details' not in checkJson or len(checkJson['details'].get('failure', [])) > 0:
@@ -301,8 +301,8 @@ def _persist_redis_state_and_schedule_autosync(
     if not runfromautosync:
         configUid = str(v5_7.MiscUtils.getuniqueid())
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d, default=str))
+        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig, default=str))
         NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
     if nmsSynctime == 0:
@@ -355,7 +355,7 @@ def NIMOutput(
 
     currentBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}').decode('utf-8') \
         if NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}') else None
-    newBaseStagedConfig = json.dumps(baseStagedConfig)
+    newBaseStagedConfig = json.dumps(baseStagedConfig, default=str)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
         logger.info(f'Declaration [{configUid}] not changed')
@@ -414,7 +414,7 @@ def NIMOutput(
     url = f"{nmsUrl}/api/platform/v1/instance-groups/{igUid}/config"
     r = requests.post(
         url=url,
-        data=json.dumps(stagedConfig),
+        data=json.dumps(stagedConfig, default=str),
         headers={'Content-Type': 'application/json'},
         auth=(nmsUsername, nmsPassword),
         verify=False
@@ -452,10 +452,10 @@ def NIMOutput(
     responseContent = {'code': deployment_status_code, 'content': jsonResponse, 'configUid': configUid}
 
     if configUid != "":
-        NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent))
+        NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent, default=str))
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d, default=str))
+        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig, default=str))
 
     return {
         "status_code": deployment_status_code,
