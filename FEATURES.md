@@ -205,6 +205,7 @@ For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.h
         "scope": "<OPENID_SCOPE>",
         "session_store": "<OPTIONAL_SESSION_KEYVAL_STORE_NAME>",
         "session_timeout": "<OPTIONAL_OIDC_SESSION_TIMEOUT>",
+        "session_sync_leeway": "<OPTIONAL_SESSION_SYNC_LEEWAY>",
         "ssl_crl": "<OPTIONAL_IDP_SSL_CRL_CERTIFICATE_PROFILE_NAME>",
         "ssl_trusted_certificate": "<OPTIONAL_IDP_SSL_TRUSTED_CA_PROFILE_NAME>",
         "userinfo": <true|false>
