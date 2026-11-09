@@ -35,7 +35,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {% if declaration.location.apigateway.api_gateway.enforce_bodies -%}
     {# --- Request body enforcement --- -#}
     if ( $is_request_body_check_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} = 0 ) {
-      return 400 '{"code":40,"message":"Missing required request body"}';
+      return 400 '{"code":400,"message":"Missing required request body"}';
     }
     {% endif %}
 
