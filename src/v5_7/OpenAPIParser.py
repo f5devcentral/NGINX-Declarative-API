@@ -10,6 +10,20 @@ class OpenAPIParser:
     Parser for OpenAPI / Swagger specification dictionaries.
     """
     httpMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
+    httpStatusCodes = [
+    #    "000",
+    #    "100", "101", "102", "103",
+    #    "200", "201", "202", "203", "204", "205", "206", "207", "208", "218", "226",
+        "300", "301", "302", "303", "304", "305", "306", "307", "308",
+        "400", "401", "402", "403", "404", "405", "406", "407", "408", "409",
+        "410", "411", "412", "413", "414", "415", "416", "417", "418", "419",
+        "420", "421", "422", "423", "424", "425", "426", "428", "429", "430",
+        "431", "440", "444", "449", "450", "451", "460", "463", "464",
+        "494", "495", "496", "497", "498",
+        "500", "501", "502", "503", "504", "505", "506", "507", "508", "509",
+        "510", "511", "520", "521", "522", "523", "524", "525", "526", "527",
+        "529", "530", "540", "561", "598", "599",
+    ]
 
     def __init__(self, openAPISchema: Dict[str, Any]):
         """
@@ -110,10 +124,19 @@ class OpenAPIParser:
         m['details']['operationId'] = methodInfo.get('operationId', '')
         m['details']['requestBodyRequired'] = methodInfo.get('requestBody', {}).get('required', False)
         m['details']['requestBodyContentType'] = []
+        m['details']['disallowedResponseCodes'] = self.httpStatusCodes.copy()
         m['parameters'] = []
 
         for rbct in list(methodInfo.get('requestBody', {}).get('content', {}).keys()):
             m['details']['requestBodyContentType'].append(rbct)
+
+        # m['details']['disallowedResponseCodes'] holds the list of disallowed HTTP return codes
+        for respCode in list(methodInfo.get('responses', {}).keys()):
+            if respCode.lower() == 'default':
+                m['details']['responseCodeDefault'] = methodInfo.get('responses', {}).get('default')
+            else:
+                if respCode in m['details']['disallowedResponseCodes']:
+                    m['details']['disallowedResponseCodes'].remove(respCode)
 
         raw_params = methodInfo.get('parameters')
         if raw_params and isinstance(raw_params, list):

@@ -1036,6 +1036,7 @@ class API_Gateway(BaseModel, extra="forbid"):
     enforce_methods: Optional[bool] = True
     enforce_bodies: Optional[bool] = True
     enforce_parameters: Optional[bool] = True
+    enforce_response_codes: Optional[bool] = True
 
     @model_validator(mode='after')
     def check_type(self) -> 'API_Gateway':

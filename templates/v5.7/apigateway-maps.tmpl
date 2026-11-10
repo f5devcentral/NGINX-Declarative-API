@@ -5,8 +5,8 @@
 
 {% for path in declaration.paths %}
 
-# Enforce mandatory request body check
 {% if declaration.location.apigateway.api_gateway.enforce_bodies %}
+# Enforce mandatory request body check
 map $request_method-$host-$uri-$http_content_type-$http_content_length $is_request_body_check_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('/','_') | replace('-','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} {
 {% set bodiesToBeChecked = namespace() %}
 {% set bodiesToBeChecked.found = false %}
