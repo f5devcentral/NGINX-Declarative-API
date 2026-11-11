@@ -64,6 +64,8 @@ map {{ m.match }} {{ m.variable }} {
 {% endfor %}
 {% endif %}
 
+underscores_in_headers on;
+
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
 # Authorization profiles
