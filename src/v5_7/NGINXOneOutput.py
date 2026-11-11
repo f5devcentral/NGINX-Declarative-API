@@ -246,6 +246,8 @@ def _poll_publication_status(
     Returns:
         Tuple[int, dict]: HTTP status code and response body dictionary.
     """
+    logger = get_logger()
+
     headers = {"Authorization": f"APIToken {nOneToken}"}
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}'
 
@@ -253,6 +255,7 @@ def _poll_publication_status(
     checkJson = {}
     while isPending:
         time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+        logger.debug(f"GET {url} {headers}")
         deploymentCheck = requests.get(url=url, headers=headers, verify=False)
         checkJson = json.loads(deploymentCheck.text)
         if checkJson.get('status') != 'pending':
@@ -419,6 +422,7 @@ def NGINXOneOutput(
     # Publish configuration to NGINX One Console
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config'
     headers = {'Content-Type': 'application/json', "Authorization": f"APIToken {nOneToken}"}
+    logger.debug(f"PUT {url} {headers} {json.dumps(stagedConfig)}")
     r = requests.put(url=url, data=json.dumps(stagedConfig, default=str), headers=headers, verify=False)
 
     if r.status_code not in [200, 202]:

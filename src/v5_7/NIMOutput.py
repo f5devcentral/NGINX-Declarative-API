@@ -250,6 +250,8 @@ def _poll_publication_status(
     Returns:
         Tuple[int, dict]: Status code and response details dict.
     """
+    logger = get_logger()
+
     isPending = True
     jsonResponse = {}
     deployment_status_code = 200
@@ -257,6 +259,7 @@ def _poll_publication_status(
     checkJson = {}
     while isPending:
         time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+        logger.debug(f"GET {nmsUrl}{rel_link}");
         deploymentCheck = requests.get(
             url=f"{nmsUrl}{rel_link}",
             auth=(nmsUsername, nmsPassword),
@@ -412,6 +415,7 @@ def NIMOutput(
     activePolicyUids = napPolicies['all_policy_active_names_and_uids']
 
     url = f"{nmsUrl}/api/platform/v1/instance-groups/{igUid}/config"
+    logger.debug(f"POST {url} {json.dumps(stagedConfig, default=str)} {json.dumps(stagedConfig, default=str)}")
     r = requests.post(
         url=url,
         data=json.dumps(stagedConfig, default=str),

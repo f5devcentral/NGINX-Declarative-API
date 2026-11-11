@@ -32,6 +32,7 @@ def getConfigSyncGroupId(
     headers = {"Authorization": f"APIToken {nOneToken}"}
 
     try:
+        logger.debug(f"GET {url} {headers}")
         cSyncGroup = requests.get(url=url, verify=False, headers=headers)
         status_code = cSyncGroup.status_code
         text = cSyncGroup.text

@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "0a1adcfa-45e2-44c1-9932-2e943e50e705",
+		"_postman_id": "98e6dd00-75dd-4f56-bbc1-406f7a6af6b9",
 		"name": "NGINX Declarative API",
 		"description": "# NGINX Declarative API (v5.7) — Postman Collection\n\nComprehensive Postman collection and built-in environment variables demonstrating all capabilities and use cases of the **NGINX Declarative API v5.7** across both supported control planes:\n\n1. **NGINX Instance Manager (**`output.type: \"nms\"`**)**\n    \n2. **F5 Distributed Cloud / NGINX One Console (**`output.type: \"nginxone\"`**)**\n    \n\n## Supported Endpoints (`v5.7`)\n\n- `GET /v5.7/schema` — Retrieve the OpenAPI / JSON Schema for v5.7 configuration declarations\n    \n- `POST /v5.7/config` — Create and deploy a full NGINX configuration declaration\n    \n- `PATCH /v5.7/config/{configUid}` — Apply incremental CRUD updates to an active declaration\n    \n- `GET /v5.7/config/{configUid}` — Retrieve the stored configuration declaration\n    \n- `GET /v5.7/config/{configUid}/status` — Retrieve the latest deployment status of a declaration\n    \n- `GET /v5.7/config/{configUid}/submission/{submissionUid}` — Retrieve the status of a specific asynchronous submission\n    \n- `DELETE /v5.7/config/{configUid}` — Delete a stored declaration and stop any background GitOps autosync worker",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1667416",
-		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-0a1adcfa-45e2-44c1-9932-2e943e50e705?action=share&source=collection_link&creator=1667416"
+		"_collection_link": "https://orange-rocket-1353.postman.co/workspace/NGINX-Declarative-API~8ba6e9c1-a04b-4484-8193-bbb142560553/collection/1667416-98e6dd00-75dd-4f56-bbc1-406f7a6af6b9?action=share&source=collection_link&creator=1667416"
 	},
 	"item": [
 		{
