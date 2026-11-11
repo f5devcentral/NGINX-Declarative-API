@@ -30,7 +30,7 @@ include "{{ ncgconfig.nms.visibility_dir }}{{ declaration.location.uri }}-{{ v }
 {% if declaration.paths -%}
 {% for path in declaration.paths|sort(attribute='path', reverse = True) %}
 location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','([^/]+)') }} {
-    status_zone {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path | regex_replace('{(.*?)}','([^/]+)') }};
+    status_zone "{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ path.path }}";
 
     {% if declaration.location.apigateway.api_gateway.enforce_bodies -%}
     {# --- Request body enforcement --- -#}
@@ -53,7 +53,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {% if declaration.location.apigateway.api_gateway.enforce_parameters -%}
     {%- set allParams = namespace(missing = '') -%}
     {% for parm in method.parameters -%}
-    {% if parm.required | lower == "true" and parm.in | lower == "query" %}
+    {% if parm.required | lower == "true" and ( parm.in | lower == "query" or parm.in | lower == "header" ) %}
     {% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
     {% endif %}
     {% endfor %}
