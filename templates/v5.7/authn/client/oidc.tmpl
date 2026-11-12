@@ -35,6 +35,9 @@ oidc_provider {{ authprofile.name | replace(" ", "_") }} {
   {%- if authprofile.oidc.session_timeout -%}
   session_timeout {{ authprofile.oidc.session_timeout }};
   {% endif %}
+  {%- if authprofile.oidc.session_sync_leeway -%}
+  session_sync_leeway {{ authprofile.oidc.session_sync_leeway }};
+  {% endif %}
   {%- if authprofile.oidc.ssl_crl -%}
   ssl_crl {{ ncgconfig.nms.certs_dir }}/{{ authprofile.oidc.ssl_crl }}.crt;
   {% endif %}

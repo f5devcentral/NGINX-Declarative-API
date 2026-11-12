@@ -1,0 +1,13 @@
+# API Gateway upstream file - server {{ server }}
+# OpenAPI version: {{ declaration.version | replace('\n',' ') }}
+# Base URI: {{ declaration.location.uri | replace('\n',' ') }}
+# Destination server: {{ declaration.upstream.destination_server | replace('\n',' ') }}
+{% if declaration.upstream and declaration.upstream.name and declaration.upstream.origin %}
+upstream {{ declaration.upstream.name }} {
+    zone {{ declaration.upstream.name }} 64k;
+    server {{ declaration.upstream.origin }}{% if declaration.upstream.resolve %} resolve{% endif %};
+{% if declaration.upstream.resolver %}
+    include "{{ ncgconfig.nms.resolver_dir }}/{{ declaration.upstream.resolver | replace(" ", "_") }}.conf";
+{% endif %}
+}
+{% endif %}

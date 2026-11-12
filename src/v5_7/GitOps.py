@@ -4,7 +4,7 @@ GitOps support functions
 
 import base64
 import requests
-from typing import Tuple, Dict, Any
+from typing import Tuple, Any
 from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
 
 import v5_7.MiscUtils

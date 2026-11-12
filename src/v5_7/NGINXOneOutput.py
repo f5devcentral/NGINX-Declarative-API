@@ -8,7 +8,7 @@ import json
 import pickle
 import time
 import schedule
-from typing import Dict, Any, Tuple, Optional
+from typing import Tuple, Optional
 from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlparse
 
@@ -52,7 +52,7 @@ def _validate_target_url_and_dns(d: dict) -> Tuple[Optional[dict], str, str, str
     if urlCheck.scheme not in ['http', 'https'] or urlCheck.scheme == "" or urlCheck.hostname == "":
         return ({
             "status_code": 400,
-            "message": {"status_code": 400, "message": {"code": 400, "content": f"invalid NGINX One URL {nOneUrlFromJson}"}},
+            "message": {"status_code": 400, "message": {"code": 400, "content": f"invalid NGINX One Console URL {nOneUrlFromJson}"}},
             "headers": {'Content-Type': 'application/json'}
         }, "", "", "", "", 0)
 
@@ -246,6 +246,8 @@ def _poll_publication_status(
     Returns:
         Tuple[int, dict]: HTTP status code and response body dictionary.
     """
+    logger = get_logger()
+
     headers = {"Authorization": f"APIToken {nOneToken}"}
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/publications/{publication_id}'
 
@@ -253,6 +255,7 @@ def _poll_publication_status(
     checkJson = {}
     while isPending:
         time.sleep(NcgConfig.config['nms']['staged_config_publish_waittime'])
+        logger.debug(f"GET {url} {headers}")
         deploymentCheck = requests.get(url=url, headers=headers, verify=False)
         checkJson = json.loads(deploymentCheck.text)
         if checkJson.get('status') != 'pending':
@@ -286,8 +289,8 @@ def _persist_redis_state_and_schedule_autosync(
     if not runfromautosync:
         configUid = str(v5_7.MiscUtils.getuniqueid())
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d, default=str))
+        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig, default=str))
         NcgRedis.redis.set(f'ncg.apiversion.{configUid}', apiversion)
 
     if nOneSynctime == 0:
@@ -340,7 +343,7 @@ def NGINXOneOutput(
 
     currentBaseStagedConfig = NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}').decode('utf-8') \
         if NcgRedis.redis.get(f'ncg.basestagedconfig.{configUid}') else None
-    newBaseStagedConfig = json.dumps(baseStagedConfig)
+    newBaseStagedConfig = json.dumps(baseStagedConfig, default=str)
 
     if currentBaseStagedConfig is not None and newBaseStagedConfig == currentBaseStagedConfig:
         logger.info(f'Declaration [{configUid}] not changed')
@@ -419,7 +422,8 @@ def NGINXOneOutput(
     # Publish configuration to NGINX One Console
     url = f'{nOneUrl}/api/nginx/one/namespaces/{nOneNamespace}/config-sync-groups/{igUid}/config'
     headers = {'Content-Type': 'application/json', "Authorization": f"APIToken {nOneToken}"}
-    r = requests.put(url=url, data=json.dumps(stagedConfig), headers=headers, verify=False)
+    logger.debug(f"PUT {url} {headers} {json.dumps(stagedConfig)}")
+    r = requests.put(url=url, data=json.dumps(stagedConfig, default=str), headers=headers, verify=False)
 
     if r.status_code not in [200, 202]:
         return {
@@ -450,10 +454,10 @@ def NGINXOneOutput(
     responseContent = {' code': returnHttpCode, 'content': jsonResponse, 'configUid': configUid}
 
     if configUid != "":
-        NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent))
+        NcgRedis.redis.set(f'ncg.status.{configUid}', json.dumps(responseContent, default=str))
         NcgRedis.redis.set(f'ncg.declaration.{configUid}', pickle.dumps(declaration))
-        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d))
-        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig))
+        NcgRedis.redis.set(f'ncg.declarationrendered.{configUid}', json.dumps(d, default=str))
+        NcgRedis.redis.set(f'ncg.basestagedconfig.{configUid}', json.dumps(baseStagedConfig, default=str))
 
     return {
         "status_code": returnHttpCode,

@@ -151,7 +151,7 @@ def _validate_log_profile_declarations(profiles: list) -> Tuple[int, str, Dict[s
             if name and name in all_profile_names:
                 return 422, f"Duplicated WAF log profile [{name}]", {}
 
-        all_profile_names.append(name)
+            all_profile_names.append(name)
 
     return 200, "", all_profile_names
 

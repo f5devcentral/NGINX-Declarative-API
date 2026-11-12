@@ -16,6 +16,8 @@ Convention used throughout this module:
 """
 
 import base64
+import ipaddress
+import re
 from urllib.parse import urlparse
 
 import v5_7.APIGateway
@@ -53,6 +55,7 @@ class ConfigBuildContext:
         # Cross-reference lists used to validate the declaration
         self.all_resolver_profiles = []
         self.all_http_upstreams = []
+        self.all_apigw_upstreams = set()
         self.all_layer4_upstreams = []
         self.all_ratelimits = []
         self.all_cache_profiles = []
@@ -812,13 +815,100 @@ def _process_api_gateway_provisioning(ctx: ConfigBuildContext, server, loc, enab
                 None)
 
     if api_gateway_declaration:
+        error, upstream_info = _resolve_api_gateway_upstream(ctx, server, loc, api_gateway_declaration)
+        if error is not None:
+            return error, None
+        api_gateway_declaration['upstream'] = upstream_info
         _render_api_gateway_files(ctx, server, loc, api_gateway_declaration, enabled_visibility)
 
     return None, openapi_schema_json
 
 
+def _resolve_api_gateway_upstream(ctx: ConfigBuildContext, server: dict, loc: dict, api_gateway_declaration: dict):
+    """Derives the NGINX HTTP upstream metadata from the API Gateway destination server.
+
+    Returns an (error, upstream_dict) tuple.
+    """
+    servers = api_gateway_declaration.get('servers') or []
+    server_url = ((loc.get('apigateway') or {}).get('api_gateway') or {}).get('server_url') or ''
+    server_url = server_url.strip()
+
+    if servers and servers[0].get('url'):
+        schema_url = servers[0]['url'].strip()
+        if schema_url.lower().startswith(('http://', 'https://')):
+            destination_server = schema_url
+        elif schema_url == '/':
+            destination_server = server_url.rstrip('/')
+        elif server_url:
+            destination_server = f"{server_url.rstrip('/')}/{schema_url.lstrip('/')}"
+        else:
+            destination_server = schema_url
+    else:
+        destination_server = server_url
+
+    if not destination_server:
+        return _validation_error(
+            f"missing API Gateway destination server URL in location [{loc.get('uri', '')}]"), None
+
+    parsed = urlparse(destination_server)
+    scheme = parsed.scheme.lower()
+    if scheme not in ('http', 'https') or not parsed.hostname:
+        return _validation_error(
+            f"invalid API Gateway destination server URL [{destination_server}] in location [{loc.get('uri', '')}]"), None
+
+    try:
+        explicit_port = parsed.port
+    except ValueError:
+        return _validation_error(
+            f"invalid port in API Gateway destination server URL [{destination_server}] in location [{loc.get('uri', '')}]"), None
+
+    hostname = parsed.hostname
+    try:
+        ip_obj = ipaddress.ip_address(hostname)
+        is_ip = True
+        is_ipv6 = isinstance(ip_obj, ipaddress.IPv6Address)
+    except ValueError:
+        is_ip = False
+        is_ipv6 = False
+
+    host_for_nginx = f"[{hostname}]" if is_ipv6 else hostname
+    port = explicit_port if explicit_port is not None else (443 if scheme == 'https' else 80)
+    origin = f"{host_for_nginx}:{port}"
+
+    base_path = parsed.path.rstrip('/')
+    host_header = parsed.netloc
+    ssl_name = hostname if (scheme == 'https' and not is_ip) else ''
+
+    server_resolver = server.get('resolver') or ''
+    http_resolver = ((ctx.d.get('declaration') or {}).get('http') or {}).get('resolver') or ''
+    resolver = server_resolver if (server_resolver and not is_ip) else ''
+    resolve = (not is_ip) and bool(server_resolver or http_resolver)
+
+    uri_slug = loc.get('uri', '').strip('/') or 'root'
+    base_name = re.sub(r'[^a-zA-Z0-9_-]', '_', f"apigw_{server['name']}_{uri_slug}")
+    used_names = set(ctx.all_http_upstreams) | ctx.all_apigw_upstreams
+    upstream_name = base_name
+    suffix = 2
+    while upstream_name in used_names:
+        upstream_name = f"{base_name}_{suffix}"
+        suffix += 1
+    ctx.all_apigw_upstreams.add(upstream_name)
+
+    return None, {
+        'name': upstream_name,
+        'destination_server': destination_server,
+        'scheme': scheme,
+        'origin': origin,
+        'base_path': base_path,
+        'host_header': host_header,
+        'ssl_name': ssl_name,
+        'resolver': resolver,
+        'resolve': resolve,
+    }
+
+
 def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_declaration, enabled_visibility):
-    server_name = server['names'][0]
+    server_name = server['names'][0] if server.get('names') else server['name']
 
     snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
         declaration=api_gateway_declaration, server=server_name,
@@ -833,6 +923,12 @@ def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_
     ctx.configFiles['files'].append({
         'contents': _b64(maps_snippet),
         'name': f"{NcgConfig.config['nms']['apigw_maps_dir']}/{server_name}{uri_for_filename}.conf"})
+
+    upstreams_snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwupstreamsconf']).render(
+        declaration=api_gateway_declaration, server=server_name, ncgconfig=NcgConfig.config)
+    ctx.configFiles['files'].append({
+        'contents': _b64(upstreams_snippet),
+        'name': f"{NcgConfig.config['nms']['apigw_upstreams_dir']}/{api_gateway_declaration['upstream']['name']}.conf"})
 
 
 # ---------------------------------------------------------------------------

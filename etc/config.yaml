@@ -1,4 +1,5 @@
 #
+#
 # NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 # Main configuration file
 #
@@ -6,7 +7,7 @@
 # Main variables
 main:
   banner: "NGINX Declarative API"
-  version: "5.7.0"
+  version: "5.7.1"
   url: "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 log:
@@ -38,6 +39,7 @@ templates:
   httpconf: "http.tmpl"
   apigwconf: "apigateway.tmpl"
   apigwmapsconf: "apigateway-maps.tmpl"
+  apigwupstreamsconf: "apigateway-upstreams.tmpl"
   visibility_root: "visibility"
   streamconf: "stream.tmpl"
   configmap: "configmap.tmpl"
@@ -73,6 +75,7 @@ devportal:
   host: "devportal"
   port: 5000
   uri: "/v1/devportal"
+  timeout: 5s
 
 # Staged configuration directories
 nms:
@@ -81,6 +84,7 @@ nms:
   acme_dir: "/etc/nginx/acme"
   apigw_dir: "/etc/nginx/apigateway"
   apigw_maps_dir: "/etc/nginx/apigateway/maps"
+  apigw_upstreams_dir: "/etc/nginx/apigateway/upstreams"
   visibility_dir: "/etc/nginx/visibility"
   devportal_dir: "/etc/nginx/devportal"
   auth_client_dir: "/etc/nginx/authn/client"
@@ -99,7 +103,7 @@ nms:
   # Time (in seconds) to wait between two subsequent asynchronous submissions publish requests through PATCH
   asynchronous_publish_waittime: 30
 
-  # NGINX App Protect support
+  # F5 WAF for NGINX
   nap_policies_dir: "/etc/nginx/waf/policies"
   nap_logformats_dir: "/etc/nginx/waf/logformats"
   nap_logformats_template: "logformat.tmpl"

@@ -64,6 +64,8 @@ map {{ m.match }} {{ m.variable }} {
 {% endfor %}
 {% endif %}
 
+underscores_in_headers on;
+
 {# --- Maps section for authorization --- #}
 {%- if declaration.authorization -%}
 # Authorization profiles
@@ -92,6 +94,10 @@ include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.
 {% endif %}
 {% endfor %}
 {% endif %}
+
+{# --- Upstreams section for API Gateway --- #}
+# API Gateway upstreams
+include "{{ ncgconfig.nms.apigw_upstreams_dir }}/*.conf";
 
 {# --- Rate limit section --- #}
 {% if declaration.http.rate_limit %}

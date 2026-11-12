@@ -348,6 +348,10 @@ server {
     }
     {% endfor %}
 
+    location @apigw-error-page-500 {
+        return 500;
+    }
+
     {# --- JWT authentication JWKS endpoints --- #}
     {%- if declaration.authentication and declaration.authentication.client -%}
     {%- for clientAuthProfile in declaration.authentication.client -%}

@@ -10,7 +10,7 @@ import v5_7.DeclarationPatcher
 import v5_7.MiscUtils
 
 from NcgRedis import NcgRedis
-from AppLogger import AppLogger, get_logger
+from AppLogger import get_logger
 
 # pydantic models
 from V5_7_NginxConfigDeclaration import *
@@ -156,14 +156,12 @@ def _apply_http_patches(declaration_to_patch, current_declaration):
                     current_declaration, ['declaration', 'http', field], item
                 )
 
-    # 2. Maps (keyed by variable or match if name is absent)
+    # 2. Maps (keyed by variable)
     maps = http_patch.get('maps')
     if maps and isinstance(maps, list):
         for m in maps:
-            if 'name' not in m:
-                m['name'] = m.get('variable') or m.get('match')
             current_declaration = v5_7.DeclarationPatcher._patch_section_item(
-                current_declaration, ['declaration', 'http', 'maps'], m
+                current_declaration, ['declaration', 'http', 'maps'], m, key_field='variable'
             )
 
     # 3. Scalar and dictionary fields under .declaration.http

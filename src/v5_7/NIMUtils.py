@@ -3,7 +3,6 @@ NGINX Instance Manager support utility functions
 """
 
 import json
-from collections import namedtuple
 
 import requests
 from typing import Tuple, Optional
@@ -34,6 +33,7 @@ def getNIMInstanceGroupUid(
     auth = (nmsUsername, nmsPassword)
 
     try:
+        logger.debug(f"GET {url}")
         ig = requests.get(url=url, auth=auth, verify=False)
         status_code = ig.status_code
         text = ig.text
