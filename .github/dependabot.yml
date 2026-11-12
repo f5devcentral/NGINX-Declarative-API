@@ -17,6 +17,11 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
+    groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
 
   # Root Dockerfile
   - package-ecosystem: "docker"
