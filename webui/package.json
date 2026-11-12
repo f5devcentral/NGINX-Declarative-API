@@ -35,8 +35,8 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.1",
-    "@vitest/ui": "^4.1.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/ui": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
@@ -44,7 +44,7 @@
     "prettier": "^3.2.4",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
-    "vitest": "^4.1.1"
+    "vitest": "^5.1.0"
   },
   "overrides": {
     "dompurify": "^3.3.3",
