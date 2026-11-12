@@ -51,6 +51,7 @@ Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.dec
 | Requests payload enforcement                 |                                                                               |                                                                               | X                                                                             |                                               |
 | Query string parameters enforcement          |                                                                               | X                                                                             | X                                                                             |                                               |
 | Query string parameters values enforcement   |                                                                               | X                                                                             | X                                                                             |                                               |
+| Mandatory HTTP headers enforcement           |                                                                               | X                                                                             | X                                                                             |                                               |
 | HTTP Response codes enforcement              |                                                                               |                                                                               | X                                                                             |                                               |
 | per-URI rate limiting                        | X                                                                             | X                                                                             | X                                                                             |                                               |
 | per-URI client authentication                | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |                                               |
@@ -70,7 +71,7 @@ Declaration path `.declaration.http.servers[].locations[].apigateway` defines th
 - `api_gateway.server_url` - the base URL of the upstream server
 - `api_gateway.enforce_methods` - enable/disable HTTP methods enforcement (`true` by default)
 - `api_gateway.enforce_bodies` - enable/disable HTTP request bodies and Content-Type enforcement (`true` by default)
-- `api_gateway.enforce_parameters` - enable/disable query string parameters enforcement (`true` by default)
+- `api_gateway.enforce_parameters` - enable/disable mandatory query string parameters and HTTP headers enforcement (`true` by default)
 - `api_gateway.enforce_response_codes` - enable/disable HTTP response codes enforcement (`true` by default) 
 - `developer_portal.enabled` - enable/disable Developer portal provisioning
 - `developer_portal.type` - developer portal type. `redocly` and `backstage` are currently supported
