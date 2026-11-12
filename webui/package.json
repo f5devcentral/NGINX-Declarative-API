@@ -20,7 +20,7 @@
     "@rjsf/utils": "6.4.1",
     "@rjsf/validator-ajv8": "6.4.2",
     "@types/trusted-types": "2.0.7",
-    "lucide-react": "^1.7.0",
+    "lucide-react": "^1.70.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",
@@ -29,14 +29,14 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.5.2",
+    "@testing-library/user-event": "^14.6.8",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.1",
-    "@vitest/ui": "^4.1.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/ui": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
@@ -44,7 +44,7 @@
     "prettier": "^3.2.4",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
-    "vitest": "^4.1.1"
+    "vitest": "^5.1.0"
   },
   "overrides": {
     "dompurify": "^3.3.3",
