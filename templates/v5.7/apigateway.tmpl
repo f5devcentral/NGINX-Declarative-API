@@ -1,17 +1,3 @@
-{% if declaration.servers %}
-    {# --- OpenAPI schema contains server details --- #}
-    {% if declaration.servers[0].url.lower().startswith('http://') or declaration.servers[0].url.lower().startswith('https://') %}
-        {# --- OpenAPI schema contains a full server URL --- #}
-        {% set destination_server = declaration.servers[0].url %}
-    {% else %}
-        {# --- OpenAPI schema contains a server URI --- #}
-        {% set destination_server = declaration.location.apigateway.api_gateway.server_url + declaration.servers[0].url %}
-    {% endif %}
-{% else %}
-    {# --- OpenAPI schema contains no server details --- #}
-    {% set destination_server = declaration.location.apigateway.api_gateway.server_url %}
-{% endif %}
-
 {% if declaration.info %}
 # API Gateway: {% if declaration.info.title %}{{ declaration.info.title }}{% endif %} {% if declaration.info.version %}{{ declaration.info.version }}{% endif %}
 {% endif %}
@@ -19,7 +5,8 @@
 # OpenAPI version: {{ declaration.version | replace('\n',' ') }}
 # Base URI: {{ declaration.location.uri | replace('\n',' ') }}
 # Strip base URI: {{ declaration.location.apigateway.api_gateway.strip_uri | replace('\n',' ') }}
-# Destination server: {{ destination_server | replace('\n',' ') }}
+# Destination server: {{ declaration.upstream.destination_server | replace('\n',' ') }}
+# Upstream: {{ declaration.upstream.name }}
 
 default_type application/json;
 
@@ -212,11 +199,15 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
     {%- endif %}
 
-    {% if declaration.location.apigateway.api_gateway.server_url -%}
-    proxy_set_header Host {{ declaration.location.apigateway.api_gateway.server_url.split('://')[1].split('/')[0] }};
-    {%- endif %}
+{% if declaration.upstream.host_header %}
+    proxy_set_header Host {{ declaration.upstream.host_header }};
+{% endif %}
+{% if declaration.upstream.ssl_name %}
+    proxy_ssl_server_name on;
+    proxy_ssl_name {{ declaration.upstream.ssl_name }};
+{% endif %}
 
-    proxy_pass {{ destination_server }}$uri$is_args$args;
+    proxy_pass {{ declaration.upstream.scheme }}://{{ declaration.upstream.name }}{{ declaration.upstream.base_path }}$uri$is_args$args;
 }
 
 {% endfor %}

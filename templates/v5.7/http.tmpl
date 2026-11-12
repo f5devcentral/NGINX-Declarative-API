@@ -95,6 +95,10 @@ include "{{ ncgconfig.nms.upstream_http_dir }}/{{ u.name | replace(' ', '_') }}.
 {% endfor %}
 {% endif %}
 
+{# --- Upstreams section for API Gateway --- #}
+# API Gateway upstreams
+include "{{ ncgconfig.nms.apigw_upstreams_dir }}/*.conf";
+
 {# --- Rate limit section --- #}
 {% if declaration.http.rate_limit %}
 # Rate limiting zones

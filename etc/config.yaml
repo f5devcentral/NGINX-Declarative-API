@@ -1,4 +1,5 @@
 #
+#
 # NGINX Declarative API - https://github.com/f5devcentral/NGINX-Declarative-API/
 # Main configuration file
 #
@@ -38,6 +39,7 @@ templates:
   httpconf: "http.tmpl"
   apigwconf: "apigateway.tmpl"
   apigwmapsconf: "apigateway-maps.tmpl"
+  apigwupstreamsconf: "apigateway-upstreams.tmpl"
   visibility_root: "visibility"
   streamconf: "stream.tmpl"
   configmap: "configmap.tmpl"
@@ -82,6 +84,7 @@ nms:
   acme_dir: "/etc/nginx/acme"
   apigw_dir: "/etc/nginx/apigateway"
   apigw_maps_dir: "/etc/nginx/apigateway/maps"
+  apigw_upstreams_dir: "/etc/nginx/apigateway/upstreams"
   visibility_dir: "/etc/nginx/visibility"
   devportal_dir: "/etc/nginx/devportal"
   auth_client_dir: "/etc/nginx/authn/client"
