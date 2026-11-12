@@ -75,7 +75,7 @@ devportal:
   host: "devportal"
   port: 5000
   uri: "/v1/devportal"
-  timeout: 5s
+  timeout: 5
 
 # Staged configuration directories
 nms:
