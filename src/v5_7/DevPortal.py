@@ -9,6 +9,8 @@ from typing import Tuple, Any
 
 # NGINX Declarative API modules
 from NcgConfig import NcgConfig
+from AppLogger import get_logger
+
 import v5_7.GitOps
 import v5_7.MiscUtils
 
@@ -26,6 +28,8 @@ def buildDevPortal(openapischema: str) -> Tuple[int, Any]:
     Returns:
         Tuple[int, Any]: HTTP status code and response JSON object (or empty string on failure).
     """
+    logger = get_logger()
+
     try:
         host = NcgConfig.config['devportal']['host']
         port = NcgConfig.config['devportal']['port']
@@ -33,6 +37,7 @@ def buildDevPortal(openapischema: str) -> Tuple[int, Any]:
         timeout = NcgConfig.config['devportal']['timeout']
         url = f"http://{host}:{port}{uri}"
 
+        logger.debug(f"POST {url}");
         response = requests.post(
             url,
             headers={'Content-Type': 'application/json'},

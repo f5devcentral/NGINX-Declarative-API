@@ -8,6 +8,8 @@ import requests
 from typing import Tuple, Dict
 
 import v5_7.GitOps
+from AppLogger import get_logger
+
 from fastapi.responses import JSONResponse
 
 
@@ -29,6 +31,8 @@ def __definePolicyOnNGINXOne__(
     Returns:
         requests.Response: Response object from NGINX One API call.
     """
+    logger = get_logger()
+
     policy_name = json.loads(policyJson)['policy']['name']
 
     policyCreationPayload = {
@@ -49,9 +53,11 @@ def __definePolicyOnNGINXOne__(
 
     if polId != "":
         url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies/{polId}"
+        logger.debug(f"PUT {url}")
         return requests.put(url=url, data=json.dumps(policyCreationPayload), headers=headers, verify=False)
     else:
         url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies"
+        logger.debug(f"POST {url}")
         return requests.post(url=url, data=json.dumps(policyCreationPayload), headers=headers, verify=False)
 
 
@@ -67,8 +73,11 @@ def __getAllPolicies__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: 
     Returns:
         requests.Response: HTTP response object.
     """
+    logger = get_logger()
+
     url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies?paginated=false"
     headers = {"Authorization": f"APIToken {nginxOneToken}"}
+    logger.debug(f"GET {url}")
     return requests.get(url=url, headers=headers, verify=False)
 
 
@@ -103,12 +112,15 @@ def __deletePolicy__(nginxOneUrl: str, nginxOneToken: str, nginxOneNamespace: st
     Returns:
         requests.Response: Response object from PATCH delete operation.
     """
+    logger = get_logger()
+
     jsonPayload = [{'object_id': polId, 'action': 'delete'} for polId in policyUids]
     url = f'{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/policies'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'APIToken {nginxOneToken}'
     }
+    logger.debug(f"PATCH {url}")
     return requests.patch(url=url, headers=headers, verify=False, data=json.dumps(jsonPayload))
 
 
@@ -400,6 +412,7 @@ def makePolicyActive(
     Returns:
         bool: True if at least one policy was published, False otherwise.
     """
+    logger = get_logger()
     doWeHavePolicies = False
 
     for policyName, activeUid in activePolicyUids.items():
@@ -423,6 +436,7 @@ def makePolicyActive(
             'Content-Type': 'application/json',
             'Authorization': f'APIToken {nginxOneToken}'
         }
+        logger.debug(f"POST {url}")
         requests.post(url=url, data=json.dumps(body), headers=headers, verify=False)
 
     return doWeHavePolicies
@@ -528,6 +542,7 @@ def __writeWAFLogProfile__(
         str: log profile name that triggered the error
         str: the NGINX One Console reply payload
     """
+    logger = get_logger()
 
     logProfileUid = __get_WAFLogProfile_id__(logProfileName=logProfileName,allN1Cprofiles=allN1Cprofiles)
 
@@ -552,12 +567,14 @@ def __writeWAFLogProfile__(
     if logProfileUid:
         # Update existing WAF log profile
         url = f'{baseUrl}/{logProfileUid}'
+        logger.debug(f"PUT {url}")
         reply = requests.put(url=url, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
 
         if reply.status_code != 200:
             return False, logProfileName, reply.text
     else:
         # Create new WAF log profile
+        logger.debug(f"POST {baseUrl}")
         reply = requests.post(url=baseUrl, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
 
         if reply.status_code != 201:
@@ -594,11 +611,14 @@ def __get_all_WAFLogProfiles__(
    Returns:
         dict: log profiles json list
     """
+    logger = get_logger()
+
     url = f"{nginxOneUrl}/api/nginx/one/namespaces/{nginxOneNamespace}/app-protect/log-profiles?paginated=false"
 
     headers = {
         'Authorization': f'APIToken {nginxOneToken}'
     }
+    logger.debug(f"GET {url}")
     r = requests.get(url=url, headers=headers, verify=False)
 
     if r.status_code != 200:

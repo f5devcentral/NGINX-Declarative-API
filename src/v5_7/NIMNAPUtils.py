@@ -10,7 +10,7 @@ from typing import Tuple, Dict
 import v5_7.GitOps
 from fastapi.responses import JSONResponse
 
-from AppLogger import AppLogger, get_logger
+from AppLogger import get_logger
 
 
 def __definePolicyOnNMS__(
@@ -530,6 +530,7 @@ def __writeWAFLogProfile__(
     url = f'{nmsUrl}/api/platform/v1/security/logprofiles'
     auth = (nmsUsername, nmsPassword)
     headers = {'Content-Type': 'application/json'}
+    logger.debug(f"GET {url}/{logProfileName}")
     r = requests.get(url=f'{url}/{logProfileName}', auth=auth, headers=headers, verify=False)
 
     if r.status_code not in (200,404):
@@ -545,6 +546,7 @@ def __writeWAFLogProfile__(
     if r.status_code == 200:
         # Update existing WAF log profile
         logProfileUid = json.loads(r.text)['metadata']['uid']
+        logger.debug(f"PUT {url}/{logProfileUid}")
         reply = requests.put(url=f'{url}/{logProfileUid}', auth=auth, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
 
         if reply.status_code not in (200,412):
@@ -555,6 +557,7 @@ def __writeWAFLogProfile__(
                 f"WAF log profile update [{logProfileName}] code [{json.loads(reply.text).get('code')}] - {json.loads(reply.text).get('message')}")
     else:
         # Create new WAF log profile
+        logger.debug(f"POST {url}")
         reply = requests.post(url=f'{url}', auth=auth, data=json.dumps(logProfileCreationPayload), headers=headers, verify=False)
 
         if reply.status_code != 201:

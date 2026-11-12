@@ -8,6 +8,7 @@ from typing import Tuple, Any
 from requests import ReadTimeout, HTTPError, Timeout, ConnectionError, ConnectTimeout
 
 import v5_7.MiscUtils
+from AppLogger import get_logger
 
 # pydantic models
 from V5_7_NginxConfigDeclaration import *
@@ -24,7 +25,10 @@ def __fetchfromsourceoftruth__(url: str, headers: dict = {}) -> Tuple[int, str]:
     Returns:
         Tuple[int, str]: Status code and response text or error message.
     """
+    logger = get_logger()
+
     try:
+        logger.debug(f"GET {url}")
         reply = requests.get(url=url, headers=headers, verify=False)
     except (ConnectTimeout, HTTPError, ReadTimeout, Timeout, ConnectionError):
         return 408, f"URL {url} unreachable"
