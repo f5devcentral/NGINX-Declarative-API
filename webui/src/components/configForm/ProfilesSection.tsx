@@ -11,18 +11,18 @@ import { Field, TextInput, NumberInput, SelectInput, Toggle, AddBtn, RemoveBtn, 
 import { NjsHooksServerEditor } from './LocationEditors';
 import { PathsInput } from './ApiGatewayEditor';
 
-export const AUTH_CLIENT_TYPE_OPTIONS = [
+const AUTH_CLIENT_TYPE_OPTIONS = [
   { value: 'jwt',   label: 'JWT' },
   { value: 'mtls',  label: 'mTLS' },
   { value: 'oidc',  label: 'OIDC' },
 ];
 
-export const AUTH_SERVER_TYPE_OPTIONS = [
+const AUTH_SERVER_TYPE_OPTIONS = [
   { value: 'token', label: 'Token' },
   { value: 'mtls',  label: 'mTLS' },
 ];
 
-export const AUTH_TYPE_OPTIONS = [
+const AUTH_TYPE_OPTIONS = [
   { value: 'jwt', label: 'JWT' },
 ];
 

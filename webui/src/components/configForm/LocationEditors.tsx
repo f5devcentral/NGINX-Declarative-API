@@ -7,19 +7,19 @@ import { Field, TextInput, NumberInput, SelectInput, ProfileSelect, Toggle, AddB
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const LOG_ERROR_LEVELS = [
+const LOG_ERROR_LEVELS = [
   { value: 'debug', label: 'debug' }, { value: 'info', label: 'info' },
   { value: 'notice', label: 'notice' }, { value: 'warn', label: 'warn' },
   { value: 'error', label: 'error' }, { value: 'crit', label: 'crit' },
   { value: 'alert', label: 'alert' }, { value: 'emerg', label: 'emerg' },
 ];
 
-export const NJS_SERVER_HOOK_TYPES = [
+const NJS_SERVER_HOOK_TYPES = [
   { value: 'js_preload_object', label: 'js_preload_object' },
   { value: 'js_set', label: 'js_set' },
 ];
 
-export const NJS_LOCATION_HOOK_TYPES = [
+const NJS_LOCATION_HOOK_TYPES = [
   { value: 'js_body_filter', label: 'js_body_filter' },
   { value: 'js_content', label: 'js_content' },
   { value: 'js_header_filter', label: 'js_header_filter' },

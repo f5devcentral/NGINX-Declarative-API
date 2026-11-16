@@ -8,7 +8,7 @@ import {
 } from './LocationEditors';
 import { ApiGatewayEditor } from './ApiGatewayEditor';
 
-export const URI_MATCH_OPTIONS = [
+const URI_MATCH_OPTIONS = [
   { value: 'prefix',  label: 'Prefix — matches any path starting with URI' },
   { value: 'exact',   label: 'Exact — matches only this exact URI' },
   { value: 'regex',   label: 'Regex — case-sensitive regular expression' },

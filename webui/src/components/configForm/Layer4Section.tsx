@@ -11,7 +11,7 @@ type L4Origin   = NonNullable<L4Upstream['origin']>[number];
 function L4ServersSection({ servers, onChange }: { servers: L4Servers; onChange: (s: L4Servers) => void }) {
   const update = (i: number, s: L4Server) => onChange(servers.map((x, idx) => idx === i ? s : x));
   const remove = (i: number) => onChange(servers.filter((_, idx) => idx !== i));
-  const emptyL4Server = (): L4Server => ({ name: '', listen: { address: '' } } as L4Server);
+  const emptyL4Server = (): L4Server => ({ name: '', listen: { address: '' } });
 
   return (
     <div className="cf-group">
@@ -21,27 +21,27 @@ function L4ServersSection({ servers, onChange }: { servers: L4Servers; onChange:
       </div>
       {servers.length === 0 && <p className="cf-empty">No Layer 4 servers. Add a server to handle TCP/UDP traffic.</p>}
       {servers.map((sv, i) => (
-        <CollapseCard key={i} title={(sv as any).name || <em>server #{i + 1}</em>} meta={(sv as any).listen?.address || '—'} defaultOpen={i === 0 && servers.length === 1}>
+        <CollapseCard key={i} title={sv.name || <em>server #{i + 1}</em>} meta={sv.listen?.address || '—'} defaultOpen={i === 0 && servers.length === 1}>
           <div className="cf-card-actions"><RemoveBtn onClick={() => remove(i)} /></div>
           <div className="cf-grid-2">
             <Field label="Server name" required>
-              <TextInput value={(sv as any).name ?? ''} onChange={v => update(i, { ...sv, name: v } as L4Server)} placeholder="my-l4-server" />
+              <TextInput value={sv.name ?? ''} onChange={v => update(i, { ...sv, name: v })} placeholder="my-l4-server" />
             </Field>
             <Field label="Listen address" required hint='IP:port to listen on. Use "udp" suffix for UDP, e.g. "0.0.0.0:5000 udp".'>
-              <TextInput value={(sv as any).listen?.address ?? ''} onChange={v => update(i, { ...sv, listen: { ...(sv as any).listen, address: v } } as L4Server)} placeholder="0.0.0.0:9000" mono />
+              <TextInput value={sv.listen?.address ?? ''} onChange={v => update(i, { ...sv, listen: { ...sv.listen, address: v } })} placeholder="0.0.0.0:9000" mono />
             </Field>
             <Field label="Upstream" hint="Name of the Layer 4 upstream group to proxy to.">
-              <TextInput value={(sv as any).upstream ?? ''} onChange={v => update(i, { ...sv, upstream: v } as L4Server)} placeholder="my-l4-upstream" />
+              <TextInput value={sv.upstream ?? ''} onChange={v => update(i, { ...sv, upstream: v })} placeholder="my-l4-upstream" />
             </Field>
             <Field label="Resolver">
-              <TextInput value={(sv as any).resolver ?? ''} onChange={v => update(i, { ...sv, resolver: v || undefined } as L4Server)} placeholder="my-resolver" />
+              <TextInput value={sv.resolver ?? ''} onChange={v => update(i, { ...sv, resolver: v || undefined })} placeholder="my-resolver" />
             </Field>
           </div>
           <div className="cf-field cf-field-inline">
-            <Toggle checked={!!(sv as any).listen?.ssl} onChange={v => update(i, { ...sv, listen: { ...(sv as any).listen, ssl: v } } as L4Server)} label="TLS passthrough" />
+            <Toggle checked={!!sv.listen?.ssl} onChange={v => update(i, { ...sv, listen: { ...sv.listen, ssl: v } })} label="TLS passthrough" />
             <p className="cf-hint">Enables SSL termination on the Layer 4 listener.</p>
           </div>
-          <SnippetEditor snippet={(sv as any).snippet} onChange={v => update(i, { ...sv, snippet: v } as L4Server)} />
+          <SnippetEditor snippet={sv.snippet} onChange={v => update(i, { ...sv, snippet: v })} />
         </CollapseCard>
       ))}
     </div>
@@ -51,15 +51,15 @@ function L4ServersSection({ servers, onChange }: { servers: L4Servers; onChange:
 function L4UpstreamsSection({ upstreams, onChange }: { upstreams: L4Upstreams; onChange: (u: L4Upstreams) => void }) {
   const update = (i: number, u: L4Upstream) => onChange(upstreams.map((x, idx) => idx === i ? u : x));
   const remove = (i: number) => onChange(upstreams.filter((_, idx) => idx !== i));
-  const emptyL4Upstream = (): L4Upstream => ({ name: '', origin: [] } as unknown as L4Upstream);
-  const emptyL4Origin = (): L4Origin => ({ server: '' } as L4Origin);
+  const emptyL4Upstream = (): L4Upstream => ({ name: '', origin: [] });
+  const emptyL4Origin = (): L4Origin => ({ server: '' });
 
   const addOrigin = (i: number) =>
-    update(i, { ...upstreams[i], origin: [...((upstreams[i] as any).origin ?? []), emptyL4Origin()] } as L4Upstream);
+    update(i, { ...upstreams[i], origin: [...(upstreams[i].origin ?? []), emptyL4Origin()] });
   const updOrigin = (i: number, oi: number, o: L4Origin) =>
-    update(i, { ...upstreams[i], origin: ((upstreams[i] as any).origin ?? []).map((x: L4Origin, oIdx: number) => oIdx === oi ? o : x) } as L4Upstream);
+    update(i, { ...upstreams[i], origin: (upstreams[i].origin ?? []).map((x: L4Origin, oIdx: number) => oIdx === oi ? o : x) });
   const remOrigin = (i: number, oi: number) =>
-    update(i, { ...upstreams[i], origin: ((upstreams[i] as any).origin ?? []).filter((_: L4Origin, oIdx: number) => oIdx !== oi) } as L4Upstream);
+    update(i, { ...upstreams[i], origin: (upstreams[i].origin ?? []).filter((_: L4Origin, oIdx: number) => oIdx !== oi) });
 
   return (
     <div className="cf-group">
@@ -69,14 +69,14 @@ function L4UpstreamsSection({ upstreams, onChange }: { upstreams: L4Upstreams; o
       </div>
       {upstreams.length === 0 && <p className="cf-empty">No Layer 4 upstreams. Add an upstream to define backend servers for TCP/UDP traffic.</p>}
       {upstreams.map((up, i) => (
-        <CollapseCard key={i} title={(up as any).name || <em>upstream #{i + 1}</em>} meta={`${((up as any).origin ?? []).length} origin(s)`} defaultOpen={i === 0 && upstreams.length === 1}>
+        <CollapseCard key={i} title={up.name || <em>upstream #{i + 1}</em>} meta={`${(up.origin ?? []).length} origin(s)`} defaultOpen={i === 0 && upstreams.length === 1}>
           <div className="cf-card-actions"><RemoveBtn onClick={() => remove(i)} /></div>
           <div className="cf-grid-2">
             <Field label="Upstream name" required>
-              <TextInput value={(up as any).name ?? ''} onChange={v => update(i, { ...up, name: v } as L4Upstream)} placeholder="my-l4-upstream" />
+              <TextInput value={up.name ?? ''} onChange={v => update(i, { ...up, name: v })} placeholder="my-l4-upstream" />
             </Field>
             <Field label="Resolver">
-              <TextInput value={(up as any).resolver ?? ''} onChange={v => update(i, { ...up, resolver: v || undefined } as L4Upstream)} placeholder="my-resolver" />
+              <TextInput value={up.resolver ?? ''} onChange={v => update(i, { ...up, resolver: v || undefined })} placeholder="my-resolver" />
             </Field>
           </div>
           <div className="cf-subsection">
@@ -84,24 +84,24 @@ function L4UpstreamsSection({ upstreams, onChange }: { upstreams: L4Upstreams; o
               <span className="cf-subsection-title">Origins</span>
               <AddBtn label="Add origin" onClick={() => addOrigin(i)} />
             </div>
-            {((up as any).origin ?? []).length === 0
+            {(up.origin ?? []).length === 0
               ? <p className="cf-hint">No origins. Add a backend server.</p>
-              : ((up as any).origin ?? []).map((o: L4Origin, oi: number) => (
+              : (up.origin ?? []).map((o: L4Origin, oi: number) => (
                 <div key={oi} className="cf-origin-row">
                   <Field label="Server address" hint='"host:port"'>
-                    <TextInput value={(o as any).server ?? ''} onChange={v => updOrigin(i, oi, { ...o, server: v } as L4Origin)} placeholder="10.0.0.1:9000" mono />
+                    <TextInput value={o.server ?? ''} onChange={v => updOrigin(i, oi, { ...o, server: v })} placeholder="10.0.0.1:9000" mono />
                   </Field>
                   <Field label="Weight">
-                    <NumberInput value={(o as any).weight ?? 1} onChange={v => updOrigin(i, oi, { ...o, weight: v } as L4Origin)} min={1} />
+                    <NumberInput value={o.weight ?? 1} onChange={v => updOrigin(i, oi, { ...o, weight: v })} min={1} />
                   </Field>
                   <Field label="Max fails">
-                    <NumberInput value={(o as any).max_fails ?? 1} onChange={v => updOrigin(i, oi, { ...o, max_fails: v } as L4Origin)} min={0} />
+                    <NumberInput value={o.max_fails ?? 1} onChange={v => updOrigin(i, oi, { ...o, max_fails: v })} min={0} />
                   </Field>
                   <Field label="Fail timeout">
-                    <TextInput value={(o as any).fail_timeout ?? '10s'} onChange={v => updOrigin(i, oi, { ...o, fail_timeout: v } as L4Origin)} placeholder="10s" mono />
+                    <TextInput value={o.fail_timeout ?? '10s'} onChange={v => updOrigin(i, oi, { ...o, fail_timeout: v })} placeholder="10s" mono />
                   </Field>
                   <Field label="Backup">
-                    <Toggle checked={(o as any).backup ?? false} onChange={v => updOrigin(i, oi, { ...o, backup: v } as L4Origin)} label="Backup only" />
+                    <Toggle checked={o.backup ?? false} onChange={v => updOrigin(i, oi, { ...o, backup: v })} label="Backup only" />
                   </Field>
                   <div className="cf-origin-remove"><RemoveBtn onClick={() => remOrigin(i, oi)} /></div>
                 </div>
