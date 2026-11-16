@@ -48,6 +48,7 @@
   },
   "overrides": {
     "dompurify": "^3.3.3",
-    "flatted": "^3.4.2"
+    "flatted": "^3.4.2",
+    "typescript": "^7.0.2"
   }
 }
