@@ -230,7 +230,7 @@ describe('ConfigForm — API Gateway: OpenAPI Schema', () => {
           result: ArrayBuffer | null = null;
           onload: (() => void) | null = null;
 
-          readAsArrayBuffer(_file: Blob) {
+          readAsArrayBuffer() {
             // Store a reference to `this` so the test can set result + fire onload
             capturedReader = this as unknown as typeof capturedReader;
           }

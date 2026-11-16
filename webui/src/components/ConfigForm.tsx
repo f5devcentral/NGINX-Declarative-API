@@ -47,12 +47,14 @@ const NAV_ITEMS: NavItem[] = [
 
 export function ConfigForm({ initialJson, onChange }: ConfigFormProps) {
   const [cfg, setCfg] = useState<ConfigData>(() => parseConfig(initialJson) ?? DEFAULT_CFG);
+  const [prevInitialJson, setPrevInitialJson] = useState(initialJson);
   const [activeSection, setActiveSection] = useState('cf-sec-output');
 
-  useEffect(() => {
+  if (initialJson !== prevInitialJson) {
+    setPrevInitialJson(initialJson);
     const parsed = parseConfig(initialJson);
     if (parsed) setCfg(parsed);
-  }, [initialJson]);
+  }
 
   // Track active section via IntersectionObserver
   useEffect(() => {

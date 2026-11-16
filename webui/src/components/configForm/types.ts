@@ -496,7 +496,7 @@ export interface ConfigData {
       log_profiles?: LogProfile[];
     };
     layer4?: {
-      servers?: Array<{ name: string; resolver?: string; listen?: { address?: string }; upstream?: string; snippet?: SourceOfTruth }>;
+      servers?: Array<{ name: string; resolver?: string; listen?: { address?: string; ssl?: boolean }; upstream?: string; snippet?: SourceOfTruth }>;
       upstreams?: Array<{ name: string; resolver?: string; origin?: Array<{ server: string; weight?: number; max_fails?: number; fail_timeout?: string; backup?: boolean }>; snippet?: SourceOfTruth }>;
     };
     resolvers?: HttpResolver[];

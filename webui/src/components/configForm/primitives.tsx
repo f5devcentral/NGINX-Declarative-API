@@ -96,7 +96,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
   );
 }
 
-export const MODULES = [
+const MODULES = [
   { value: 'ngx_http_app_protect_module', label: 'NGINX App Protect WAF' },
   { value: 'ngx_http_js_module',          label: 'NGINX JavaScript (njs) — HTTP' },
   { value: 'ngx_stream_js_module',        label: 'NGINX JavaScript (njs) — Stream' },
