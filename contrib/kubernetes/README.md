@@ -1,6 +1,6 @@
 # Running NGINX Declarative API on Kubernetes
 
-NGINX Declarative API v5.7 can be deployed on Kubernetes using the plain manifests in this directory (`nginx-declarative-api.yaml`).
+NGINX Declarative API can be deployed on Kubernetes using the plain manifests in this directory (`nginx-declarative-api.yaml`).
 
 > **Looking for configurable production options** (custom `values.yaml`, autoscaling, persistence, TLS, NetworkPolicies, or per-component toggles)? Use the [Helm chart](/contrib/helm/nginx-declarative-api) instead.
 
@@ -10,7 +10,7 @@ NGINX Declarative API v5.7 can be deployed on Kubernetes using the plain manifes
 
 | Component | Service | Port | Image | Purpose |
 | --- | --- | --- | --- | --- |
-| **nginx-dapi** | `nginx-dapi` | `5000` | `ghcr.io/f5devcentral/nginx-declarative-api:latest` | Core Declarative REST API service (`v5.7`) |
+| **nginx-dapi** | `nginx-dapi` | `5000` | `ghcr.io/f5devcentral/nginx-declarative-api:latest` | Core Declarative REST API service |
 | **devportal** | `devportal` | `5000` | `ghcr.io/f5devcentral/nginx-declarative-api-devportal:latest` | Redocly Developer Portal generator |
 | **webui** | `webui` | `80` → `8080` | `ghcr.io/f5devcentral/nginx-declarative-api-webui:latest` | Browser-based Web UI (`nginx-unprivileged` on port `8080`) |
 | **mcp** | `mcp` | `8800` | `ghcr.io/f5devcentral/nginx-declarative-api-mcp:latest` | Model Context Protocol (MCP) server (`streamable-http` on `/mcp`) |
@@ -35,7 +35,7 @@ NGINX Declarative API v5.7 can be deployed on Kubernetes using the plain manifes
         - host: nginx-dapi-mcp.k8s.example.com
     ```
 
-    > **Tip:** To pin release `5.7.2` explicitly instead of `:latest`, replace the `:latest` tags on the four `ghcr.io/f5devcentral/nginx-declarative-api*` images (or configure `NDAPI_VERSION` / `NDAPI_API_KEY` on the `mcp` Deployment if authentication is enabled).
+    > **Tip:** To pin release `s.2` explicitly instead of `:latest`, replace the `:latest` tags on the four `ghcr.io/f5devcentral/nginx-declarative-api*` images (or configure `NDAPI_VERSION` / `NDAPI_API_KEY` on the `mcp` Deployment if authentication is enabled).
 
 2. Apply the manifest:
 
