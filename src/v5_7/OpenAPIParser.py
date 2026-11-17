@@ -2,6 +2,7 @@
 OpenAPI schema parser support functions
 """
 
+import re
 from typing import Dict, Any, List, Optional
 
 
@@ -62,20 +63,69 @@ class OpenAPIParser:
         """
         return self.openAPISchema.get('info')
 
-    def servers(self) -> List[Dict[str, str]]:
+    @staticmethod
+    def _resolve_server_url(url: str, variables: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Resolves server variable placeholders {var} in a server URL using their default values.
+
+        Args:
+            url (str): The raw server URL template.
+            variables (Optional[Dict[str, Any]]): Dictionary of Server Variable Objects.
+
+        Returns:
+            str: The resolved URL with variables substituted.
+        """
+        if not url:
+            return ""
+        if not variables or not isinstance(variables, dict):
+            return url
+
+        def _replace_var(match: re.Match) -> str:
+            var_name = match.group(1).strip()
+            if var_name in variables and isinstance(variables[var_name], dict):
+                var_obj = variables[var_name]
+                if 'default' in var_obj and var_obj['default'] is not None:
+                    return str(var_obj['default'])
+                if 'enum' in var_obj and isinstance(var_obj['enum'], list) and var_obj['enum']:
+                    return str(var_obj['enum'][0])
+            return match.group(0)
+
+        return re.sub(r'\{([^{}]+)\}', _replace_var, url)
+
+    def _parse_server(self, server: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Parses a single server definition and resolves server variables if present.
+
+        Args:
+            server (Dict[str, Any]): Server definition dictionary.
+
+        Returns:
+            Dict[str, Any]: Parsed server dictionary with resolved 'url' and optional fields.
+        """
+        raw_url = server.get('url', '')
+        variables = server.get('variables') if isinstance(server.get('variables'), dict) else None
+        resolved_url = self._resolve_server_url(raw_url, variables)
+        s: Dict[str, Any] = {'url': resolved_url}
+        if 'name' in server:
+            s['name'] = server['name']
+        if 'description' in server:
+            s['description'] = server['description']
+        if variables:
+            s['variables'] = variables
+        return s
+
+    def servers(self) -> List[Dict[str, Any]]:
         """
         Retrieves server definitions from the schema.
 
         Returns:
-            List[Dict[str, str]]: List of server dictionaries containing 'url' and optional 'description'.
+            List[Dict[str, Any]]: List of server dictionaries containing resolved 'url' and optional 'description'.
         """
         all_servers = []
         if 'servers' in self.openAPISchema and isinstance(self.openAPISchema['servers'], list):
             for server in self.openAPISchema['servers']:
-                s = {'url': server.get('url', '')}
-                if 'description' in server:
-                    s['description'] = server['description']
-                all_servers.append(s)
+                if isinstance(server, dict):
+                    all_servers.append(self._parse_server(server))
         return all_servers
 
     def _parse_parameter(self, qsParam: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -151,6 +201,11 @@ class OpenAPIParser:
                 if parsed_p:
                     m['parameters'].append(parsed_p)
 
+        if 'servers' in methodInfo and isinstance(methodInfo['servers'], list):
+            m['servers'] = [
+                self._parse_server(s) for s in methodInfo['servers'] if isinstance(s, dict)
+            ]
+
         return m
 
     def paths(self) -> List[Dict[str, Any]]:
@@ -158,7 +213,7 @@ class OpenAPIParser:
         Retrieves all path and method definitions from the schema.
 
         Returns:
-            List[Dict[str, Any]]: List of path dictionaries containing 'path' and 'methods'.
+            List[Dict[str, Any]]: List of path dictionaries containing 'path', 'methods', and optional 'servers'.
         """
         all_paths = []
         raw_paths = self.openAPISchema.get('paths')
@@ -171,6 +226,11 @@ class OpenAPIParser:
                 }
 
                 if isinstance(path_obj, dict):
+                    if 'servers' in path_obj and isinstance(path_obj['servers'], list):
+                        p['servers'] = [
+                            self._parse_server(s) for s in path_obj['servers'] if isinstance(s, dict)
+                        ]
+
                     for method, method_info in path_obj.items():
                         if isinstance(method_info, dict):
                             parsed_m = self._parse_method(method, method_info)

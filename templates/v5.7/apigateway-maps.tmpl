@@ -115,4 +115,43 @@ map "{{ allParamsValues.missing | trim }}" $any_values_invalid_{{ method.method 
   default 0;     # all required query string parameters have valid values
 }
 {%- endfor %}
+{% if path.use_method_upstreams %}
+# Per-method upstream routing for {{ declaration.location.uri }}{{ path.path }}
+map $request_method $apigw_scheme_{{ path.var_suffix }} {
+{% for method in path.methods %}
+  "{{ method.method | upper }}" "{{ method.effective_upstream.scheme }}";
+{% endfor %}
+  default "{{ path.upstream.scheme }}";
+}
+
+map $request_method $apigw_upstream_{{ path.var_suffix }} {
+{% for method in path.methods %}
+  "{{ method.method | upper }}" "{{ method.effective_upstream.name }}";
+{% endfor %}
+  default "{{ path.upstream.name }}";
+}
+
+map $request_method $apigw_base_path_{{ path.var_suffix }} {
+{% for method in path.methods %}
+  "{{ method.method | upper }}" "{{ method.effective_upstream.base_path }}";
+{% endfor %}
+  default "{{ path.upstream.base_path }}";
+}
+
+map $request_method $apigw_host_{{ path.var_suffix }} {
+{% for method in path.methods %}
+  "{{ method.method | upper }}" "{{ method.effective_upstream.host_header }}";
+{% endfor %}
+  default "{{ path.upstream.host_header }}";
+}
+{% if path.any_ssl_name %}
+
+map $request_method $apigw_ssl_name_{{ path.var_suffix }} {
+{% for method in path.methods %}
+  "{{ method.method | upper }}" "{{ method.effective_upstream.ssl_name }}";
+{% endfor %}
+  default "{{ path.upstream.ssl_name }}";
+}
+{% endif %}
+{% endif %}
 {% endfor %}

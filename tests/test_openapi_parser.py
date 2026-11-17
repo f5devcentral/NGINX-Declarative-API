@@ -7,9 +7,11 @@ import pytest
 
 import v5_5.OpenAPIParser as oap_module
 import v5_6.OpenAPIParser as oap_v56_module
+import v5_7.OpenAPIParser as oap_v57_module
 
 OpenAPIParser = oap_module.OpenAPIParser
 OpenAPIParser_v56 = oap_v56_module.OpenAPIParser
+OpenAPIParser_v57 = oap_v57_module.OpenAPIParser
 
 
 # ---------------------------------------------------------------------------
@@ -212,3 +214,94 @@ class TestPaths:
         parser = OpenAPIParser_v56(OPENAPI_3_SCHEMA)
         paths = parser.paths()
         assert any(p['path'] == '/users' for p in paths)
+
+
+# ---------------------------------------------------------------------------
+# v5.7 servers and variables tests
+# ---------------------------------------------------------------------------
+
+class TestOpenAPIServersV57:
+    def test_v57_servers_variables_substitution(self):
+        schema = {
+            'openapi': '3.0.0',
+            'servers': [
+                {
+                    'name': 'Production',
+                    'url': 'https://{username}.server.com:{port}/{version}',
+                    'description': 'Main server',
+                    'variables': {
+                        'username': {'default': 'demo', 'description': 'Username'},
+                        'port': {'default': '8443', 'enum': ['8443', '443']},
+                        'version': {'default': 'v1'},
+                    },
+                },
+                {'url': 'https://secondary.server.com'},
+            ],
+        }
+        parser = OpenAPIParser_v57(schema)
+        servers = parser.servers()
+        assert len(servers) == 2
+        assert servers[0]['name'] == 'Production'
+        assert servers[0]['url'] == 'https://demo.server.com:8443/v1'
+        assert servers[0]['description'] == 'Main server'
+        assert servers[1]['url'] == 'https://secondary.server.com'
+
+    def test_v57_paths_servers(self):
+        schema = {
+            'openapi': '3.0.0',
+            'paths': {
+                '/items': {
+                    'servers': [
+                        {'url': 'https://items1.server.com'},
+                        {
+                            'url': 'https://{region}.items2.server.com',
+                            'variables': {'region': {'default': 'us-west'}},
+                        },
+                    ],
+                    'get': {'summary': 'List items'},
+                },
+                '/status': {
+                    'get': {'summary': 'Status check'},
+                },
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        paths = parser.paths()
+        items_p = next(p for p in paths if p['path'] == '/items')
+        status_p = next(p for p in paths if p['path'] == '/status')
+
+        assert 'servers' in items_p
+        assert len(items_p['servers']) == 2
+        assert items_p['servers'][0]['url'] == 'https://items1.server.com'
+        assert items_p['servers'][1]['url'] == 'https://us-west.items2.server.com'
+
+        assert 'servers' not in status_p
+
+    def test_v57_operation_servers(self):
+        schema = {
+            'openapi': '3.0.0',
+            'servers': [{'url': 'https://server1.com'}],
+            'paths': {
+                '/users': {
+                    'get': {
+                        'summary': 'List users',
+                        'servers': [
+                            {
+                                'url': 'https://{region}.server2.com',
+                                'variables': {'region': {'default': 'eu'}},
+                            }
+                        ],
+                    },
+                    'post': {'summary': 'Create user'},
+                },
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        paths = parser.paths()
+        users_p = next(p for p in paths if p['path'] == '/users')
+        get_m = next(m for m in users_p['methods'] if m['method'] == 'get')
+        post_m = next(m for m in users_p['methods'] if m['method'] == 'post')
+
+        assert 'servers' in get_m
+        assert get_m['servers'][0]['url'] == 'https://eu.server2.com'
+        assert 'servers' not in post_m
