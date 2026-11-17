@@ -305,3 +305,228 @@ class TestOpenAPIServersV57:
         assert 'servers' in get_m
         assert get_m['servers'][0]['url'] == 'https://eu.server2.com'
         assert 'servers' not in post_m
+
+
+# ---------------------------------------------------------------------------
+# v5.7 OAS 2.0 (Swagger 2.0) tests
+# ---------------------------------------------------------------------------
+
+class TestSwagger2SupportV57:
+    def test_v57_swagger2_servers_from_host_basepath_schemes(self):
+        schema = {
+            'swagger': '2.0',
+            'info': {'title': 'Petstore v2', 'version': '2.0.0'},
+            'host': 'petstore.swagger.io',
+            'basePath': '/v2',
+            'schemes': ['https', 'http'],
+        }
+        parser = OpenAPIParser_v57(schema)
+        assert parser.servers() == [{'url': 'https://petstore.swagger.io/v2'}]
+
+    def test_v57_swagger2_servers_http_and_default_scheme_and_relative_basepath(self):
+        schema_http = {
+            'swagger': '2.0',
+            'host': 'api.internal.lan:8080',
+            'basePath': '/api/',
+            'schemes': ['ws', 'http'],
+        }
+        assert OpenAPIParser_v57(schema_http).servers() == [{'url': 'http://api.internal.lan:8080/api'}]
+
+        schema_no_schemes_port = {
+            'swagger': '2.0',
+            'host': 'backend.local:9000',
+        }
+        assert OpenAPIParser_v57(schema_no_schemes_port).servers() == [{'url': 'http://backend.local:9000'}]
+
+        schema_relative = {
+            'swagger': '2.0',
+            'basePath': '/v2',
+        }
+        assert OpenAPIParser_v57(schema_relative).servers() == [{'url': '/v2'}]
+
+    def test_v57_swagger2_body_enforcement_in_body_and_consumes(self):
+        schema = {
+            'swagger': '2.0',
+            'info': {'title': 'Swagger Body API', 'version': '1.0'},
+            'consumes': ['application/json', 'application/xml'],
+            'paths': {
+                '/pets': {
+                    'post': {
+                        'operationId': 'addPet',
+                        'parameters': [
+                            {'in': 'body', 'name': 'body', 'required': True, 'schema': {'$ref': '#/definitions/Pet'}},
+                        ],
+                        'responses': {'200': {'description': 'ok'}, '405': {'description': 'invalid'}},
+                    },
+                    'put': {
+                        'operationId': 'updatePet',
+                        'consumes': ['application/yaml'],
+                        'parameters': [
+                            {'in': 'body', 'name': 'body', 'required': False, 'schema': {'$ref': '#/definitions/Pet'}},
+                        ],
+                    },
+                    'get': {
+                        'operationId': 'listPets',
+                    },
+                }
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        paths = parser.paths()
+        pets_p = next(p for p in paths if p['path'] == '/pets')
+        post_m = next(m for m in pets_p['methods'] if m['method'] == 'post')
+        put_m = next(m for m in pets_p['methods'] if m['method'] == 'put')
+        get_m = next(m for m in pets_p['methods'] if m['method'] == 'get')
+
+        assert post_m['details']['requestBodyRequired'] is True
+        assert post_m['details']['requestBodyContentType'] == ['application/json', 'application/xml']
+        assert '405' not in post_m['details']['disallowedResponseCodes']
+
+        assert put_m['details']['requestBodyRequired'] is False
+        assert put_m['details']['requestBodyContentType'] == ['application/yaml']
+
+        assert get_m['details']['requestBodyRequired'] is False
+        assert get_m['details']['requestBodyContentType'] == []
+
+    def test_v57_swagger2_parameter_direct_type_default_enum_and_array_items(self):
+        schema = {
+            'swagger': '2.0',
+            'info': {'title': 'Swagger Enum API', 'version': '1.0'},
+            'paths': {
+                '/pets/findByStatus': {
+                    'get': {
+                        'operationId': 'findPetsByStatus',
+                        'parameters': [
+                            {
+                                'name': 'format',
+                                'in': 'query',
+                                'required': True,
+                                'type': 'string',
+                                'default': 'json',
+                                'enum': ['json', 'xml'],
+                            },
+                            {
+                                'name': 'status',
+                                'in': 'query',
+                                'required': True,
+                                'type': 'array',
+                                'items': {
+                                    'type': 'string',
+                                    'enum': ['available', 'pending', 'sold'],
+                                    'default': 'available',
+                                },
+                            },
+                            {
+                                'name': 'X-Env',
+                                'in': 'header',
+                                'required': True,
+                                'type': 'string',
+                                'enum': ['prod', 'staging'],
+                            },
+                        ],
+                    }
+                }
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        paths = parser.paths()
+        get_m = paths[0]['methods'][0]
+
+        fmt_param = next(p for p in get_m['parameters'] if p['name'] == 'format')
+        assert fmt_param['schema'] == {'type': 'string', 'default': 'json', 'enum': ['json', 'xml']}
+
+        status_param = next(p for p in get_m['parameters'] if p['name'] == 'status')
+        assert status_param['schema'] == {
+            'type': 'array',
+            'default': 'available',
+            'enum': ['available', 'pending', 'sold'],
+        }
+
+        hdr_param = next(p for p in get_m['parameters'] if p['name'] == 'X-Env')
+        assert hdr_param['schema'] == {'type': 'string', 'default': '', 'enum': ['prod', 'staging']}
+
+
+# ---------------------------------------------------------------------------
+# v5.7 OAS 3.2.x support tests (additionalOperations, QUERY ignored)
+# ---------------------------------------------------------------------------
+
+class TestOAS32SupportV57:
+    def test_v57_oas32_query_method_ignored(self):
+        schema = {
+            'openapi': '3.2.0',
+            'info': {'title': 'OAS 3.2 Search API', 'version': '1.0.0'},
+            'servers': [{'name': 'Primary', 'url': 'https://api.example.com'}],
+            'paths': {
+                '/search': {
+                    'query': {
+                        'operationId': 'searchItems',
+                        'summary': 'Query items with a body',
+                        'responses': {'200': {'description': 'OK'}},
+                    },
+                    'additionalOperations': {
+                        'QUERY': {
+                            'operationId': 'additionalQueryItems',
+                            'responses': {'200': {'description': 'OK'}},
+                        },
+                    },
+                }
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        assert parser.version() == '3.2.0'
+        assert parser.servers() == [{'url': 'https://api.example.com', 'name': 'Primary'}]
+
+        paths = parser.paths()
+        assert len(paths) == 1
+        assert paths[0]['methods'] == []
+
+    def test_v57_oas32_additional_operations_parsed(self):
+        schema = {
+            'openapi': '3.2.0',
+            'info': {'title': 'OAS 3.2 Extended Methods API', 'version': '1.0.0'},
+            'paths': {
+                '/items': {
+                    'parameters': [
+                        {
+                            'name': 'tenant',
+                            'in': 'header',
+                            'required': True,
+                            'schema': {'type': 'string', 'enum': ['acme', 'globex']},
+                        }
+                    ],
+                    'get': {
+                        'operationId': 'listItems',
+                        'responses': {'200': {'description': 'OK'}},
+                    },
+                    'additionalOperations': {
+                        'PURGE': {
+                            'operationId': 'purgeItems',
+                            'responses': {'204': {'description': 'Purged'}},
+                        },
+                        'M-SEARCH': {
+                            'operationId': 'msearchItems',
+                            'servers': [{'name': 'Search Backend', 'url': 'https://search.example.com'}],
+                            'responses': {'200': {'description': 'OK'}},
+                        },
+                        # Duplicate top-level method and malformed token should be skipped
+                        'get': {'operationId': 'dupGet'},
+                        'INVALID METHOD': {'operationId': 'badToken'},
+                    },
+                }
+            },
+        }
+        parser = OpenAPIParser_v57(schema)
+        paths = parser.paths()
+        methods_by_name = {m['method']: m for m in paths[0]['methods']}
+        assert set(methods_by_name.keys()) == {'get', 'PURGE', 'M-SEARCH'}
+
+        assert methods_by_name['get']['details']['operationId'] == 'listItems'
+        purge_m = methods_by_name['PURGE']
+        assert purge_m['details']['operationId'] == 'purgeItems'
+        assert '204' not in purge_m['details']['disallowedResponseCodes']
+        assert purge_m['parameters'][0]['name'] == 'tenant'
+        assert purge_m['parameters'][0]['schema']['enum'] == ['acme', 'globex']
+
+        msearch_m = methods_by_name['M-SEARCH']
+        assert msearch_m['details']['operationId'] == 'msearchItems'
+        assert msearch_m['servers'] == [{'url': 'https://search.example.com', 'name': 'Search Backend'}]

@@ -323,3 +323,154 @@ class TestV57ApiGatewayServers:
         err_bad = build_config_files(ctx_bad)
         assert err_bad is not None
         assert err_bad['status_code'] == 422
+
+    def test_swagger2_end_to_end_upstream_body_and_enum_maps(self):
+        schema_swagger2 = {
+            'swagger': '2.0',
+            'info': {'title': 'Swagger Petstore v2', 'version': '1.0.6'},
+            'host': 'petstore.swagger.io',
+            'basePath': '/v2',
+            'schemes': ['https', 'http'],
+            'consumes': ['application/json', 'application/xml'],
+            'paths': {
+                '/pet': {
+                    'post': {
+                        'operationId': 'addPet',
+                        'parameters': [
+                            {'in': 'body', 'name': 'body', 'required': True, 'schema': {'$ref': '#/definitions/Pet'}},
+                        ],
+                        'responses': {'200': {'description': 'OK'}, '405': {'description': 'Invalid input'}},
+                    }
+                },
+                '/pet/findByStatus': {
+                    'get': {
+                        'operationId': 'findPetsByStatus',
+                        'parameters': [
+                            {
+                                'name': 'status',
+                                'in': 'query',
+                                'required': True,
+                                'type': 'array',
+                                'items': {
+                                    'type': 'string',
+                                    'enum': ['available', 'pending', 'sold'],
+                                    'default': 'available',
+                                },
+                            },
+                            {
+                                'name': 'X-Tier',
+                                'in': 'header',
+                                'required': True,
+                                'type': 'string',
+                                'enum': ['gold', 'silver'],
+                            },
+                        ],
+                        'responses': {'200': {'description': 'OK'}},
+                    }
+                },
+            },
+        }
+        # Explicitly omit apigateway.api_gateway.server_url to verify host/basePath/schemes resolution
+        decl = _build_test_declaration(schema_swagger2, server_url='')
+        apigw_cfg = decl['declaration']['http']['servers'][0]['locations'][0]['apigateway']['api_gateway']
+        apigw_cfg['enforce_bodies'] = True
+        apigw_cfg['enforce_parameters'] = True
+        ctx = ConfigBuildContext(decl, 'v5.7')
+        err = build_config_files(ctx)
+        assert err is None
+
+        upstreams_file = next(f for f in ctx.configFiles['files'] if 'upstream' in f['name'].lower())
+        upstreams_content = base64.b64decode(upstreams_file['contents']).decode()
+        assert 'upstream apigw_test_apigw_gw {' in upstreams_content
+        assert 'server petstore.swagger.io:443;' in upstreams_content
+
+        location_file = next(
+            f for f in ctx.configFiles['files']
+            if 'apigateway' in f['name'].lower() and 'upstreams' not in f['name'].lower() and 'maps' not in f['name'].lower()
+        )
+        location_content = base64.b64decode(location_file['contents']).decode()
+        assert 'proxy_pass https://apigw_test_apigw_gw/v2$uri$is_args$args;' in location_content
+        assert '$is_request_body_check_' in location_content
+        assert '$any_values_invalid_get_' in location_content
+
+        maps_file = next(f for f in ctx.configFiles['files'] if 'maps' in f['name'].lower())
+        maps_content = base64.b64decode(maps_file['contents']).decode()
+        assert 'application/json' in maps_content
+        assert 'application/xml' in maps_content
+        assert 'GETtest_apigw.example.com/gw/pet/findByStatus-available' in maps_content
+        assert 'GETtest_apigw.example.com/gw/pet/findByStatus-pending' in maps_content
+        assert 'GETtest_apigw.example.com/gw/pet/findByStatus-sold' in maps_content
+        assert 'GETtest_apigw.example.com/gw/pet/findByStatus-gold' in maps_content
+
+    def test_oas32_additional_operations_end_to_end(self):
+        schema_oas32 = {
+            'openapi': '3.2.0',
+            'info': {'title': 'OAS 3.2 API', 'version': '1.0.0'},
+            'servers': [{'name': 'DefaultOrigin', 'url': 'https://origin.example.com'}],
+            'paths': {
+                '/records': {
+                    'parameters': [
+                        {
+                            'name': 'mode',
+                            'in': 'query',
+                            'required': True,
+                            'schema': {'type': 'string', 'enum': ['fast', 'deep']},
+                        }
+                    ],
+                    'query': {
+                        'operationId': 'queryRecords',
+                        'responses': {'200': {'description': 'OK'}},
+                    },
+                    'post': {
+                        'operationId': 'createRecord',
+                        'requestBody': {
+                            'required': True,
+                            'content': {'application/json': {'schema': {'type': 'object'}}},
+                        },
+                        'responses': {'201': {'description': 'Created'}},
+                    },
+                    'additionalOperations': {
+                        'PURGE': {
+                            'operationId': 'purgeRecords',
+                            'responses': {'204': {'description': 'Purged'}},
+                        },
+                        'M-SEARCH': {
+                            'operationId': 'msearchRecords',
+                            'servers': [{'name': 'SearchPool', 'url': 'https://search.example.com'}],
+                            'responses': {'200': {'description': 'OK'}},
+                        },
+                    },
+                }
+            },
+        }
+        decl = _build_test_declaration(schema_oas32, server_url='')
+        apigw_cfg = decl['declaration']['http']['servers'][0]['locations'][0]['apigateway']['api_gateway']
+        apigw_cfg['enforce_methods'] = True
+        apigw_cfg['enforce_bodies'] = True
+        apigw_cfg['enforce_parameters'] = True
+        ctx = ConfigBuildContext(decl, 'v5.7')
+        err = build_config_files(ctx)
+        assert err is None
+
+        location_file = next(
+            f for f in ctx.configFiles['files']
+            if 'apigateway' in f['name'].lower() and 'upstreams' not in f['name'].lower() and 'maps' not in f['name'].lower()
+        )
+        location_content = base64.b64decode(location_file['contents']).decode()
+        assert '# OpenAPI version: 3.2.0' in location_content
+        assert 'queryRecords' not in location_content
+        assert '# POST - operationId: createRecord' in location_content
+        assert '# PURGE - operationId: purgeRecords' in location_content
+        assert '# M-SEARCH - operationId: msearchRecords' in location_content
+        assert 'limit_except POST PURGE M-SEARCH { deny all; }' in location_content
+        assert '$any_missing_M_SEARCH_' in location_content
+        assert '$any_values_invalid_M_SEARCH_' in location_content
+        assert '$any_missing_M-SEARCH_' not in location_content
+
+        maps_file = next(f for f in ctx.configFiles['files'] if 'maps' in f['name'].lower())
+        maps_content = base64.b64decode(maps_file['contents']).decode()
+        assert 'POST-test_apigw.example.com-/gw/records-' in maps_content
+        assert 'POSTtest_apigw.example.com/gw/records-fast' in maps_content
+        assert 'PURGEtest_apigw.example.com/gw/records-deep' in maps_content
+        assert '$wrongvalue_M_SEARCH_' in maps_content
+        assert '"M-SEARCH" "apigw_test_apigw_gw_records_m-search";' in maps_content
