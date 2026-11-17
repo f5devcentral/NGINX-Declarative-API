@@ -35,7 +35,7 @@ NGINX Declarative API can be deployed on Kubernetes using the plain manifests in
         - host: nginx-dapi-mcp.k8s.example.com
     ```
 
-    > **Tip:** To pin release `s.2` explicitly instead of `:latest`, replace the `:latest` tags on the four `ghcr.io/f5devcentral/nginx-declarative-api*` images (or configure `NDAPI_VERSION` / `NDAPI_API_KEY` on the `mcp` Deployment if authentication is enabled).
+    > **Tip:** To pin release `5.7.2` explicitly instead of `:latest`, replace the `:latest` tags on the four `ghcr.io/f5devcentral/nginx-declarative-api*` images (or configure `NDAPI_VERSION` / `NDAPI_API_KEY` on the `mcp` Deployment if authentication is enabled).
 
 2. Apply the manifest:
 
