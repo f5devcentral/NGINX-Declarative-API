@@ -8,7 +8,7 @@ NGINX Declarative API is a declarative REST API and GitOps automation layer for 
 
 - Kubernetes 1.23+
 - Helm 3.10+
-- A running [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) or [F5 NGINX One Console](https://docs.nginx.com/nginx-one/) reachable from the cluster
+- A running [F5 NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) or [F5 NGINX One Console](https://docs.f5.com/nginx-one-console/) reachable from the cluster
 
 ## Installing the chart
 
@@ -425,5 +425,5 @@ service/nginx-dapi-nginx-declarative-api-webui           ClusterIP   80/TCP
 - [API usage guide v5.7](https://github.com/f5devcentral/NGINX-Declarative-API/blob/v5.7/USAGE-v5.7.md)
 - [Docker Compose deployment](https://github.com/f5devcentral/NGINX-Declarative-API/tree/v5.7/contrib/docker-compose)
 - [Postman collection](https://github.com/f5devcentral/NGINX-Declarative-API/tree/v5.7/contrib/postman)
-- [F5 NGINX Instance Manager docs](https://docs.nginx.com/nginx-instance-manager/)
-- [F5 NGINX One Console docs](https://docs.nginx.com/nginx-one/)
+- [F5 NGINX Instance Manager docs](https://docs.f5.com/nginx-instance-manager/)
+- [F5 NGINX One Console docs](https://docs.f5.com/nginx-one-console/)

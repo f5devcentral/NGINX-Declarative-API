@@ -5,7 +5,7 @@
 
 **NGINX Declarative API** builds and deploys complete NGINX configurations from a single **declarative JSON** describing your **intended outcome** — replacing manual `nginx.conf` authoring and imperative control-plane scripts with an API built for CI/CD, GitOps, and automated API Gateway delivery.
 
-It targets both [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) (instance groups) and [F5 NGINX One Console](https://docs.nginx.com/nginx-one-console/) (config sync groups).
+It targets both [F5 NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) (instance groups) and [F5 NGINX One Console](https://docs.f5.com/nginx-one-console/) (config sync groups).
 
 ---
 
@@ -129,7 +129,7 @@ Automatically provision NGINX Plus as an API Gateway directly from your API cont
 | v5.6 | 2.20+ | January 2026 | R33+ | 5.x |
 | v5.7 | 2.22+ | August 2026 | R35+ | 5.x |
 
-> **Note:** F5 NGINX Plus R33 and above [require a valid license](https://docs.nginx.com/solutions/about-subscription-licenses/), configured via `.output.license` in the declarative JSON.
+> **Note:** F5 NGINX Plus R33 and above [require a valid license](https://docs.f5.com/solutions/about-subscription-licenses/), configured via `.output.license` in the declarative JSON.
 
 ---
 

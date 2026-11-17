@@ -2,10 +2,10 @@
 
 Version 5.7 supports:
 
-- [NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) 2.22+
-- [NGINX One Console](https://docs.nginx.com/nginx-one-console/)
-- [NGINX Plus](https://docs.nginx.com/nginx/) R37+
-- [F5 WAF for NGINX](https://docs.nginx.com/waf/) with precompiled [policy bundles](https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/compiler/)
+- [NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) 2.22+
+- [NGINX One Console](https://docs.f5.com/nginx-one-console/)
+- [NGINX Plus](https://docs.f5.com/nginx/) R37+
+- [F5 WAF for NGINX](https://docs.f5.com/waf/) with precompiled [policy bundles](https://docs.f5.com/nginx-app-protect-waf/configure/compiler/)
 
 The JSON schema is self explanatory. See also the [sample Postman collection](/contrib/postman) for usage examples
 
