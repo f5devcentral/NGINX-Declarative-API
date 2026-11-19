@@ -70,12 +70,14 @@ def createAPIGateway(locationDeclaration: dict, authProfiles: Authentication = {
             return status, "", ""
 
         raw_schema_content = schema_obj.get('content', '')
+        parsed_paths = apiSchema.paths()
         apiGwDeclaration = {
             'location': locationDeclaration,
             'info': apiSchema.info(),
             'servers': apiSchema.servers(),
-            'paths': apiSchema.paths(),
-            'version': apiSchema.version()
+            'paths': parsed_paths,
+            'version': apiSchema.version(),
+            'schema_defs': apiSchema.request_body_schema_defs(parsed_paths),
         }
 
     return 200, apiGwDeclaration, raw_schema_content

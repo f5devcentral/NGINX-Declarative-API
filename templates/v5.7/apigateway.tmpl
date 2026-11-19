@@ -26,7 +26,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     }
     {% endif %}
 
-    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes -%}
+    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes and not path.body_validation_enabled -%}
     proxy_intercept_errors on;
     {% endif %}
 
@@ -56,7 +56,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {% endif -%}
 
     {# --- HTTP response codes enforcement --- -#}
-    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes -%}
+    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes and not path.body_validation_enabled -%}
     # Disallowed HTTP Response Codes
     if ( $request_method = "{{ method.method | upper }}" ) {
         error_page {{ method.details.disallowedResponseCodes | join(' ') }} =500 @apigw-error-page-500;
@@ -160,6 +160,11 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {# --- Authorization end --- #}
 
+    {% if path.body_validation_enabled -%}
+    {# --- Request body schema enforcement via njs --- -#}
+    client_body_in_single_buffer on;
+    js_content {{ declaration.body_validation_njs_profile }}.{{ path.body_validation_js_func }};
+    {% else -%}
     {# --- Cache --- #}
     {%- if declaration.location.apigateway.cache -%}
     {%- for cacheEntry in declaration.location.apigateway.cache %}
@@ -219,6 +224,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     proxy_pass {{ current_upstream.scheme }}://{{ current_upstream.name }}{{ current_upstream.base_path }}$uri$is_args$args;
 {% endif %}
+    {%- endif %}
 }
 
 {% endfor %}

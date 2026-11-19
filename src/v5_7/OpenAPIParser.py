@@ -4,6 +4,7 @@ OpenAPI schema parser support functions
 
 import re
 from typing import Dict, Any, List, Optional
+from urllib.parse import unquote
 
 
 class OpenAPIParser:
@@ -261,6 +262,147 @@ class OpenAPIParser:
 
         return merged
 
+    @staticmethod
+    def _unescape_json_pointer_token(token: str) -> str:
+        """Unescapes a single RFC 6901 JSON Pointer reference token."""
+        return unquote(token).replace('~1', '/').replace('~0', '~')
+
+    def _resolve_ref(self, ref: str, visited: Optional[set] = None) -> Optional[Any]:
+        """
+        Resolves a local JSON Pointer reference (e.g. '#/components/schemas/Pet')
+        against self.openAPISchema, with cycle protection.
+        """
+        if not isinstance(ref, str) or not ref.startswith('#'):
+            return None
+        if visited is None:
+            visited = set()
+        if ref in visited:
+            return None
+        visited.add(ref)
+
+        if ref in ('#', '#/'):
+            target: Any = self.openAPISchema
+        elif ref.startswith('#/'):
+            target = self.openAPISchema
+            for part in ref[2:].split('/'):
+                key = self._unescape_json_pointer_token(part)
+                if isinstance(target, dict) and key in target:
+                    target = target[key]
+                elif isinstance(target, list):
+                    try:
+                        target = target[int(key)]
+                    except (ValueError, IndexError):
+                        return None
+                else:
+                    return None
+        else:
+            return None
+
+        if isinstance(target, dict) and isinstance(target.get('$ref'), str):
+            resolved_next = self._resolve_ref(target['$ref'], visited)
+            if resolved_next is None:
+                return None
+            if isinstance(resolved_next, dict):
+                merged = dict(resolved_next)
+                for k, v in target.items():
+                    if k != '$ref':
+                        merged[k] = v
+                return merged
+            return resolved_next
+
+        return target
+
+    def _deref_shallow(self, obj: Any) -> Any:
+        """
+        Resolves top-level '$ref' on an OpenAPI object if present, merging sibling
+        keywords (per OAS 3.1+) on top of the resolved target.
+        """
+        if isinstance(obj, dict) and isinstance(obj.get('$ref'), str):
+            resolved = self._resolve_ref(obj['$ref'])
+            if resolved is None:
+                return obj
+            if isinstance(resolved, dict):
+                merged = dict(resolved)
+                for k, v in obj.items():
+                    if k != '$ref':
+                        merged[k] = v
+                return merged
+            return resolved
+        return obj
+
+    _SCHEMA_METADATA_ONLY_KEYS = frozenset({
+        '$ref', '$id', '$schema', '$comment', 'title', 'description',
+        'default', 'examples', 'example', 'deprecated', 'externalDocs', 'xml',
+    })
+
+    def _is_schema_resolvable(self, schema: Any) -> bool:
+        """
+        Returns True if schema is a boolean schema or dict schema whose top-level
+        '$ref' (when no other validation keywords exist) resolves in self.openAPISchema.
+        """
+        if isinstance(schema, bool):
+            return True
+        if not isinstance(schema, dict):
+            return False
+        ref = schema.get('$ref')
+        if isinstance(ref, str) and self._resolve_ref(ref) is None:
+            has_other_validation_keys = any(k not in self._SCHEMA_METADATA_ONLY_KEYS for k in schema)
+            if not has_other_validation_keys:
+                return False
+        return True
+
+    def request_body_schema_defs(self, paths: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        """
+        Collects all local JSON Pointer '$ref' schema targets reachable from
+        requestBodySchemas across the parsed paths, keyed by '$ref' string.
+        """
+        if paths is None:
+            paths = self.paths()
+
+        defs: Dict[str, Any] = {}
+        queue: List[Any] = []
+
+        for p in paths:
+            for m in p.get('methods', []):
+                rb_schemas = (m.get('details') or {}).get('requestBodySchemas') or {}
+                for schema in rb_schemas.values():
+                    queue.append(schema)
+
+        def _scan_schema_node(node: Any) -> None:
+            if not isinstance(node, dict):
+                if isinstance(node, list):
+                    for item in node:
+                        _scan_schema_node(item)
+                return
+
+            ref = node.get('$ref')
+            if isinstance(ref, str) and ref.startswith('#') and ref not in defs:
+                resolved = self._resolve_ref(ref)
+                if resolved is not None:
+                    defs[ref] = resolved
+                    queue.append(resolved)
+
+            for key, val in node.items():
+                if key in ('example', 'examples'):
+                    continue
+                if key in ('properties', 'patternProperties', '$defs', 'definitions') and isinstance(val, dict):
+                    for sub_schema in val.values():
+                        _scan_schema_node(sub_schema)
+                elif key == 'dependencies' and isinstance(val, dict):
+                    for dep_val in val.values():
+                        if isinstance(dep_val, dict):
+                            _scan_schema_node(dep_val)
+                elif key == 'dependentSchemas' and isinstance(val, dict):
+                    for dep_val in val.values():
+                        _scan_schema_node(dep_val)
+                elif isinstance(val, (dict, list)):
+                    _scan_schema_node(val)
+
+        while queue:
+            _scan_schema_node(queue.pop(0))
+
+        return defs
+
     def _parse_method(
         self,
         method: str,
@@ -289,7 +431,10 @@ class OpenAPIParser:
         elif method.upper() not in self.httpMethods:
             return None
 
-        request_body = methodInfo.get('requestBody') if isinstance(methodInfo.get('requestBody'), dict) else {}
+        raw_request_body = methodInfo.get('requestBody')
+        request_body = self._deref_shallow(raw_request_body) if isinstance(raw_request_body, dict) else {}
+        if not isinstance(request_body, dict):
+            request_body = {}
 
         m = {}
         m['method'] = method
@@ -299,12 +444,18 @@ class OpenAPIParser:
         m['details']['operationId'] = methodInfo.get('operationId', '')
         m['details']['requestBodyRequired'] = bool(request_body.get('required', False))
         m['details']['requestBodyContentType'] = []
+        m['details']['requestBodySchemas'] = {}
         m['details']['disallowedResponseCodes'] = self.httpStatusCodes.copy()
         m['parameters'] = []
 
         content_dict = request_body.get('content') if isinstance(request_body.get('content'), dict) else {}
-        for rbct in list(content_dict.keys()):
+        for rbct, raw_media_obj in content_dict.items():
             m['details']['requestBodyContentType'].append(rbct)
+            media_obj = self._deref_shallow(raw_media_obj) if isinstance(raw_media_obj, dict) else {}
+            if isinstance(media_obj, dict) and 'schema' in media_obj:
+                rb_schema = media_obj['schema']
+                if self._is_schema_resolvable(rb_schema):
+                    m['details']['requestBodySchemas'][rbct] = rb_schema
 
         # m['details']['disallowedResponseCodes'] holds the list of disallowed HTTP return codes
         responses = methodInfo.get('responses') if isinstance(methodInfo.get('responses'), dict) else {}
@@ -316,24 +467,39 @@ class OpenAPIParser:
                 if resp_code_str in m['details']['disallowedResponseCodes']:
                     m['details']['disallowedResponseCodes'].remove(resp_code_str)
 
-        raw_params = self._merge_parameters(
-            pathParameters if isinstance(pathParameters, list) else None,
-            methodInfo.get('parameters') if isinstance(methodInfo.get('parameters'), list) else None,
-        )
+        raw_path_params = [
+            self._deref_shallow(p) if isinstance(p, dict) else p
+            for p in (pathParameters if isinstance(pathParameters, list) else [])
+        ]
+        raw_method_params = [
+            self._deref_shallow(p) if isinstance(p, dict) else p
+            for p in (methodInfo.get('parameters') if isinstance(methodInfo.get('parameters'), list) else [])
+        ]
+        deref_params = self._merge_parameters(raw_path_params or None, raw_method_params or None)
 
         # Swagger / OpenAPI 2.0 body enforcement: inspect in="body" parameters and consumes
         if not request_body:
             body_params = [
-                p for p in raw_params
-                if str(p.get('in', '')).lower() == 'body'
+                p for p in deref_params
+                if isinstance(p, dict) and str(p.get('in', '')).lower() == 'body'
             ]
             if body_params:
                 m['details']['requestBodyRequired'] = any(bool(bp.get('required', False)) for bp in body_params)
-                for ct in self._effective_consumes(methodInfo):
+                consumes_list = self._effective_consumes(methodInfo)
+                for ct in consumes_list:
                     if ct not in m['details']['requestBodyContentType']:
                         m['details']['requestBodyContentType'].append(ct)
+                body_schema = None
+                for bp in body_params:
+                    if 'schema' in bp and self._is_schema_resolvable(bp['schema']):
+                        body_schema = bp['schema']
+                        break
+                if body_schema is not None:
+                    target_cts = consumes_list if consumes_list else ['*/*']
+                    for ct in target_cts:
+                        m['details']['requestBodySchemas'][ct] = body_schema
 
-        for qsParam in raw_params:
+        for qsParam in deref_params:
             parsed_p = self._parse_parameter(qsParam)
             if parsed_p:
                 m['parameters'].append(parsed_p)

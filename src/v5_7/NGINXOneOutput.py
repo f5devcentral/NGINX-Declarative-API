@@ -193,11 +193,20 @@ def _build_rendered_config_files(
         extensions=["jinja2_base64_filters.Base64Filters"]
     )
 
+    modules = list(v5_7.MiscUtils.getDictKey(d, 'output.nginxone.modules') or [])
+    njs_dir = NcgConfig.config['nms']['njs_dir']
+    has_apigw_njs = any(
+        f.get('name', '').startswith(f"{njs_dir}/apigw_body_")
+        for f in (auxFiles or {}).get('files', [])
+    )
+    if has_apigw_njs and 'ngx_http_js_module' not in modules:
+        modules.append('ngx_http_js_module')
+
     nginxMainConf = j2_env.get_template(NcgConfig.config['templates']['nginxmain']).render(
         nginxconf={
             'mainhttpfile': NcgConfig.config['nms']['staged_config_http_filename'],
             'mainstreamfile': NcgConfig.config['nms']['staged_config_stream_filename'],
-            'modules': v5_7.MiscUtils.getDictKey(d, 'output.nginxone.modules'),
+            'modules': modules,
             'license': v5_7.MiscUtils.getDictKey(d, 'output.license')
         },
         d={'http': v5_7.MiscUtils.getDictKey(d, 'declaration.http')}

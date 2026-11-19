@@ -17,6 +17,7 @@ Convention used throughout this module:
 
 import base64
 import ipaddress
+import json
 import re
 from urllib.parse import urlparse
 
@@ -64,6 +65,8 @@ class ConfigBuildContext:
         self.all_auth_server_profiles = []
         self.all_authz_client_profiles = []
         self.all_njs_profiles = []
+        self.apigw_njs_profiles = []
+        self._used_apigw_proxy_locations = set()
         self.all_acme_issuers = []
 
 
@@ -154,7 +157,8 @@ def _render_main_configs(ctx: ConfigBuildContext):
     http_conf = ''
     if declaration.get('http'):
         http_conf = ctx.j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
-            declaration=declaration, ncgconfig=NcgConfig.config)
+            declaration=declaration, ncgconfig=NcgConfig.config,
+            apigw_njs_profiles=ctx.apigw_njs_profiles)
 
     stream_conf = ''
     if declaration.get('layer4'):
@@ -1065,8 +1069,89 @@ def _resolve_api_gateway_upstream(ctx: ConfigBuildContext, server: dict, loc: di
     }
 
 
+def _prepare_request_body_schema_validation(ctx: ConfigBuildContext, server: dict, loc: dict, api_gateway_declaration: dict) -> bool:
+    """
+    Prepares per-path njs request body schema validation metadata and renders the
+    njs module into ctx.auxFiles when enforce_bodies is enabled and at least one
+    operation defines a resolvable request body schema.
+    """
+    api_gw_cfg = (loc.get('apigateway') or {}).get('api_gateway') or {}
+    if not api_gw_cfg.get('enforce_bodies', True):
+        return False
+
+    server_name = server['names'][0] if server.get('names') else server['name']
+    srv_slug = re.sub(r'[^a-zA-Z0-9_]', '_', server_name).strip('_') or 'server'
+    uri_slug = re.sub(r'[^a-zA-Z0-9_]', '_', loc.get('uri', '').strip('/')) or 'root'
+
+    path_rules = {}
+    for idx, path in enumerate(api_gateway_declaration.get('paths') or []):
+        method_rules = {}
+        for m in (path.get('methods') or []):
+            details = m.get('details') or {}
+            rb_schemas = details.get('requestBodySchemas') or {}
+            if rb_schemas:
+                method_upper = (m.get('method') or '').upper()
+                method_rules[method_upper] = {
+                    'required': bool(details.get('requestBodyRequired', False)),
+                    'allowedContentTypes': list(details.get('requestBodyContentType') or []),
+                    'schemas': rb_schemas,
+                }
+
+        if not method_rules:
+            path['body_validation_enabled'] = False
+            continue
+
+        raw_path_slug = re.sub(r'[^a-zA-Z0-9_]', '_', (path.get('path') or '').strip('/'))
+        path_slug = re.sub(r'_+', '_', raw_path_slug).strip('_') or 'root'
+        func_name = f"validate_req_body_{idx}_{path_slug}"
+
+        proxy_base = f"@apigw_proxy_{srv_slug}_{uri_slug}_{idx}_{path_slug}"
+        proxy_loc = proxy_base
+        suffix = 2
+        while proxy_loc in ctx._used_apigw_proxy_locations:
+            proxy_loc = f"{proxy_base}_{suffix}"
+            suffix += 1
+        ctx._used_apigw_proxy_locations.add(proxy_loc)
+
+        path['body_validation_enabled'] = True
+        path['body_validation_js_func'] = func_name
+        path['body_validation_proxy_location'] = proxy_loc
+        path_rules[func_name] = {
+            'proxyLocation': proxy_loc,
+            'methods': method_rules,
+        }
+
+    if not path_rules:
+        return False
+
+    base_profile = f"apigw_body_{srv_slug}_{uri_slug}"
+    used_profiles = set(ctx.all_njs_profiles) | set(ctx.apigw_njs_profiles)
+    njs_profile_name = base_profile
+    p_suffix = 2
+    while njs_profile_name in used_profiles:
+        njs_profile_name = f"{base_profile}_{p_suffix}"
+        p_suffix += 1
+
+    api_gateway_declaration['body_validation_njs_profile'] = njs_profile_name
+    ctx.apigw_njs_profiles.append(njs_profile_name)
+
+    js_template_name = NcgConfig.config['templates'].get('apigwbodyvalidatorjs', 'apigateway-body-validator.js.tmpl')
+    js_rendered = ctx.j2_env.get_template(js_template_name).render(
+        schema_defs_json=json.dumps(api_gateway_declaration.get('schema_defs') or {}, ensure_ascii=True),
+        path_rules_json=json.dumps(path_rules, ensure_ascii=True),
+        func_names=list(path_rules.keys()),
+    )
+    ctx.auxFiles['files'].append({
+        'contents': _b64(js_rendered),
+        'name': f"{NcgConfig.config['nms']['njs_dir']}/{njs_profile_name}.js",
+    })
+    return True
+
+
 def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_declaration, enabled_visibility):
     server_name = server['names'][0] if server.get('names') else server['name']
+
+    has_body_validation = _prepare_request_body_schema_validation(ctx, server, loc, api_gateway_declaration)
 
     snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
         declaration=api_gateway_declaration, server=server_name,
@@ -1074,6 +1159,14 @@ def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_
     ctx.configFiles['files'].append({
         'contents': _b64(snippet),
         'name': f"{NcgConfig.config['nms']['apigw_dir']}/{server_name}{loc['uri']}.conf"})
+
+    if has_body_validation:
+        proxy_template_name = NcgConfig.config['templates'].get('apigwproxyconf', 'apigateway-proxy.tmpl')
+        proxy_snippet = ctx.j2_env.get_template(proxy_template_name).render(
+            declaration=api_gateway_declaration, server=server_name, ncgconfig=NcgConfig.config)
+        ctx.configFiles['files'].append({
+            'contents': _b64(proxy_snippet),
+            'name': f"{NcgConfig.config['nms']['apigw_dir']}/{server_name}{loc['uri']}_proxy.conf"})
 
     maps_snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
         declaration=api_gateway_declaration, server=server_name, ncgconfig=NcgConfig.config)

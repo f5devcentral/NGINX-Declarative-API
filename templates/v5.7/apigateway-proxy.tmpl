@@ -1,0 +1,119 @@
+# API Gateway internal proxy locations (post request body schema validation) - server {{ server }}
+{% if declaration.paths -%}
+{% for path in declaration.paths|sort(attribute='path', reverse = True) %}
+{% if path.body_validation_enabled -%}
+location {{ path.body_validation_proxy_location }} {
+    {% if declaration.location.apigateway.api_gateway.enforce_response_codes -%}
+    proxy_intercept_errors on;
+    {% for method in path.methods -%}
+    # {{ method.method | upper }} - operationId: {{ method.details.operationId }}
+    if ( $request_method = "{{ method.method | upper }}" ) {
+        error_page {{ method.details.disallowedResponseCodes | join(' ') }} =500 @apigw-error-page-500;
+    }
+    {% endfor -%}
+    {% endif %}
+
+    {% if declaration.location.apigateway.log and declaration.location.apigateway.log.access %}access_log {{ declaration.location.apigateway.log.access.destination }}{% if declaration.location.apigateway.log.access.format %} {{ declaration.location.apigateway.log.access.format }}{% endif %}{% if declaration.location.apigateway.log.access.condition %} if={{ declaration.location.apigateway.log.access.condition }}{% endif %};{% elif declaration.location.log and declaration.location.log.access %}access_log {{ declaration.location.log.access.destination }}{% if declaration.location.log.access.format %} {{ declaration.location.log.access.format }}{% endif %}{% if declaration.location.log.access.condition %} if={{ declaration.location.log.access.condition }}{% endif %};{% endif %}
+
+    {% if declaration.location.apigateway.log and declaration.location.apigateway.log.error %}error_log {{ declaration.location.apigateway.log.error.destination }}{% if declaration.location.apigateway.log.error.level %} {{ declaration.location.apigateway.log.error.level }}{% endif %};{% elif declaration.location.log and declaration.location.log.error %}error_log {{ declaration.location.log.error.destination }}{% if declaration.location.log.error.level %} {{ declaration.location.log.error.level }}{% endif %};{% endif %}
+
+    {% if declaration.location.authentication and declaration.location.authentication.server and declaration.location.authentication.server[0].profile -%}
+    include "{{ ncgconfig.nms.auth_server_dir }}/{{ declaration.location.authentication.server[0].profile | replace(" ", "_") }}.conf";
+    {% endif -%}
+
+    {# --- Location HTTP headers manipulation --- #}
+    {%- if declaration.location.headers -%}
+    {% if declaration.location.headers.to_server -%}
+    {% if declaration.location.headers.to_server.set -%}
+    {% for hSet in declaration.location.headers.to_server.set -%}
+    proxy_set_header {{ hSet.name }} "{{ hSet.value }}";
+    {% endfor %}
+    {% endif %}
+    {% if declaration.location.headers.to_server.delete -%}
+    {% for hDel in declaration.location.headers.to_server.delete -%}
+    proxy_set_header {{ hDel }} "";
+    {% endfor %}
+    {% endif %}
+    {% endif %}
+    {% if declaration.location.headers.to_client -%}
+    {% if declaration.location.headers.to_client.add -%}
+    {% for hAdd in declaration.location.headers.to_client.add -%}
+    add_header {{ hAdd.name }} "{{ hAdd.value }}";
+    {% endfor %}
+    {% endif %}
+    {% if declaration.location.headers.to_client.delete -%}
+    {% for hDel in declaration.location.headers.to_client.delete -%}
+    proxy_hide_header {{ hDel }};
+    {% endfor %}
+    {% endif %}
+    {% if declaration.location.headers.to_client.replace -%}
+    {% for hDel in declaration.location.headers.to_client.replace -%}
+    proxy_hide_header {{ hDel.name }};
+    add_header {{ hDel.name }} "{{ hDel.value }}";
+    {% endfor %}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+    {# --- Cache --- #}
+    {%- if declaration.location.apigateway.cache -%}
+    {%- for cacheEntry in declaration.location.apigateway.cache %}
+    {%- set enforceCache = namespace(toBeEnforced = False) -%}
+    {%- if cacheEntry.enforceOnPaths == False -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- endif -%}
+    {%- for cachePath in cacheEntry.paths -%}
+    {%- if path.path == cachePath -%}
+    {%- if cacheEntry.enforceOnPaths == True -%}
+    {%- set enforceCache.toBeEnforced = True -%}
+    {%- else -%}
+    {%- set enforceCache.toBeEnforced = False -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if enforceCache.toBeEnforced == True -%}
+    {%- if cacheEntry.profile %}proxy_cache {{ cacheEntry.profile | replace(' ', '_') }};
+
+    {% if cacheEntry.key %}proxy_cache_key "{{ cacheEntry.key }}";{% endif %}
+    {% endif %}
+
+    {% if cacheEntry.validity -%}
+    {% for validity in cacheEntry.validity -%}
+    proxy_cache_valid {{ validity.code }} {{ validity.ttl }};
+    {% endfor %}
+    {% endif %}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- endif %}
+
+    {%- if declaration.location.apigateway.api_gateway.strip_uri -%}
+    rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
+    {%- endif %}
+
+{% if path.use_method_upstreams %}
+    proxy_set_header Host $apigw_host_{{ path.var_suffix }};
+{% if path.any_ssl_name %}
+    proxy_ssl_server_name on;
+    proxy_ssl_name $apigw_ssl_name_{{ path.var_suffix }};
+{% endif %}
+
+    proxy_pass $apigw_scheme_{{ path.var_suffix }}://$apigw_upstream_{{ path.var_suffix }}$apigw_base_path_{{ path.var_suffix }}$uri$is_args$args;
+{% else %}
+{% set current_upstream = path.upstream if path.upstream is defined and path.upstream else declaration.upstream %}
+{% if current_upstream.host_header %}
+    proxy_set_header Host {{ current_upstream.host_header }};
+{% endif %}
+{% if current_upstream.ssl_name %}
+    proxy_ssl_server_name on;
+    proxy_ssl_name {{ current_upstream.ssl_name }};
+{% endif %}
+
+    proxy_pass {{ current_upstream.scheme }}://{{ current_upstream.name }}{{ current_upstream.base_path }}$uri$is_args$args;
+{% endif %}
+}
+
+{% endif %}
+{% endfor %}
+{% endif %}

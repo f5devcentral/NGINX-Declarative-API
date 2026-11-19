@@ -40,6 +40,8 @@ templates:
   apigwconf: "apigateway.tmpl"
   apigwmapsconf: "apigateway-maps.tmpl"
   apigwupstreamsconf: "apigateway-upstreams.tmpl"
+  apigwproxyconf: "apigateway-proxy.tmpl"
+  apigwbodyvalidatorjs: "apigateway-body-validator.js.tmpl"
   visibility_root: "visibility"
   streamconf: "stream.tmpl"
   configmap: "configmap.tmpl"

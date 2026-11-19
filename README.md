@@ -1,48 +1,47 @@
-# NGINX-Declarative-API
+# NGINX Declarative API
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![codecov](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API/branch/main/graph/badge.svg)](https://codecov.io/gh/f5devcentral/NGINX-Declarative-API)
 
-**NGINX Declarative API** builds and deploys complete NGINX configurations from a single **declarative JSON** describing your **intended outcome** — replacing manual `nginx.conf` authoring and imperative control-plane scripts with an API built for CI/CD, GitOps, and automated API Gateway delivery.
+**NGINX Declarative API** builds, validates, and deploys complete NGINX Plus configurations from a single **declarative JSON** describing your **intended outcome**—replacing hand-written `nginx.conf` files and imperative control-plane scripts with an automation-first API designed for CI/CD, GitOps, and OpenAPI-driven API Gateway delivery.
 
-It targets both [F5 NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) (instance groups) and [F5 NGINX One Console](https://docs.f5.com/nginx-one-console/) (config sync groups).
+It publishes staged configurations to both [F5 NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) (instance groups) and [F5 NGINX One Console](https://docs.f5.com/nginx-one-console/) (config sync groups).
 
----
+## Table of Contents
 
-## Quick Navigation
-
-- [Why Use the NGINX Declarative API?](#why-use-the-nginx-declarative-api)
+- [Why NGINX Declarative API](#why-nginx-declarative-api)
 - [Describe the Intended Outcome](#describe-the-intended-outcome)
 - [Core Use Cases](#core-use-cases)
-  - [GitOps Workflows](#gitops-workflows)
   - [API Gateway Automation](#api-gateway-automation)
-  - [Additional Capabilities](#additional-capabilities)
+  - [GitOps Workflows and Autosync](#gitops-workflows-and-autosync)
+  - [Traffic Management, Security, and WAF](#traffic-management-security-and-waf)
 - [Supported Releases](#supported-releases)
-- [Architecture](#architecture)
-- [Natural-Language Automation (MCP Server)](#natural-language-automation-mcp-server)
-- [How to Use](#how-to-use)
+- [Architecture and Ecosystem](#architecture-and-ecosystem)
+- [Documentation and Examples](#documentation-and-examples)
+- [Deployment](#deployment)
+- [Running Tests](#running-tests)
+- [Security, License, and Community](#security-license-and-community)
 
 ---
 
-## Why Use the NGINX Declarative API?
+## Why NGINX Declarative API
 
-- ✅ **Declarative Simplicity**: Express configurations as a single, high-level JSON object describing the intended outcome.
-- ✅ **Automation-First Design**: Integrate configurations into CI/CD pipelines with minimal effort.
-- ✅ **Error Reduction**: Built-in schema validation for accurate, consistent, and optimized configurations.
-- ✅ **Dynamic Updates**: Handle frequent configuration changes cleanly across dynamic environments (including concurrent async `PATCH` queueing).
-- ✅ **Seamless Scalability**: Simplify managing NGINX configurations across large-scale distributed instance groups and config sync groups.
-- ✅ **MCP Server**: Configure and manage NGINX using natural language via [contrib/mcp](/contrib/mcp).
-
-> **GitOps integration is built in:** referenced external Sources of Truth (F5 WAF for NGINX policies, TLS certificates/keys/chains/bundles, Swagger/OpenAPI definitions, configuration snippets, and `njs` modules) are checked for updates and NGINX configurations are automatically kept in sync.
+- **Declarative Simplicity:** Model your entire NGINX Plus edge in a single high-level JSON payload instead of managing fragmented configuration templates.
+- **Built-In Contract Enforcement:** Generate full API Gateway enforcement directly from Swagger and OpenAPI definitions—covering methods, headers, query parameters, response codes, `Content-Type`, and request body schemas.
+- **GitOps-Native Reconciliation:** Reference remote Sources of Truth for OpenAPI specs, F5 WAF for NGINX policies, TLS certificates/keys/chains, snippets, and `njs` modules; keep deployments continuously in sync via `synctime`.
+- **Safe Concurrent Delivery:** Queue concurrent `PATCH` updates safely across CI/CD pipelines with asynchronous submission tracking.
+- **Natural-Language Automation:** Includes a dedicated [Model Context Protocol (MCP) server](/contrib/mcp) and web UI ([`webui`](/webui)) alongside the REST API.
 
 ---
 
 ## Describe the Intended Outcome
 
-Instead of writing NGINX directives step by step (`upstream`, `map`, `location`, `proxy_pass`, TLS blocks, WAF rules), you declare **what outcome NGINX should deliver** in two top-level sections:
+Instead of writing low-level `upstream`, `map`, `location`, TLS, WAF, or `proxy_pass` blocks manually, every declaration has two clean top-level sections:
 
-- **`.output`** — *Where and how to publish*: target control plane (`nms` or `nginxone`), instance group / config sync group, NGINX Plus license settings, GitOps polling interval (`synctime`), and synchronous vs. queued async `PATCH` execution.
-- **`.declaration`** — *What NGINX should enforce and serve*: HTTP/stream servers and upstreams, TLS certificates, authentication/authorization policies, F5 WAF for NGINX policies, and OpenAPI-driven API Gateway routes.
+| Section | Responsibility | Key Settings |
+| --- | --- | --- |
+| **`.output`** | *Where and how to publish* | Target control plane (`nms` or `nginxone`), instance group / config sync group, NGINX Plus license, GitOps poll interval (`synctime`), synchronous vs. queued execution |
+| **`.declaration`** | *What NGINX should serve and enforce* | HTTP and Layer 4 (`stream`) servers/upstreams, TLS & ACME issuers, auth/authz profiles, F5 WAF for NGINX policies, `njs` hooks, and OpenAPI-driven API Gateways |
 
 ```json
 {
@@ -85,112 +84,102 @@ Instead of writing NGINX directives step by step (`upstream`, `map`, `location`,
 }
 ```
 
-From that single declaration, NGINX Declarative API fetches the referenced OpenAPI spec from your Source of Truth, generates upstream blocks, locations, regex/map validation rules, and SSL/routing directives, publishes them to NGINX Instance Manager, and keeps everything synchronized every `60` seconds.
+From that single declaration, NGINX Declarative API fetches the OpenAPI specification, compiles upstream definitions, per-path routing locations, parameter validation `map` rules, and `njs` request body schema validators, publishes the complete bundle to NGINX Instance Manager, and re-checks external artifacts every `60` seconds.
 
 ---
 
 ## Core Use Cases
 
-### GitOps Workflows
-
-Keep NGINX configurations continuously synchronized with external **Source of Truth** repositories (Git HTTP endpoints or artifact servers) without re-submitting declarations on every content change:
-
-- **Dynamic Source of Truth Resolution** — Reference remote URLs (or supply inline base64) for:
-  - Swagger / OpenAPI specifications
-  - F5 WAF for NGINX policies (with version tags and DevSecOps CI/CD workflows)
-  - TLS certificates, private keys, CA chains/bundles, and mTLS certificates
-  - `http` and `stream` configuration snippets, upstreams, servers, and locations
-  - NGINX JavaScript (`njs`) modules
-- **Autonomous GitOps Autosync (`synctime`)** — Periodically poll referenced external artifacts; when an updated policy, certificate, or OpenAPI schema is detected, configurations are rebuilt and republished automatically.
-- **Concurrent CI/CD Pipelines (`synchronous: false`)** — Safe asynchronous `PATCH` queueing lets multiple teams or pipelines update HTTP servers, upstreams, stream servers, or WAF policies concurrently with submission tracking (`GET /v5.7/config/{configUid}/submission/{submissionUid}`).
-
 ### API Gateway Automation
 
-Automatically provision NGINX Plus as an API Gateway directly from your API contracts (see also the blog post: [From OpenAPI to NGINX as an API Gateway using a Declarative API](https://www.f5.com/company/blog/nginx/from-openapi-to-nginx-as-an-api-gateway-using-a-declarative-api)):
+Turn OpenAPI contracts directly into production NGINX Plus API Gateways (see also [From OpenAPI to NGINX as an API Gateway using a Declarative API](https://www.f5.com/company/blog/nginx/from-openapi-to-nginx-as-an-api-gateway-using-a-declarative-api)):
 
-- **Broad OpenAPI Specification Support (`v5.7`)** — Ingest YAML or JSON schemas across **OAS 2.0 (Swagger 2.0)**, **OAS 3.0.x**, **OAS 3.1.x**, and **OAS 3.2.x** (including `host`/`basePath`/`schemes`, multiple `servers[]`, per-path/per-operation `servers[]`, server `variables`, `additionalOperations`, and `in: "body"` + `consumes`; see [FEATURES.md](/FEATURES.md) for exact coverage and caveats).
-- **Contract-Driven Enforcement** — Enable declarative toggles (`enforce_methods`, `enforce_bodies`, `enforce_parameters`, `enforce_response_codes`) to automatically generate NGINX request/response validation and `map` rules.
-- **Per-URI Traffic & Security Controls** — Attach rate limiting, client authentication (JWT, Bearer token, mTLS, OIDC), JWT claim authorization, caching, and logging per API Gateway path subset (`enforceOnPaths`).
-- **Zero-Touch Developer Portals** — Automatically generate and publish **Redocly** HTML portals on NGINX Plus or **Backstage.io** YAML catalog manifests alongside your API Gateway.
-- **API Visibility** — Integrated **Moesif** instrumentation for API analytics and observability.
+- **Broad OpenAPI Coverage (`v5.7`):** Supports YAML and JSON schemas across **OAS 2.0 (Swagger 2.0)**, **OAS 3.0.x**, **OAS 3.1.x**, and **OAS 3.2.x**, including local `$ref` dereferencing, root/path/operation `servers[]`, server `variables`, `additionalOperations`, and Swagger `in: "body"` + `consumes`.
+- **Full Contract Enforcement:**
+  - `enforce_methods` — restricts each endpoint to documented HTTP methods.
+  - `enforce_bodies` — validates required request body presence, `Content-Type` headers, and full OpenAPI / JSON Schema request payloads (JSON, `*+json`, `application/x-www-form-urlencoded`, and `text/plain`) via auto-generated NGINX JavaScript (`njs`).
+  - `enforce_parameters` — validates required query parameters, mandatory HTTP headers, and enumerated values.
+  - `enforce_response_codes` — intercepts and normalizes undocumented upstream status codes.
+- **Scoped Traffic & Security Policies:** Apply rate limiting, client authentication (JWT, Bearer token, mTLS, OIDC), JWT claim authorization, response caching, and access/error logging across targeted endpoint subsets (`enforceOnPaths`).
+- **Developer Portals & Visibility:** Publish integrated **Redocly** portals or **Backstage.io** catalog manifests ([`contrib/devportal`](/contrib/devportal)), and instrument API telemetry with **Moesif**.
 
-### Additional Capabilities
+### GitOps Workflows and Autosync
 
-- Full HTTP and Layer 4 (`stream`) load balancing, active healthchecks, cookie-based stickiness, maps, response/request header manipulation, custom access log formats, DNS resolver profiles, ACME TLS automation, and NJS hook bindings (`js_content`, `js_set`, `js_body_filter`, `js_header_filter`, `js_periodic`, `js_preload_object`).
-- See [FEATURES.md](/FEATURES.md) for the complete capability matrix across `v5.5`, `v5.6`, and `v5.7`.
+Keep edge configurations aligned with Git repositories and external **Sources of Truth** without re-submitting declarations on every upstream change ([`contrib/gitops-examples`](/contrib/gitops-examples)):
+
+- **External Artifact Resolution:** Reference remote URLs (or inline base64 payloads) for OpenAPI specs, F5 WAF for NGINX policies, TLS certificates/keys/CA bundles, configuration snippets, and `njs` scripts.
+- **Continuous Autosync (`synctime`):** Periodically poll referenced external artifacts and automatically rebuild and republish NGINX configurations whenever an artifact changes.
+- **Concurrent CI/CD Pipelines (`synchronous: false`):** Non-blocking asynchronous `PATCH` queueing lets multiple teams update servers, upstreams, or WAF policies in parallel with live job tracking (`GET /v5.7/config/{configUid}/submission/{submissionUid}`).
+
+### Traffic Management, Security, and WAF
+
+Configure HTTP and Layer 4 (`stream`) upstreams, active health checks, cookie-based stickiness, header rewrites, NGINX maps, custom access log formats, DNS resolver profiles, ACME TLS certificates, custom `njs` hooks, and F5 WAF for NGINX policies and log profiles. See [FEATURES.md](/FEATURES.md) for the complete capability matrix across `v5.5`, `v5.6`, and `v5.7`.
 
 ---
 
 ## Supported Releases
 
 | API Version | F5 NGINX Instance Manager | F5 NGINX One Console | F5 NGINX Plus | F5 WAF for NGINX |
-| --- | --- | --- | --- | --- |
-| v5.5 | 2.20+ | January 2026 | R33+ | 5.x |
-| v5.6 | 2.20+ | January 2026 | R33+ | 5.x |
-| v5.7 | 2.22+ | August 2026 | R35+ | 5.x |
+| :---: | --- | --- | :---: | :---: |
+| **`v5.5`** | `2.20+` | January 2026 | `R33+` | `5.x` |
+| **`v5.6`** | `2.20+` | January 2026 | `R33+` | `5.x` |
+| **`v5.7`** | `2.22+` | August 2026 | `R35+` | `5.x` |
 
-> **Note:** F5 NGINX Plus R33 and above [require a valid license](https://docs.f5.com/solutions/about-subscription-licenses/), configured via `.output.license` in the declarative JSON.
-
----
-
-## Architecture
-
-Component interactions, **GitOps Autosync Mode**, and **Concurrent Access / Queueing Mode** sequence diagrams are documented in [ARCHITECTURE.md](/ARCHITECTURE.md).
+> **License Note:** F5 NGINX Plus `R33+` [requires a valid subscription license](https://docs.f5.com/solutions/about-subscription-licenses/), provided via `.output.license` in your declaration.
 
 ---
 
-## Natural-Language Automation (MCP Server)
+## Architecture and Ecosystem
 
-[contrib/mcp](/contrib/mcp) provides a **Model Context Protocol (MCP)** server enabling LLM clients (Claude Desktop, Claude Code, or any MCP-compatible client) to create, update, retrieve, delete, and monitor NGINX declarations using natural language — without hand-writing JSON or REST calls.
-
-See the [MCP Server README](/contrib/mcp/README.md) for setup instructions.
-
----
-
-## How to Use
-
-JSON schema references and endpoint documentation:
-
-- [API v5.7](/USAGE-v5.7.md) — latest
-- [API v5.6](/USAGE-v5.6.md) — stable
-- [API v5.5](/USAGE-v5.5.md) — deprecated
-
-Sample requests and ready-to-run API Gateway / GitOps examples are available in the [Postman collection](/contrib/postman).
+- **Architecture Diagrams:** Control-plane flows, **GitOps Autosync Mode**, and **Concurrent Access / Queueing Mode** sequence diagrams are documented in [ARCHITECTURE.md](/ARCHITECTURE.md).
+- **Natural-Language Automation (MCP Server):** [contrib/mcp](/contrib/mcp) provides a Model Context Protocol server enabling LLM clients (such as Claude Desktop or Claude Code) to create, update, inspect, delete, and monitor NGINX declarations in plain language. See the [MCP Server README](/contrib/mcp/README.md).
+- **Web UI:** Included in [`webui/`](/webui) for visual declaration editing and management.
 
 ---
 
-## 🏃 How to Run
+## Documentation and Examples
 
-NGINX Declarative API can be deployed on:
-
-- Linux virtual machine using [docker-compose](/contrib/docker-compose)
-- Kubernetes using [manifests](/contrib/kubernetes)
-- Kubernetes using the [Helm chart](/contrib/helm/nginx-declarative-api)
-
-### Building Docker Images
-
-Docker images can be built and run using the [docker-compose](/contrib/docker-compose) setup provided.
-
-### REST API Documentation
-
-When running, interactive API documentation is exposed at:
-
-- Swagger UI: `/docs`
-- ReDoc UI: `/redoc`
-- OpenAPI specification: `/openapi.json`
+| Resource | Purpose | Status |
+| --- | --- | --- |
+| [USAGE-v5.7.md](/USAGE-v5.7.md) | REST endpoints and full JSON schema reference (`v5.7`) | Latest |
+| [USAGE-v5.6.md](/USAGE-v5.6.md) | REST endpoints and JSON schema reference (`v5.6`) | Stable |
+| [USAGE-v5.5.md](/USAGE-v5.5.md) | REST endpoints and JSON schema reference (`v5.5`) | Deprecated |
+| [FEATURES.md](/FEATURES.md) | Full capability matrix, OpenAPI support, and config tables | Current |
+| [contrib/postman](/contrib/postman) | Ready-to-run Postman collections for API Gateway, WAF, and GitOps | Examples |
+| [contrib/gitops-examples](/contrib/gitops-examples) | Sample GitOps pipelines and external Source of Truth workflows | Examples |
 
 ---
 
-## 🧪 Running Unit Tests
+## Deployment
 
-Python unit tests cover schema parsing, config building, and declaration patching:
+NGINX Declarative API can be built and deployed using any of the provided packaging options:
+
+- **Docker / Docker Compose:** [contrib/docker-compose](/contrib/docker-compose) (also builds local container images from [Dockerfile](/Dockerfile))
+- **Kubernetes Manifests:** [contrib/kubernetes](/contrib/kubernetes)
+- **Helm Chart:** [contrib/helm/nginx-declarative-api](/contrib/helm/nginx-declarative-api)
+
+Once the service is running, interactive REST API documentation is served automatically at:
+
+- **Swagger UI:** `/docs`
+- **ReDoc UI:** `/redoc`
+- **OpenAPI JSON:** `/openapi.json`
+
+---
+
+## Running Tests
+
+### Python Test Suite
+
+Covers OpenAPI parsing, NGINX configuration & `njs` generation, declaration patching, and utility modules (runtime validation checks for generated `njs` body validators execute automatically when `node` is installed on `PATH`):
 
 ```bash
-pip3 install pytest pyyaml
+pip3 install -r src/requirements.txt pytest
 python3 -m pytest tests/ -v
 ```
 
-WebUI tests use [Vitest](https://vitest.dev/) and run from `webui/`:
+### Web UI Test Suite
+
+Runs [Vitest](https://vitest.dev/) unit tests for [`webui/`](/webui):
 
 ```bash
 cd webui
@@ -198,14 +187,14 @@ npm install
 npm test -- --run
 ```
 
-Both suites run automatically in GitHub Actions on pull requests and release builds.
+Both test suites run automatically in GitHub Actions on pull requests and release builds.
 
 ---
 
-## 🔒 Security, License & Community
+## Security, License, and Community
 
-- **Security:** Do **not** open a public GitHub issue for vulnerabilities — follow the responsible disclosure process in [SECURITY.md](/SECURITY.md).
+- **Security:** Do **not** open public GitHub issues for suspected vulnerabilities—follow the disclosure process in [SECURITY.md](/SECURITY.md).
 - **License:** Apache License, Version 2.0 — see [LICENSE.md](/LICENSE.md).
+- **Contributing:** Guidelines and workflow details are in [CONTRIBUTING.md](/CONTRIBUTING.md).
 - **Support:** Open a GitHub issue (community supported).
-- **Contributing:** See [CONTRIBUTING.md](/CONTRIBUTING.md).
 - **Code of Conduct:** See [code_of_conduct.md](/code_of_conduct.md).
