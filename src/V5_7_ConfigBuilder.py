@@ -17,6 +17,7 @@ Convention used throughout this module:
 
 import base64
 import ipaddress
+import json
 import re
 from urllib.parse import urlparse
 
@@ -26,6 +27,7 @@ import v5_7.GitOps
 import v5_7.MiscUtils
 import v5_7.NGINXOneOutput
 import v5_7.NIMOutput
+import v5_7.OpenAPIParser
 from jinja2 import Environment, FileSystemLoader
 
 from NcgConfig import NcgConfig
@@ -63,6 +65,8 @@ class ConfigBuildContext:
         self.all_auth_server_profiles = []
         self.all_authz_client_profiles = []
         self.all_njs_profiles = []
+        self.apigw_njs_profiles = []
+        self._used_apigw_proxy_locations = set()
         self.all_acme_issuers = []
 
 
@@ -153,7 +157,8 @@ def _render_main_configs(ctx: ConfigBuildContext):
     http_conf = ''
     if declaration.get('http'):
         http_conf = ctx.j2_env.get_template(NcgConfig.config['templates']['httpconf']).render(
-            declaration=declaration, ncgconfig=NcgConfig.config)
+            declaration=declaration, ncgconfig=NcgConfig.config,
+            apigw_njs_profiles=ctx.apigw_njs_profiles)
 
     stream_conf = ''
     if declaration.get('layer4'):
@@ -818,49 +823,50 @@ def _process_api_gateway_provisioning(ctx: ConfigBuildContext, server, loc, enab
         error, upstream_info = _resolve_api_gateway_upstream(ctx, server, loc, api_gateway_declaration)
         if error is not None:
             return error, None
-        api_gateway_declaration['upstream'] = upstream_info
+        api_gateway_declaration['upstream'] = upstream_info['primary']
+        api_gateway_declaration['upstreams'] = upstream_info['upstreams']
         _render_api_gateway_files(ctx, server, loc, api_gateway_declaration, enabled_visibility)
 
     return None, openapi_schema_json
 
 
-def _resolve_api_gateway_upstream(ctx: ConfigBuildContext, server: dict, loc: dict, api_gateway_declaration: dict):
-    """Derives the NGINX HTTP upstream metadata from the API Gateway destination server.
+def _normalize_gateway_url(url: str, server_url: str) -> str:
+    cleaned = (url or '').strip()
+    if not cleaned:
+        return server_url
+    if cleaned.lower().startswith(('http://', 'https://')):
+        return cleaned
+    if cleaned.startswith('//') and server_url:
+        parsed_base = urlparse(server_url)
+        if parsed_base.scheme:
+            return f"{parsed_base.scheme}:{cleaned}"
+    if cleaned in ('/', '.'):
+        return server_url.rstrip('/')
+    if server_url:
+        return f"{server_url.rstrip('/')}/{cleaned.lstrip('/')}"
+    return cleaned
 
-    Returns an (error, upstream_dict) tuple.
-    """
-    servers = api_gateway_declaration.get('servers') or []
-    server_url = ((loc.get('apigateway') or {}).get('api_gateway') or {}).get('server_url') or ''
-    server_url = server_url.strip()
 
-    if servers and servers[0].get('url'):
-        schema_url = servers[0]['url'].strip()
-        if schema_url.lower().startswith(('http://', 'https://')):
-            destination_server = schema_url
-        elif schema_url == '/':
-            destination_server = server_url.rstrip('/')
-        elif server_url:
-            destination_server = f"{server_url.rstrip('/')}/{schema_url.lstrip('/')}"
-        else:
-            destination_server = schema_url
-    else:
-        destination_server = server_url
-
-    if not destination_server:
+def _parse_upstream_server(ctx: ConfigBuildContext, server: dict, loc: dict, dest_url: str):
+    if not dest_url:
         return _validation_error(
             f"missing API Gateway destination server URL in location [{loc.get('uri', '')}]"), None
 
-    parsed = urlparse(destination_server)
+    if '{' in dest_url or '}' in dest_url:
+        return _validation_error(
+            f"unresolved server variable in API Gateway destination server URL [{dest_url}] in location [{loc.get('uri', '')}]"), None
+
+    parsed = urlparse(dest_url)
     scheme = parsed.scheme.lower()
     if scheme not in ('http', 'https') or not parsed.hostname:
         return _validation_error(
-            f"invalid API Gateway destination server URL [{destination_server}] in location [{loc.get('uri', '')}]"), None
+            f"invalid API Gateway destination server URL [{dest_url}] in location [{loc.get('uri', '')}]"), None
 
     try:
         explicit_port = parsed.port
     except ValueError:
         return _validation_error(
-            f"invalid port in API Gateway destination server URL [{destination_server}] in location [{loc.get('uri', '')}]"), None
+            f"invalid port in API Gateway destination server URL [{dest_url}] in location [{loc.get('uri', '')}]"), None
 
     hostname = parsed.hostname
     try:
@@ -881,34 +887,271 @@ def _resolve_api_gateway_upstream(ctx: ConfigBuildContext, server: dict, loc: di
 
     server_resolver = server.get('resolver') or ''
     http_resolver = ((ctx.d.get('declaration') or {}).get('http') or {}).get('resolver') or ''
-    resolver = server_resolver if (server_resolver and not is_ip) else ''
     resolve = (not is_ip) and bool(server_resolver or http_resolver)
 
-    uri_slug = loc.get('uri', '').strip('/') or 'root'
-    base_name = re.sub(r'[^a-zA-Z0-9_-]', '_', f"apigw_{server['name']}_{uri_slug}")
-    used_names = set(ctx.all_http_upstreams) | ctx.all_apigw_upstreams
-    upstream_name = base_name
-    suffix = 2
-    while upstream_name in used_names:
-        upstream_name = f"{base_name}_{suffix}"
-        suffix += 1
-    ctx.all_apigw_upstreams.add(upstream_name)
-
     return None, {
-        'name': upstream_name,
-        'destination_server': destination_server,
+        'destination_server': dest_url,
         'scheme': scheme,
+        'hostname': hostname,
+        'port': port,
         'origin': origin,
         'base_path': base_path,
         'host_header': host_header,
         'ssl_name': ssl_name,
-        'resolver': resolver,
         'resolve': resolve,
+        'is_ip': is_ip,
     }
+
+
+def _build_upstream_info(ctx: ConfigBuildContext, server: dict, loc: dict, base_name: str, dest_urls: list):
+    parsed_servers = []
+    for d_url in dest_urls:
+        err, s_info = _parse_upstream_server(ctx, server, loc, d_url)
+        if err is not None:
+            return err, None
+        parsed_servers.append(s_info)
+
+    if not parsed_servers:
+        return _validation_error(
+            f"missing API Gateway destination server URL in location [{loc.get('uri', '')}]"), None
+
+    sanitized_base_name = re.sub(r'[^a-zA-Z0-9_-]', '_', base_name)
+    used_names = set(ctx.all_http_upstreams) | ctx.all_apigw_upstreams
+    upstream_name = sanitized_base_name
+    suffix = 2
+    while upstream_name in used_names:
+        upstream_name = f"{sanitized_base_name}_{suffix}"
+        suffix += 1
+    ctx.all_apigw_upstreams.add(upstream_name)
+
+    primary = parsed_servers[0]
+    server_resolver = server.get('resolver') or ''
+    any_needs_resolve = any(s['resolve'] for s in parsed_servers)
+    resolver = server_resolver if (server_resolver and any_needs_resolve) else ''
+
+    return None, {
+        'name': upstream_name,
+        'destination_server': ', '.join(dest_urls),
+        'scheme': primary['scheme'],
+        'origin': primary['origin'],
+        'base_path': primary['base_path'],
+        'host_header': primary['host_header'],
+        'ssl_name': primary['ssl_name'],
+        'resolver': resolver,
+        'resolve': primary['resolve'],
+        'servers': parsed_servers,
+    }
+
+
+def _resolve_server_urls_list(servers: list, fallback_url: str) -> list:
+    urls = []
+    for s in servers or []:
+        raw_u = v5_7.OpenAPIParser.OpenAPIParser._resolve_server_url(
+            s.get('url') or '', s.get('variables')
+        ).strip()
+        if raw_u:
+            urls.append(_normalize_gateway_url(raw_u, fallback_url))
+    return urls
+
+
+def _resolve_api_gateway_upstream(ctx: ConfigBuildContext, server: dict, loc: dict, api_gateway_declaration: dict):
+    """Derives the NGINX HTTP upstream metadata for an API Gateway, supporting root,
+    per-path, and per-operation servers with server variables and statistics collection.
+
+    Returns an (error, upstream_info_dict) tuple.
+    """
+    srv_name = server.get('name') or (server['names'][0] if server.get('names') else 'server')
+    server_header_name = server['names'][0] if server.get('names') else srv_name
+    uri_slug = loc.get('uri', '').strip('/') or 'root'
+    server_url = ((loc.get('apigateway') or {}).get('api_gateway') or {}).get('server_url') or ''
+    server_url = server_url.strip()
+
+    top_servers = api_gateway_declaration.get('servers') or []
+    default_dest_urls = _resolve_server_urls_list(top_servers, server_url)
+    if not default_dest_urls and server_url:
+        default_dest_urls.append(server_url)
+
+    path_fallback_server_url = server_url
+    if not path_fallback_server_url and default_dest_urls:
+        parsed_def = urlparse(default_dest_urls[0])
+        if parsed_def.scheme and parsed_def.netloc:
+            path_fallback_server_url = f"{parsed_def.scheme}://{parsed_def.netloc}"
+
+    def _has_server_urls(servers_list):
+        return any((s.get('url') or '').strip() for s in (servers_list or []))
+
+    paths = api_gateway_declaration.get('paths') or []
+    any_path_uses_default = (not paths) or any(
+        (not _has_server_urls(p.get('servers'))) and (
+            not p.get('methods') or any(not _has_server_urls(m.get('servers')) for m in p.get('methods'))
+        )
+        for p in paths
+    )
+
+    default_upstream = None
+    if default_dest_urls and (any_path_uses_default or bool(top_servers)):
+        default_base_name = f"apigw_{srv_name}_{uri_slug}"
+        err, default_upstream = _build_upstream_info(ctx, server, loc, default_base_name, default_dest_urls)
+        if err is not None:
+            return err, None
+    elif any_path_uses_default:
+        return _validation_error(
+            f"missing API Gateway destination server URL in location [{loc.get('uri', '')}]"), None
+
+    extra_upstreams = []
+    for p in paths:
+        methods = p.get('methods') or []
+        raw_path_slug = re.sub(r'[^a-zA-Z0-9_-]', '_', p.get('path', '').strip('/'))
+        path_slug = re.sub(r'_+', '_', raw_path_slug).strip('_') or 'root'
+
+        path_dest_urls = _resolve_server_urls_list(p.get('servers') or [], path_fallback_server_url)
+        any_method_uses_path = (not methods) or any(not _has_server_urls(m.get('servers')) for m in methods)
+
+        p_upstream = None
+        if path_dest_urls and any_method_uses_path:
+            path_base_name = f"apigw_{srv_name}_{uri_slug}_{path_slug}"
+            err, p_upstream = _build_upstream_info(ctx, server, loc, path_base_name, path_dest_urls)
+            if err is not None:
+                return err, None
+            extra_upstreams.append(p_upstream)
+
+        op_fallback_url = path_fallback_server_url
+        if not op_fallback_url and path_dest_urls:
+            parsed_path_def = urlparse(path_dest_urls[0])
+            if parsed_path_def.scheme and parsed_path_def.netloc:
+                op_fallback_url = f"{parsed_path_def.scheme}://{parsed_path_def.netloc}"
+
+        method_upstreams = []
+        for m in methods:
+            m_dest_urls = _resolve_server_urls_list(m.get('servers') or [], op_fallback_url)
+            if m_dest_urls:
+                m_name = m.get('method', '').lower()
+                m_base_name = f"apigw_{srv_name}_{uri_slug}_{path_slug}_{m_name}"
+                err, m_upstream = _build_upstream_info(ctx, server, loc, m_base_name, m_dest_urls)
+                if err is not None:
+                    return err, None
+                m['upstream'] = m_upstream
+                method_upstreams.append(m_upstream)
+                extra_upstreams.append(m_upstream)
+            else:
+                m['upstream'] = None
+
+        base_path_upstream = p_upstream if p_upstream is not None else default_upstream
+        if method_upstreams and len(method_upstreams) == len(methods) and len(methods) == 1:
+            p['upstream'] = method_upstreams[0]
+            p['use_method_upstreams'] = False
+        elif method_upstreams:
+            for m in methods:
+                m['effective_upstream'] = m['upstream'] if m['upstream'] is not None else base_path_upstream
+            p['upstream'] = base_path_upstream if base_path_upstream is not None else method_upstreams[0]
+            p['use_method_upstreams'] = True
+            p['any_ssl_name'] = any(
+                bool((m['effective_upstream'] or {}).get('ssl_name')) for m in methods
+            ) or bool((p['upstream'] or {}).get('ssl_name'))
+            p['var_suffix'] = re.sub(
+                r'[^a-zA-Z0-9_]', '_',
+                f"{server_header_name}{loc.get('uri', '')}{p.get('path', '')}"
+            )
+        else:
+            p['upstream'] = base_path_upstream
+            p['use_method_upstreams'] = False
+
+    upstreams_to_render = []
+    if default_upstream is not None:
+        upstreams_to_render.append(default_upstream)
+    upstreams_to_render.extend(extra_upstreams)
+
+    primary_upstream = upstreams_to_render[0] if upstreams_to_render else default_upstream
+
+    return None, {
+        'primary': primary_upstream,
+        'upstreams': upstreams_to_render,
+    }
+
+
+def _prepare_request_body_schema_validation(ctx: ConfigBuildContext, server: dict, loc: dict, api_gateway_declaration: dict) -> bool:
+    """
+    Prepares per-path njs request body schema validation metadata and renders the
+    njs module into ctx.auxFiles when enforce_bodies is enabled and at least one
+    operation defines a resolvable request body schema.
+    """
+    api_gw_cfg = (loc.get('apigateway') or {}).get('api_gateway') or {}
+    if not api_gw_cfg.get('enforce_bodies', True):
+        return False
+
+    server_name = server['names'][0] if server.get('names') else server['name']
+    srv_slug = re.sub(r'[^a-zA-Z0-9_]', '_', server_name).strip('_') or 'server'
+    uri_slug = re.sub(r'[^a-zA-Z0-9_]', '_', loc.get('uri', '').strip('/')) or 'root'
+
+    path_rules = {}
+    for idx, path in enumerate(api_gateway_declaration.get('paths') or []):
+        method_rules = {}
+        for m in (path.get('methods') or []):
+            details = m.get('details') or {}
+            rb_schemas = details.get('requestBodySchemas') or {}
+            if rb_schemas:
+                method_upper = (m.get('method') or '').upper()
+                method_rules[method_upper] = {
+                    'required': bool(details.get('requestBodyRequired', False)),
+                    'allowedContentTypes': list(details.get('requestBodyContentType') or []),
+                    'schemas': rb_schemas,
+                }
+
+        if not method_rules:
+            path['body_validation_enabled'] = False
+            continue
+
+        raw_path_slug = re.sub(r'[^a-zA-Z0-9_]', '_', (path.get('path') or '').strip('/'))
+        path_slug = re.sub(r'_+', '_', raw_path_slug).strip('_') or 'root'
+        func_name = f"validate_req_body_{idx}_{path_slug}"
+
+        proxy_base = f"@apigw_proxy_{srv_slug}_{uri_slug}_{idx}_{path_slug}"
+        proxy_loc = proxy_base
+        suffix = 2
+        while proxy_loc in ctx._used_apigw_proxy_locations:
+            proxy_loc = f"{proxy_base}_{suffix}"
+            suffix += 1
+        ctx._used_apigw_proxy_locations.add(proxy_loc)
+
+        path['body_validation_enabled'] = True
+        path['body_validation_js_func'] = func_name
+        path['body_validation_proxy_location'] = proxy_loc
+        path_rules[func_name] = {
+            'proxyLocation': proxy_loc,
+            'methods': method_rules,
+        }
+
+    if not path_rules:
+        return False
+
+    base_profile = f"apigw_body_{srv_slug}_{uri_slug}"
+    used_profiles = set(ctx.all_njs_profiles) | set(ctx.apigw_njs_profiles)
+    njs_profile_name = base_profile
+    p_suffix = 2
+    while njs_profile_name in used_profiles:
+        njs_profile_name = f"{base_profile}_{p_suffix}"
+        p_suffix += 1
+
+    api_gateway_declaration['body_validation_njs_profile'] = njs_profile_name
+    ctx.apigw_njs_profiles.append(njs_profile_name)
+
+    js_template_name = NcgConfig.config['templates'].get('apigwbodyvalidatorjs', 'apigateway-body-validator.js.tmpl')
+    js_rendered = ctx.j2_env.get_template(js_template_name).render(
+        schema_defs_json=json.dumps(api_gateway_declaration.get('schema_defs') or {}, ensure_ascii=True),
+        path_rules_json=json.dumps(path_rules, ensure_ascii=True),
+        func_names=list(path_rules.keys()),
+    )
+    ctx.auxFiles['files'].append({
+        'contents': _b64(js_rendered),
+        'name': f"{NcgConfig.config['nms']['njs_dir']}/{njs_profile_name}.js",
+    })
+    return True
 
 
 def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_declaration, enabled_visibility):
     server_name = server['names'][0] if server.get('names') else server['name']
+
+    has_body_validation = _prepare_request_body_schema_validation(ctx, server, loc, api_gateway_declaration)
 
     snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwconf']).render(
         declaration=api_gateway_declaration, server=server_name,
@@ -916,6 +1159,14 @@ def _render_api_gateway_files(ctx: ConfigBuildContext, server, loc, api_gateway_
     ctx.configFiles['files'].append({
         'contents': _b64(snippet),
         'name': f"{NcgConfig.config['nms']['apigw_dir']}/{server_name}{loc['uri']}.conf"})
+
+    if has_body_validation:
+        proxy_template_name = NcgConfig.config['templates'].get('apigwproxyconf', 'apigateway-proxy.tmpl')
+        proxy_snippet = ctx.j2_env.get_template(proxy_template_name).render(
+            declaration=api_gateway_declaration, server=server_name, ncgconfig=NcgConfig.config)
+        ctx.configFiles['files'].append({
+            'contents': _b64(proxy_snippet),
+            'name': f"{NcgConfig.config['nms']['apigw_dir']}/{server_name}{loc['uri']}_proxy.conf"})
 
     maps_snippet = ctx.j2_env.get_template(NcgConfig.config['templates']['apigwmapsconf']).render(
         declaration=api_gateway_declaration, server=server_name, ncgconfig=NcgConfig.config)

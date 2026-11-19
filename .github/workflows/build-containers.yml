@@ -23,18 +23,18 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Python test dependencies
-        run: pip install pytest pyyaml pytest-cov
-
-      - name: Run Python unit tests
-        run: pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
-
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: 'npm'
           cache-dependency-path: webui/package-lock.json
+
+      - name: Install Python test dependencies
+        run: pip install -r src/requirements.txt pytest pytest-cov
+
+      - name: Run Python unit tests
+        run: pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
 
       - name: Install WebUI dependencies
         working-directory: webui

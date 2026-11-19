@@ -26,7 +26,7 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     }
     {% endif %}
 
-    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes -%}
+    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes and not path.body_validation_enabled -%}
     proxy_intercept_errors on;
     {% endif %}
 
@@ -41,22 +41,22 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     {%- set allParams = namespace(missing = '') -%}
     {% for parm in method.parameters -%}
     {% if parm.required | lower == "true" and ( parm.in | lower == "query" or parm.in | lower == "header" ) %}
-    {% set allParams.missing = allParams.missing + "$missing_" + method.method + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
+    {% set allParams.missing = allParams.missing + "$missing_" + method.method | replace('-','_') | replace('.','_') + "_" + server | replace('.','_') + declaration.location.uri | replace('/','_') + path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') + "_" + parm.name %}
     {% endif %}
     {% endfor %}
 
     {% if allParams.missing != '' -%}
-    if ( $any_missing_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} ) {
-      return 422 '{"code":422,"message":"Missing required parameters [$required_params_{{ method.method }}_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('-','_') | replace('/','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }}]"}';
+    if ( $any_missing_{{ method.method | replace('-','_') | replace('.','_') }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} ) {
+      return 422 '{"code":422,"message":"Missing required parameters [$required_params_{{ method.method | replace('-','_') | replace('.','_') }}_{{ server | replace('.','_') | replace('-','_') }}{{ declaration.location.uri | replace('-','_') | replace('/','_') }}{{ path.path | replace('-','_') | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }}]"}';
     }
-    if ( $any_values_invalid_{{ method.method }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} ) {
+    if ( $any_values_invalid_{{ method.method | replace('-','_') | replace('.','_') }}_{{ server | replace('.','_') }}{{ declaration.location.uri | replace('/','_') }}{{ path.path | replace('/','_') | replace('.','_') | replace('{','_') | replace('}','_') }} ) {
       return 422 '{"code":422,"message":"Invalid parameter value"}';
     }
     {%- endif %}
     {% endif -%}
 
     {# --- HTTP response codes enforcement --- -#}
-    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes -%}
+    {%- if declaration.location.apigateway.api_gateway.enforce_response_codes and not path.body_validation_enabled -%}
     # Disallowed HTTP Response Codes
     if ( $request_method = "{{ method.method | upper }}" ) {
         error_page {{ method.details.disallowedResponseCodes | join(' ') }} =500 @apigw-error-page-500;
@@ -65,9 +65,9 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {% endfor -%}
 
-    {% if declaration.location.apigateway.log.access %}access_log {{ declaration.location.apigateway.log.access.destination }}{% if declaration.location.apigateway.log.access.format %} {{ declaration.location.apigateway.log.access.format }}{% endif %}{% if declaration.location.apigateway.log.access.condition %} if={{ declaration.location.apigateway.log.access.condition }}{% endif %};{% endif %}
+    {% if declaration.location.apigateway.log and declaration.location.apigateway.log.access %}access_log {{ declaration.location.apigateway.log.access.destination }}{% if declaration.location.apigateway.log.access.format %} {{ declaration.location.apigateway.log.access.format }}{% endif %}{% if declaration.location.apigateway.log.access.condition %} if={{ declaration.location.apigateway.log.access.condition }}{% endif %};{% endif %}
 
-    {% if declaration.location.apigateway.log.error %}error_log {{ declaration.location.apigateway.log.error.destination }}{% if declaration.location.apigateway.log.error.level %} {{ declaration.location.apigateway.log.error.level }}{% endif %};{% endif %}
+    {% if declaration.location.apigateway.log and declaration.location.apigateway.log.error %}error_log {{ declaration.location.apigateway.log.error.destination }}{% if declaration.location.apigateway.log.error.level %} {{ declaration.location.apigateway.log.error.level }}{% endif %};{% endif %}
 
 
     {% if declaration.location.apigateway.api_gateway.enforce_methods -%}
@@ -160,6 +160,11 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
 
     {# --- Authorization end --- #}
 
+    {% if path.body_validation_enabled -%}
+    {# --- Request body schema enforcement via njs --- -#}
+    client_body_in_single_buffer on;
+    js_content {{ declaration.body_validation_njs_profile }}.{{ path.body_validation_js_func }};
+    {% else -%}
     {# --- Cache --- #}
     {%- if declaration.location.apigateway.cache -%}
     {%- for cacheEntry in declaration.location.apigateway.cache %}
@@ -199,20 +204,32 @@ location {% if '{' not in path.path %}={% else %}~{% endif %} {% if declaration.
     rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;
     {%- endif %}
 
-{% if declaration.upstream.host_header %}
-    proxy_set_header Host {{ declaration.upstream.host_header }};
-{% endif %}
-{% if declaration.upstream.ssl_name %}
+{% if path.use_method_upstreams %}
+    proxy_set_header Host $apigw_host_{{ path.var_suffix }};
+{% if path.any_ssl_name %}
     proxy_ssl_server_name on;
-    proxy_ssl_name {{ declaration.upstream.ssl_name }};
+    proxy_ssl_name $apigw_ssl_name_{{ path.var_suffix }};
 {% endif %}
 
-    proxy_pass {{ declaration.upstream.scheme }}://{{ declaration.upstream.name }}{{ declaration.upstream.base_path }}$uri$is_args$args;
+    proxy_pass $apigw_scheme_{{ path.var_suffix }}://$apigw_upstream_{{ path.var_suffix }}$apigw_base_path_{{ path.var_suffix }}$uri$is_args$args;
+{% else %}
+{% set current_upstream = path.upstream if path.upstream is defined and path.upstream else declaration.upstream %}
+{% if current_upstream.host_header %}
+    proxy_set_header Host {{ current_upstream.host_header }};
+{% endif %}
+{% if current_upstream.ssl_name %}
+    proxy_ssl_server_name on;
+    proxy_ssl_name {{ current_upstream.ssl_name }};
+{% endif %}
+
+    proxy_pass {{ current_upstream.scheme }}://{{ current_upstream.name }}{{ current_upstream.base_path }}$uri$is_args$args;
+{% endif %}
+    {%- endif %}
 }
 
 {% endfor %}
 
-{% if declaration.location.apigateway.developer_portal.enabled == True -%}
+{% if declaration.location.apigateway.developer_portal and declaration.location.apigateway.developer_portal.enabled == True -%}
     {% if declaration.location.apigateway.developer_portal.type.lower() == "redocly" %}
 location = {% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}{{ declaration.location.apigateway.developer_portal.redocly.uri }} {
     rewrite ^{% if declaration.location.uri != "/" %}{{ declaration.location.uri }}{% endif %}/(.*)$ /$1 break;

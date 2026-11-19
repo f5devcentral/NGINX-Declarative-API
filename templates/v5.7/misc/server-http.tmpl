@@ -348,6 +348,12 @@ server {
     }
     {% endfor %}
 
+    {% for loc in s.locations %}
+    {%- if loc.apigateway and loc.apigateway.api_gateway.enabled == True and loc.apigateway.api_gateway.enforce_bodies -%}
+    include "{{ ncgconfig.nms.apigw_dir }}/{{ s.names[0] if s.names else s.name }}{{ loc.uri }}_proxy*.conf";
+    {% endif -%}
+    {% endfor %}
+
     location @apigw-error-page-500 {
         return 500;
     }

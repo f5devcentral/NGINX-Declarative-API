@@ -1,127 +1,260 @@
-# Supported features
+# Supported Features
 
-## NGINX Control plane support
+NGINX Declarative API translates JSON/YAML declarations—and Swagger/OpenAPI specifications—into staged NGINX Plus configurations for **NGINX Instance Manager** and **NGINX One Console** across API versions `v5.5`, `v5.6`, and `v5.7`.
 
-NGINX Declarative API has been tested with the following NGINX control plane releases:
+> **Legend:** `✅` Supported · `—` Not supported in this API version
 
-| Control plane             | API v5.5             | API v5.6             | API v5.7   | Notes |
-|---------------------------|----------------------|----------------------|------------|-------|
-| NGINX Instance Manager    | 2.18+                | 2.20+                | 2.22+      |       |
-| NGINX One Console         | General availability | General availability | July 2027  |       |
+## Table of Contents
 
-### NGINX `http` and `stream` servers
+- [Control Plane Support](#control-plane-support)
+- [NGINX HTTP and Stream Servers](#nginx-http-and-stream-servers)
+  - [Core Capabilities](#core-capabilities)
+  - [HTTP Location Match Modifiers](#http-location-match-modifiers)
+  - [HTTP Headers Manipulation](#http-headers-manipulation)
+  - [Maps](#maps)
+- [NGINX API Gateway](#nginx-api-gateway)
+  - [API Gateway Capabilities](#api-gateway-capabilities)
+  - [Request Body Schema Validation](#request-body-schema-validation)
+  - [OpenAPI Specification Version Support](#openapi-specification-version-support)
+  - [Configuration Reference](#configuration-reference)
+  - [Developer Portal and API Visibility](#developer-portal-and-api-visibility)
+- [Security and Authentication](#security-and-authentication)
+  - [TLS and ACME Protocol](#tls-and-acme-protocol)
+  - [Client Authentication](#client-authentication)
+  - [Client Authorization](#client-authorization)
+  - [Upstream and Source of Truth Authentication](#upstream-and-source-of-truth-authentication)
+- [Observability, DNS, and Scripting](#observability-dns-and-scripting)
+  - [HTTP Access and Error Logging](#http-access-and-error-logging)
+  - [Access Logging Formats](#access-logging-formats)
+  - [DNS Resolvers](#dns-resolvers)
+  - [NGINX JavaScript](#nginx-javascript)
 
-| Feature                       | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                                                                                          |
-|-------------------------------|----------|----------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Upstreams                     | X        | X        | X        | <li>Snippets supported: static and from source of truth</li>                                                                                                                   |
-| HTTP servers                  | X        | X        | X        | <li>Snippets supported (`http`, `servers`, `locations`): static and from source of truth</li>                                                                                  |
-| TCP/UDP servers               | X        | X        | X        | <li>Snippets supported (`streams`, `servers`): static and from source of truth</li>                                                                                            |
-| TLS                           | X        | X        | X        | <li>Certificates and keys can be dynamically fetched from source of truth</li>                                                                                                 |
-| ACME Protocol                 | X        | X        | X        | See [TLS](#tls)                                                                                                                                                                |
-| Client authentication         | X        | X        | X        | See [client authentication](#Client-authentication)                                                                                                                            |
-| Upstream authentication       | X        | X        | X        | See [upstream and Source of truth authentication](#Upstream-and-Source-of-truth-authentication)                                                                                |
-| Rate limiting                 | X        | X        | X        |                                                                                                                                                                                |
-| Active healthchecks           | X        | X        | X        |                                                                                                                                                                                |
-| Cookie-based stickiness       | X        | X        | X        |                                                                                                                                                                                |
-| HTTP headers manipulation     | X        | X        | X        | <li>To server: set, delete</li><li>To client: add, delete, replace</li>                                                                                                        |
-| Maps                          | X        | X        | X        |                                                                                                                                                                                |
-| Cache                         | X        | X        | X        | Supported for `http`, `servers`, `locations` and API Gateway                                                                                                                   |
-| HTTP Logging                  | X        | X        | X        | Access and error logging supported for `servers`, `locations` and API Gateway                                                                                                  |
-| HTTP access logging formats   | X        | X        | X        | Customizable HTTP access logging formats                                                                                                                                       |
-| NGINX Plus REST API access    | X        | X        | X        |                                                                                                                                                                                |
-| F5 WAF for NGINX policies     | X        | X        | X        | <li>Per-policy CRUD at `server` and `location` level</li><li>Support for dataplane-based bundle compilation</li><li>Security policies can be fetched from source of truth</li> |
-| F5 WAF for NGINX log profiles |          |          | X        |                                                                                                                                                                                |
+---
 
-### HTTP Locations
+## Control Plane Support
 
-Locations `.declaration.http.servers[].locations[].uri` match modifiers in `.declaration.http.servers[].locations[].urimatch` can be:
+Tested control plane compatibility across NGINX Declarative API releases:
 
-- *prefix* - prefix URI matching
-- *exact* - exact URI matching
-- *regex* - case sensitive regex matching
-- *iregex* - case insensitive regex matching
-- *best* - case sensitive regex matching that halts any other location matching once a match is made
+| Control Plane | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | --- | --- | --- | --- |
+| **NGINX Instance Manager** | `2.18+` | `2.20+` | `2.22+` | Uses NMS staged configuration deployment |
+| **NGINX One Console** | General availability | General availability | July 2027 | Targets NGINX One config sync groups |
 
-### NGINX API Gateway use case
+---
 
-| Feature                                      | API v5.5                                                                      | API v5.6                                                                      | API v5.7                                                                      | Notes                                         |
-|----------------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------|
-| Configuration generation from OpenAPI schema | X                                                                             | X                                                                             | X                                                                             | OpenAPI 2.0, 3.0, 3.0.1, YAML and JSON format | 
-| HTTP methods enforcement                     | X                                                                             | X                                                                             | X                                                                             |                                               |
-| Requests payload enforcement                 |                                                                               |                                                                               | X                                                                             |                                               |
-| Query string parameters enforcement          |                                                                               | X                                                                             | X                                                                             |                                               |
-| Query string parameters values enforcement   |                                                                               | X                                                                             | X                                                                             |                                               |
-| Mandatory HTTP headers enforcement           |                                                                               | X                                                                             | X                                                                             |                                               |
-| HTTP Response codes enforcement              |                                                                               |                                                                               | X                                                                             |                                               |
-| per-URI rate limiting                        | X                                                                             | X                                                                             | X                                                                             |                                               |
-| per-URI client authentication                | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> | <li>Static JWT key</li><li>JWT key fetched from URL</li><li>Bearer token</li> |                                               |
-| per-URI client authorization                 | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           | <li>JWT claims</li>                                                           |                                               |
-| per-URI cache                                | X                                                                             | X                                                                             | X                                                                             |                                               |
-| Developer portal                             | <li>Redocly</li><li>Backstage</li>                                            | <li>Redocly</li><li>Backstage</li>                                            | <li>Redocly</li><li>Backstage</li>                                            | Supported through 3rd party integration       |
-| API visibility                               | <li>Moesif</li>                                                               | <li>Moesif</li>                                                               | <li>Moesif</li>                                                               | Supported through 3rd party integration       |
+## NGINX HTTP and Stream Servers
 
+### Core Capabilities
 
-Swagger files and OpenAPI schemas can be used to automatically configure NGINX as an API Gateway
+| Feature | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | :---: | :---: | :---: | --- |
+| **Upstreams** | ✅ | ✅ | ✅ | Custom snippets supported (inline/static or fetched from source of truth) |
+| **HTTP servers** | ✅ | ✅ | ✅ | Snippets supported at `http`, `servers[]`, and `locations[]` levels |
+| **TCP/UDP (`stream`) servers** | ✅ | ✅ | ✅ | Snippets supported at `streams` and `servers[]` levels |
+| **TLS** | ✅ | ✅ | ✅ | Certificates and private keys can be dynamically fetched from source of truth |
+| **ACME Protocol** | ✅ | ✅ | ✅ | Automated certificate issuance; see [TLS and ACME Protocol](#tls-and-acme-protocol) |
+| **Client authentication** | ✅ | ✅ | ✅ | See [Client Authentication](#client-authentication) |
+| **Upstream authentication** | ✅ | ✅ | ✅ | See [Upstream and Source of Truth Authentication](#upstream-and-source-of-truth-authentication) |
+| **Rate limiting** | ✅ | ✅ | ✅ | Request rate enforcement for servers, locations, and API Gateway |
+| **Active health checks** | ✅ | ✅ | ✅ | NGINX Plus upstream health probing |
+| **Cookie-based stickiness** | ✅ | ✅ | ✅ | Session persistence for HTTP upstreams |
+| **HTTP headers manipulation** | ✅ | ✅ | ✅ | **To server:** `set`, `delete` · **To client:** `add`, `delete`, `replace` |
+| **Maps** | ✅ | ✅ | ✅ | Variable mapping; see [Maps](#maps) |
+| **Response caching** | ✅ | ✅ | ✅ | Supported across `http`, `servers[]`, `locations[]`, and API Gateway |
+| **HTTP logging** | ✅ | ✅ | ✅ | Access and error logging for `servers[]`, `locations[]`, and API Gateway |
+| **HTTP access log formats** | ✅ | ✅ | ✅ | Customizable `log_format` definitions |
+| **NGINX Plus REST API** | ✅ | ✅ | ✅ | Live activity monitoring and dynamic API endpoint |
+| **F5 WAF for NGINX policies** | ✅ | ✅ | ✅ | Per-policy CRUD at `server`/`location` level, dataplane bundle compilation, and remote policy fetch |
+| **F5 WAF for NGINX log profiles** | — | — | ✅ | Custom App Protect WAF security log profiles |
 
-Declaration path `.declaration.http.servers[].locations[].apigateway` defines the API Gateway configuration:
+### HTTP Location Match Modifiers
 
-- `openapi_schema` - the base64-encoded schema, or the schema URL. YAML and JSON are supported
-- `api_gateway.enabled` - enable/disable API Gateway provisioning
-- `api_gateway.strip_uri` - removes the `.declaration.http.servers[].locations[].uri` part of the URI before forwarding requests to the upstream
-- `api_gateway.server_url` - the base URL of the upstream server
-- `api_gateway.enforce_methods` - enable/disable HTTP methods enforcement (`true` by default)
-- `api_gateway.enforce_bodies` - enable/disable HTTP request bodies and Content-Type enforcement (`true` by default)
-- `api_gateway.enforce_parameters` - enable/disable mandatory query string parameters and HTTP headers enforcement (`true` by default)
-- `api_gateway.enforce_response_codes` - enable/disable HTTP response codes enforcement (`true` by default) 
-- `developer_portal.enabled` - enable/disable Developer portal provisioning
-- `developer_portal.type` - developer portal type. `redocly` and `backstage` are currently supported
-- `developer_portal.redocly.*` - Redocly-based developer portal parameters. See the [Postman collection](/contrib/postman)
-- `developer_portal.backstage.*` - Backstage-based developer portal parameters. See the [Postman collection](/contrib/postman)
-- `visibility[]` - API Gateway visibility
-  - `visibility[].enabled` - enable/disable API gateway visibility
-  - `visibility[].type` - visibility integration type. `moesif` is currently supported
-  - `visibility[].moesif.*` - Moesif visibility parameters. See the [Postman collection](/contrib/postman)
-- `authentication` - optional, used to enforce authentication at the API Gateway level
-- `authentication.client[]` - authentication profile names
-- `authentication.enforceOnPaths` - if set to `true` authentication is enforced on all API endpoints listed under `authentication[].paths`. if set to `false` authentication is enforced on all API endpoints but those listed under `authentication.paths`
-- `authentication.paths` - paths to enforce authentication on
-- `authorization[]` - optional, used to enforce authorization
-- `authorization[].profile` - authorization profile name
-- `authorization[].enforceOnPaths` - if set to `true` authorization is enforced on all API endpoints listed under `authorization[].paths`. if set to `false` authorization is enforced on all API endpoints but those listed under `authorization[].paths`
-- `authorization[].paths` - paths to enforce authorization on
-- `cache[]` - optional, used to enforce authorization
-- `cache[].profile` - cache profile name
-- `cache[].enforceOnPaths` - if set to `true` caching is performed on all API endpoints listed under `cache[].paths`. if set to `false` caching is performed on all API endpoints but those listed under `cache[].paths`
-- `cache[].paths` - paths to perform caching on
-- `rate_limit` - optional, used to enforce rate limiting at the API Gateway level
-- `rate_limit.enforceOnPaths` - if set to `true` rate limiting is enforced on all API endpoints listed under `rate_limit.paths`. if set to `false` rate limiting is enforced on all API endpoints but those listed under `rate_limit.paths`
+Configured via `.declaration.http.servers[].locations[].urimatch` for `.declaration.http.servers[].locations[].uri`:
 
-See the [Postman collection](/contrib/) for usage examples
+| Modifier | NGINX Equivalent | Behavior |
+| --- | --- | --- |
+| `prefix` | *(none)* | Prefix URI matching |
+| `exact` | `=` | Exact URI matching |
+| `regex` | `~` | Case-sensitive regular expression matching |
+| `iregex` | `~*` | Case-insensitive regular expression matching |
+| `best` | `^~` | Non-regex prefix match that halts regex evaluation when matched |
 
-### NGINX API Gateway use case - Developer Portal
+### HTTP Headers Manipulation
 
-| Type            | API v5.5 | API v5.6  | API v5.7 | Notes                                    |
-|-----------------|----------|-----------|----------|------------------------------------------|
-| Redocly         | X        | X         | X        | Developer portal published by NGINX Plus |
-| Backstage.io    | X        | X         | X        | Backstage YAML manifest generated        |
+Configured under `.declaration.http.servers[].headers` and/or `.declaration.http.servers[].locations[].headers`:
 
-### NGINX API Gateway use case - Visibility
+| Direction | API v5.5 | API v5.6 | API v5.7 | Supported Operations |
+| --- | :---: | :---: | :---: | --- |
+| **Request** (client → upstream) | ✅ | ✅ | ✅ | `set` (inject/override header), `delete` (strip client header) |
+| **Response** (upstream → client) | ✅ | ✅ | ✅ | `add` (append header), `delete` (strip server header), `replace` (override header) |
 
-| Type          | API v5.5 | API v5.6 | API v5.7    | Notes                                                                                         |
-|---------------|----------|----------|-------------|-----------------------------------------------------------------------------------------------|
-| Moesif        | X        | X        | X           | Integration with Moesif - see https://www.moesif.com/docs/server-integration/nginx-openresty/ |
+<details>
+<summary>Configuration schema: HTTP headers object</summary>
 
+```json
+"headers": {
+    "to_server": {
+        "set": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            }
+        ],
+        "delete": [
+            "<HTTP_HEADER_NAME>"
+        ]
+    },
+    "to_client": {
+        "add": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            }
+        ],
+        "delete": [
+            "<HTTP_HEADER_NAME>"
+        ],
+        "replace": [
+            {
+                "name": "<HTTP_HEADER_NAME>",
+                "value": "<VALUE_OR_NGINX_VARIABLE>"
+            }
+        ]
+    }
+}
+```
 
-### TLS
+</details>
 
-| Type  | Description             | API v5.5 | API v5.6 | API v5.7 | Notes |
-|-------|-------------------------|----------|----------|----------|-------|
-| ACME  | ACME Protocol support   | X        | X        | X        |       |
+### Maps
 
-#### Examples
+Configured via `.declaration.http.maps[].entries[].keymatch`:
 
-ACME issuer profiles to be defined under `.declaration.http.acme_issuers[]`
-For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme_module.html
+| Modifier | Behavior |
+| --- | --- |
+| `exact` | Exact string matching |
+| `regex` | Case-sensitive regular expression matching |
+| `iregex` | Case-insensitive regular expression matching |
+
+---
+
+## NGINX API Gateway
+
+OpenAPI and Swagger definitions can be referenced directly to provision NGINX Plus as an API Gateway with automated routing, security, and contract enforcement. Complete declaration examples are available in the [Postman collection](/contrib/postman).
+
+### API Gateway Capabilities
+
+| Feature | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | :---: | :---: | :---: | --- |
+| **OpenAPI-driven provisioning** | ✅ | ✅ | ✅ | YAML and JSON schemas.<br>**v5.5 / v5.6:** OAS `3.0.x`<br>**v5.7:** OAS `2.0`, `3.0.x`, `3.1.x`, `3.2.x` |
+| **HTTP methods enforcement** | ✅ | ✅ | ✅ | Restricts endpoints to documented HTTP methods |
+| **Request body presence, `Content-Type` & schema enforcement** | — | — | ✅ | Validates presence, `Content-Type`, and OpenAPI/JSON Schema payload structure via auto-generated `njs`; see [Request Body Schema Validation](#request-body-schema-validation) |
+| **Query parameter presence enforcement** | — | ✅ | ✅ | Rejects requests missing required query parameters |
+| **Query parameter value enforcement** | — | ✅ | ✅ | Enforces allowed `enum` values and defaults |
+| **Mandatory HTTP headers enforcement** | — | ✅ | ✅ | Rejects requests missing required request headers |
+| **HTTP response codes enforcement** | — | — | ✅ | Masks undocumented upstream status codes via `proxy_intercept_errors` |
+| **Per-URI rate limiting** | ✅ | ✅ | ✅ | Selective path inclusion or exclusion |
+| **Per-URI client authentication** | Static JWT key, JWT JWKS URL, Bearer | Static JWT key, JWT JWKS URL, Bearer | Static JWT key, JWT JWKS URL, Bearer | Supports selective path enforcement |
+| **Per-URI client authorization** | JWT claims | JWT claims | JWT claims | Regex-capable claim validation |
+| **Per-URI caching** | ✅ | ✅ | ✅ | Selective path caching |
+| **Developer portal** | Redocly, Backstage | Redocly, Backstage | Redocly, Backstage | Built-in portal / manifest generation |
+| **API visibility** | Moesif | Moesif | Moesif | Telemetry and analytics integration |
+
+### Request Body Schema Validation
+
+In **API v5.7**, when `api_gateway.enforce_bodies` is enabled (`true` by default) and an operation defines a resolvable request body schema, NGINX Declarative API automatically compiles and attaches an NGINX JavaScript (`njs`) request body validator (`ngx_http_js_module` is added automatically if omitted):
+
+- **Media types & `Content-Type` matching:**
+  - Enforces required vs. optional bodies (`required: true` rejects empty bodies with HTTP `400`).
+  - Matches `Content-Type` headers ignoring parameters (such as `; charset=utf-8`) and supports exact matches as well as structured suffixes and wildcards (`application/*+json`, `*+json`, `application/*`, `*/*`).
+  - Structurally validates **JSON** (`application/json`, `text/json`, `*+json`), **`application/x-www-form-urlencoded`** (with schema-guided coercion for numbers, integers, booleans, and repeated array keys), and **`text/plain`**. Non-JSON/form/text payloads (e.g., XML, multipart, binary) still undergo presence and `Content-Type` validation and pass through on match.
+- **JSON Schema & OpenAPI schema keywords supported:**
+  - **References & structure:** Local JSON Pointer `$ref` (`#/components/schemas/...`, `#/components/requestBodies/...`, `#/definitions/...`, `#/$defs/...`), recursive/cyclic references, `$ref` sibling keywords, boolean schemas (`true`/`false`), `nullable`, `type` (single type or type array), `enum`, `const`.
+  - **Objects:** `required` (automatically skipping `readOnly: true` properties in request payloads per OAS), `properties`, `patternProperties`, `additionalProperties` (`false` or schema), `minProperties` / `maxProperties`, `propertyNames`, `dependentRequired`, `dependentSchemas`, `dependencies`.
+  - **Arrays:** `items`, `prefixItems` (OAS 3.1 tuples), `additionalItems`, `minItems` / `maxItems`, `uniqueItems`, `contains`, `minContains`, `maxContains`.
+  - **Strings & numbers:** `minLength` / `maxLength` (Unicode code-point aware), `pattern`, `format` (`date`, `date-time`, `time`, `uuid`, `email`, `ipv4`, `ipv6`, `uri`, `hostname`, `byte`, `int32`, `int64`), `minimum` / `maximum`, boolean and numeric `exclusiveMinimum` / `exclusiveMaximum`, and decimal-safe `multipleOf`.
+  - **Composition:** `allOf`, `anyOf`, `oneOf`, `not`, `if` / `then` / `else`.
+- **Runtime behavior:** Invalid requests receive an HTTP `400` JSON error (`{"code": 400, "message": "..."}`); valid requests internally redirect to generated `@apigw_proxy_*` locations preserving upstream routing, `strip_uri`, authentication, headers, caching, logging, and response code enforcement.
+
+### OpenAPI Specification Version Support
+
+Support across OpenAPI Specification versions in **API v5.7** (YAML and JSON):
+
+| Spec Version | Status | Supported Features | Current Limitations & Caveats |
+| --- | --- | --- | --- |
+| **Swagger 1.x / 1.2** | Not supported | — | Legacy `swaggerVersion` / `apis` resource-listing format is not supported |
+| **OAS 2.0 (Swagger 2.0)** | Supported | • `swagger`, `info`, `paths`, response status codes<br>• Upstream URL resolution from `host`, `basePath`, and `schemes`<br>• Body presence, `Content-Type`, and schema enforcement from `in: "body"` parameters and `consumes` (operation overriding root)<br>• Local `$ref` dereferencing for body schemas (`#/definitions/...`) and parameters (`#/parameters/...`)<br>• Parameter `type` / `default` / `enum` parsing including `items` arrays | • Unresolvable local `$ref`s on request body schemas are skipped gracefully; external file/URL `$ref`s and response `$ref`s are not dereferenced<br>• When multiple `schemes` (`http`, `https`) are listed, the first `http`/`https` entry is used per host |
+| **OAS 3.0.x** (`3.0.0`–`3.0.4`) | Supported | • Root, path-level, and operation-level `servers[]` with server `variables` substitution<br>• Standard HTTP methods (`GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `CONNECT`, `OPTIONS`, `TRACE`, `PATCH`)<br>• Path/operation `parameters` merging (`query`/`header` enforcement and enum maps)<br>• Local `$ref` dereferencing on `requestBody`, media objects, `parameters`, and request body `schema` (`#/components/...`)<br>• Full `requestBody` schema enforcement and `responses` code enforcement | • `pathItem.$ref`, response `$ref`, and external remote `$ref`s are not dereferenced<br>• Parameter enforcement targets `required: true` `query` and `header` parameters (`cookie` and `content`-based parameters are not enforced) |
+| **OAS 3.1.x** (`3.1.0`–`3.1.2`) | Supported | • All OAS `3.0.x` features in YAML and JSON<br>• Request body schemas supporting JSON Schema 2020-12 keywords (`$defs`, boolean schemas, type arrays, `const`, `prefixItems`, `dependentRequired`, `dependentSchemas`, `if`/`then`/`else`)<br>• Schemas omitting `paths` return an empty path list cleanly | • Top-level `webhooks`, `pathItem.$ref`, and response `$ref`s are not parsed<br>• Query/header parameter schemas beyond `type` / `default` / `enum` are not validated at runtime |
+| **OAS 3.2.x** (`3.2.0`) | Supported | • All OAS `3.0.x` / `3.1.x` features plus optional `server.name`<br>• `additionalOperations` custom HTTP methods with path-parameter merging and sanitized NGINX variable names | • The `QUERY` HTTP method is ignored (not yet supported by NGINX)<br>• `webhooks` and `pathItem.$ref` are not parsed<br>• When `enforce_methods` generates `limit_except`, support for custom method tokens (`PURGE`, `M-SEARCH`, etc.) depends on the target NGINX binary |
+
+> **API v5.5 & v5.6 Note:** Earlier API versions only parse top-level OAS `3.0.x` `servers[]`, standard HTTP methods, and inline `parameter.schema` definitions, and do not enforce request body schemas or response status codes.
+
+### Configuration Reference
+
+Declaration path: `.declaration.http.servers[].locations[].apigateway`
+
+#### Schema, Routing, and Enforcement
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `openapi_schema` | `object` | — | Base64-encoded OpenAPI/Swagger content or remote schema URL (YAML or JSON) |
+| `api_gateway.enabled` | `boolean` | `false` | Enable or disable API Gateway provisioning on this location |
+| `api_gateway.strip_uri` | `boolean` | `false` | Strip the parent location `uri` prefix before forwarding requests upstream |
+| `api_gateway.server_url` | `string` | `""` | Base destination URL of the upstream server (used when OpenAPI `servers` are absent or overridden) |
+| `api_gateway.enforce_methods` | `boolean` | `true` | Enforce HTTP methods defined per path |
+| `api_gateway.enforce_bodies` | `boolean` | `true` | Enforce mandatory request bodies, allowed `Content-Type` headers, and request body schemas |
+| `api_gateway.enforce_parameters` | `boolean` | `true` | Enforce mandatory query parameters, header parameters, and enum value constraints |
+| `api_gateway.enforce_response_codes` | `boolean` | `true` | Intercept and normalize undocumented upstream HTTP response status codes |
+
+#### Path-Scoped Policies (`authentication`, `authorization`, `cache`, `rate_limit`)
+
+| Field | Description |
+| --- | --- |
+| `authentication.client[]` | Client authentication profile names applied at the API Gateway level |
+| `authentication.enforceOnPaths` | `true`: enforce only on `authentication.paths` · `false`: enforce on all paths except `authentication.paths` |
+| `authentication.paths` | List of API endpoint paths for scoped client authentication |
+| `authorization[].profile` | Authorization profile name |
+| `authorization[].enforceOnPaths` | `true`: enforce only on `authorization[].paths` · `false`: enforce on all paths except `authorization[].paths` |
+| `authorization[].paths` | List of API endpoint paths for scoped authorization |
+| `cache[].profile` | Cache profile name |
+| `cache[].enforceOnPaths` | `true`: cache only `cache[].paths` · `false`: cache all paths except `cache[].paths` |
+| `cache[].paths` | List of API endpoint paths for scoped caching |
+| `rate_limit.enforceOnPaths` | `true`: rate limit only `rate_limit.paths` · `false`: rate limit all paths except `rate_limit.paths` |
+| `rate_limit.paths` | List of API endpoint paths for scoped rate limiting |
+
+#### Developer Portal and Visibility Fields
+
+| Field | Description |
+| --- | --- |
+| `developer_portal.enabled` | Enable or disable Developer Portal provisioning |
+| `developer_portal.type` | Portal type (`redocly` or `backstage`) |
+| `developer_portal.redocly.*` | Redocly configuration options — see the [Postman collection](/contrib/postman) |
+| `developer_portal.backstage.*` | Backstage manifest options — see the [Postman collection](/contrib/postman) |
+| `visibility[].enabled` | Enable or disable API visibility integration |
+| `visibility[].type` | Integration provider (`moesif`) |
+| `visibility[].moesif.*` | Moesif collector configuration — see the [Postman collection](/contrib/postman) |
+
+### Developer Portal and API Visibility
+
+| Integration | Category | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | --- | :---: | :---: | :---: | --- |
+| **Redocly** | Developer Portal | ✅ | ✅ | ✅ | Static developer portal served directly by NGINX Plus |
+| **Backstage.io** | Developer Portal | ✅ | ✅ | ✅ | Generates Backstage catalog YAML entity files |
+| **Moesif** | API Visibility | ✅ | ✅ | ✅ | Telemetry integration — see [Moesif NGINX/OpenResty docs](https://www.moesif.com/docs/server-integration/nginx-openresty/) |
+
+---
+
+## Security and Authentication
+
+### TLS and ACME Protocol
+
+| Feature | API v5.5 | API v5.6 | API v5.7 | Declaration Path | NGINX Reference |
+| --- | :---: | :---: | :---: | --- | --- |
+| **ACME Protocol** | ✅ | ✅ | ✅ | `.declaration.http.acme_issuers[]` | [`ngx_http_acme_module`](https://nginx.org/en/docs/http/ngx_http_acme_module.html) |
+
+<details>
+<summary>Configuration schema: ACME issuer profile</summary>
 
 ```json
 {
@@ -130,43 +263,48 @@ For full details for all fields see https://nginx.org/en/docs/http/ngx_http_acme
     "contact": "<CONTACT_EMAIL_ADDRESS>",
     "account_key": "<OPTIONAL_ACCOUNT_PRIVATE_KEY>",
     "ssl_trusted_certificate": "<OPTIONAL_TRUSTED_CA>",
-    "ssl_verify": <true|false>,
+    "ssl_verify": "<true|false>",
     "state_path": "<OPTIONAL_PATH>",
-    "accept_terms_of_service": <true|false>
+    "accept_terms_of_service": "<true|false>"
 }
 ```
 
-### Client authentication
+</details>
 
-| Type | Description          | API v5.5 | API v5.6 | API v5.7 | Notes                               |
-|------|----------------------|----------|----------|----------|-------------------------------------|
-| jwt  | JSON Web Token (JWT) | X        | X        | X        |                                     |
-| mtls | Mutual TLS           | X        | X        | X        | <li>Supported for HTTP servers</li> |
-| oidc | OpenID Connect       | X        | X        | X        | <li>Supported for HTTP servers</li> |
+### Client Authentication
 
-#### Examples
+**Declaration path:**
+- **API v5.5 – v5.6:** `.declaration.http.authentication.client[]`
+- **API v5.7+:** `.declaration.authentication.client[]`
 
-Client-side authentication profiles to be defined under `.declaration.http.authentication.client[]` (up to API v5.6) or `.declaration.authentication.client[]` (API v5.7+)
+| Type | Description | API v5.5 | API v5.6 | API v5.7 | Scope Notes |
+| --- | --- | :---: | :---: | :---: | --- |
+| `jwt` | JSON Web Token (JWT) | ✅ | ✅ | ✅ | Inline JWK or remote JWKS URL |
+| `mtls` | Mutual TLS | ✅ | ✅ | ✅ | Supported for HTTP servers |
+| `oidc` | OpenID Connect | ✅ | ✅ | ✅ | Powered by [`ngx_http_oidc_module`](https://nginx.org/en/docs/http/ngx_http_oidc_module.html) |
 
-- jwt client authentication profile
+<details>
+<summary>Configuration schemas: JWT, mTLS, and OIDC client authentication profiles</summary>
 
- ```json
+**JWT Client Authentication Profile:**
+
+```json
 {
     "name": "<PROFILE_NAME>",
     "type": "jwt",
     "jwt": {
         "realm": "<JWT_AUTHENTICATION_REALM>",
         "key": "<JWT_KEY>|<JWT_KEY_URL>",
-        "cachetime": <OPTIONAL_JWT_KEY_CACHETIME_IN_SECONDS>,
+        "cachetime": "<OPTIONAL_JWT_KEY_CACHETIME_IN_SECONDS>",
         "token_location": "<OPTIONAL_TOKEN_LOCATION_AS_NGINX_VARIABLE>"
     }
 }
 ```
 
-- mTLS client authentication profile
+**mTLS Client Authentication Profile:**
 
- ```json
- {
+```json
+{
     "name": "<PROFILE_NAME>",
     "type": "mtls",
     "mtls": {
@@ -178,18 +316,17 @@ Client-side authentication profiles to be defined under `.declaration.http.authe
             "responder": "<OCSP_RESPONDER_URL>"
         },
         "stapling": {
-            "enabled": <true|false>,
-            "verify": <true|false>,
+            "enabled": "<true|false>",
+            "verify": "<true|false>",
             "responder": "<OCSP_RESPONDER_URL>"
         }
     }
 }
 ```
 
-- OpenID Connect client authentication profile
-For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.html
+**OpenID Connect (OIDC) Client Authentication Profile:**
 
- ```json
+```json
 {
     "name": "<PROFILE_NAME>",
     "type": "oidc",
@@ -198,69 +335,77 @@ For additional details see https://nginx.org/en/docs/http/ngx_http_oidc_module.h
         "client_id": "<CLIENT_ID>",
         "client_secret": "<CLIENT_SECRET>",
         "config_url": "<OPTIONAL_IDP_METADATA_URL>",
-        "cookie_name" : "<OPTIONAL_SESSION_COOKIE_NAME>",
+        "cookie_name": "<OPTIONAL_SESSION_COOKIE_NAME>",
         "extra_auth_args": "<OPTIONAL_EXTRA_QUERY_ARGUMENTS>",
         "redirect_uri": "<OPTIONAL_REDIRECT_URI>",
         "logout_uri": "<OPTIONAL_LOGOUT_URI>",
         "post_logout_uri": "<OPTIONAL_POST_LOGOUT_URI>",
-        "logout_token_hint": <true|false>,
+        "logout_token_hint": "<true|false>",
         "scope": "<OPENID_SCOPE>",
         "session_store": "<OPTIONAL_SESSION_KEYVAL_STORE_NAME>",
         "session_timeout": "<OPTIONAL_OIDC_SESSION_TIMEOUT>",
         "session_sync_leeway": "<OPTIONAL_SESSION_SYNC_LEEWAY>",
         "ssl_crl": "<OPTIONAL_IDP_SSL_CRL_CERTIFICATE_PROFILE_NAME>",
         "ssl_trusted_certificate": "<OPTIONAL_IDP_SSL_TRUSTED_CA_PROFILE_NAME>",
-        "userinfo": <true|false>
+        "userinfo": "<true|false>"
     }
 }
 ```
 
-### Client authorization
+</details>
 
-| Type | Description            | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                                                                                     |
-|------|------------------------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| jwt  | JSON Web Token (JWT)   | X        | X        | X        | Based on JWT claims. Supported under <li>.declaration.http.servers[]</li><li>.declaration.http.servers[].location[]</li><li>.declaration.http.servers[].location[].apigateway</li> |
+### Client Authorization
 
-#### Examples
+**Declaration path:**
+- **API v5.5 – v5.6:** `.declaration.http.authorization`
+- **API v5.7+:** `.declaration.authorization`
 
-Client-side authorization profiles to be defined under `.declaration.http.authorization` (up to API v5.6) or `.declaration.authorization` (API v5.7+)
+| Type | Description | API v5.5 | API v5.6 | API v5.7 | Supported Scopes |
+| --- | --- | :---: | :---: | :---: | --- |
+| `jwt` | JSON Web Token (JWT) claims | ✅ | ✅ | ✅ | `.declaration.http.servers[]`, `.locations[]`, and `.apigateway` |
 
-- jwt client authorization profile
+<details>
+<summary>Configuration schema: JWT claims authorization profile</summary>
 
- ```json
+```json
 {
-  "name": "<PROFILE_NAME>",
-  "type": "jwt",
-  "jwt": {
-    "claims": [
-      {
-        "name": "<CLAIM_NAME>",
-        "value": [
-          "<AUTHORIZED_VALUE_OR_REGEXP>"
-        ],
-        "errorcode": <OPTIONAL_ERROR_CODE_401_OR_403>
-      }
-    ]
-  }
+    "name": "<PROFILE_NAME>",
+    "type": "jwt",
+    "jwt": {
+        "claims": [
+            {
+                "name": "<CLAIM_NAME>",
+                "value": [
+                    "<AUTHORIZED_VALUE_OR_REGEXP>"
+                ],
+                "errorcode": "<OPTIONAL_ERROR_CODE_401_OR_403>"
+            }
+        ]
+    }
 }
 ```
 
-### Upstream and Source of truth authentication
+</details>
 
-| Type         | Description                                    | API v5.5 | API v5.6 | API v5.7 | Notes                                                                        |
-|--------------|------------------------------------------------|----------|----------|----------|------------------------------------------------------------------------------|
-| Bearer token | Authentication token as Authorization Bearer   | X        | X        | X        | `Bearer` Authorization header is injected in requests to upstreams and source of truth |
-| Basic Auth   | Authentication token as Authorization Basic    | X        | X        | X        | `Basic` Authorization header is injected in requests to upstreams and source of truth  |
-| HTTP header  | Authentication token in custom HTTP header     | X        | X        | X        | HTTP header is injected in requests to upstreams and source of truth                   |
-| mTLS         | Mutual TLS                                     | X        | X        | X        | Client certificate is sent to upstream / source of truth                               |
+### Upstream and Source of Truth Authentication
 
-#### Examples
+**Declaration path:**
+- **API v5.5 – v5.6:** `.declaration.http.authentication.server[]`
+- **API v5.7+:** `.declaration.authentication.server[]`
 
-Server-side authentication profiles to be defined under `.declaration.http.authentication.server[]` (up to API v5.6) or `.declaration.authentication.server[]` (API v5.7+)
+| Type | Mechanism | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | --- | :---: | :---: | :---: | --- |
+| **Bearer token** | `Authorization: Bearer` header | ✅ | ✅ | ✅ | Sent to upstreams and external sources of truth |
+| **Basic Auth** | `Authorization: Basic` credentials | ✅ | ✅ | ✅ | Sent to upstreams and external sources of truth |
+| **HTTP header** | Custom authentication header | ✅ | ✅ | ✅ | Sent to upstreams and external sources of truth |
+| **mTLS** | Client TLS certificate & key | ✅ | ✅ | ✅ | Mutual TLS to upstreams and external sources of truth |
 
-- Bearer token authentication profile
+<details>
+<summary>Configuration schemas: Bearer, Basic Auth, HTTP header, and mTLS server profiles</summary>
 
- ```json
+**Bearer Token Profile:**
+
+```json
 {
     "name": "<PROFILE_NAME>",
     "type": "token",
@@ -271,9 +416,9 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 }
 ```
 
-- Basic authentication profile
+**Basic Auth Profile:**
 
- ```json
+```json
 {
     "name": "<PROFILE_NAME>",
     "type": "token",
@@ -285,9 +430,9 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 }
 ```
 
-- HTTP header authentication profile
+**HTTP Header Profile:**
 
- ```json
+```json
 {
     "name": "<PROFILE_NAME>",
     "type": "token",
@@ -299,7 +444,7 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
 }
 ```
 
-- mTLS authentication profile
+**mTLS Profile:**
 
 ```json
 "server": [
@@ -311,224 +456,71 @@ Server-side authentication profiles to be defined under `.declaration.http.authe
             "key": "<CLIENT_KEY>"
         }
     }
+]
 ```
 
-### HTTP Headers manipulation
+</details>
 
-| Type                          | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                              |
-|-------------------------------|----------|----------|----------|--------------------------------------------------------------------------------------------------------------------|
-| Request (client to server)    | X        | X        | X        | <li>`set` - new header injection</li><li>`delete` - client header removal</li>                                               |
-| Response (server to client)   | X        | X        | X        | <li>`add` - new header injection</li><li>`delete` - server header removal</li><li>`replace` - server header replacement</li> |
+---
 
-#### Examples
+## Observability, DNS, and Scripting
 
-To be defined under `.declaration.http.servers[].headers` and/or `.declaration.http.servers[].location[]`
+### HTTP Access and Error Logging
 
-```json
- "headers": {
-    "to_server": {
-        "set": [
-            {
-                "name": "<HTTP_HEADER_NAME>",
-                "value": "<VALUE_OR_NGINX_VARIABLE>"
-            },
-            ...
-        ],
-        "delete": [
-          "<HTTP_HEADER_NAME>",
-          ...
-        ]
-    },
-    "to_client": {
-        "add": [
-            {
-                "name": "<HTTP_HEADER_NAME>",
-                "value": "<VALUE_OR_NGINX_VARIABLE>"
-            },
-            ...
-        ],
-        "delete": [
-            "<HTTP_HEADER_NAME>",
-            ...
-        ],
-        "replace": [
-            {
-                "name": "<HTTP_HEADER_NAME>",
-                "value": "<VALUE_OR_NGINX_VARIABLE>"
-            },
-            ...
-        ]
-    }
-}
-```
+| Feature | API v5.5 | API v5.6 | API v5.7 | Notes |
+| --- | :---: | :---: | :---: | --- |
+| **Access & error logging** | ✅ | ✅ | ✅ | Supported in `.declaration.http.servers[].log` and `.declaration.http.servers[].locations[].log`.<br>`condition` disables access logging when evaluating to `"0"` or `""`. |
 
-### NGINX Javascript
+**NGINX references:** [`access_log`](https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log) · [`syslog`](https://nginx.org/en/docs/syslog.html) · [`error_log`](https://nginx.org/en/docs/ngx_core_module.html#error_log)
 
-| Hook type           | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                                          |
-|---------------------|----------|----------|----------|----------------------------------------------------------------------------------------------------------------------|
-| js_body_filter      | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
-| js_content          | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
-| js_header_filter    | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
-| js_periodic         | X        | X        | X        | Available in <li>`declaration.http.servers[].location[]`</li>                                                                 |
-| js_preload_object   | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.servers[]`</li><li>`declaration.http.servers[].location[]`</li> |
-| js_set              | X        | X        | X        | Available in <li>`.declaration.http`</li><li>`declaration.http.servers[]`</li><li>`declaration.http.servers[].location[]`</li> |
-
-Note: `njs` profiles can be included in base64-encoded format under `.declaration.http.njs[]` of fetched from an external source of truth
-For detailed examples see the [Postman collection](/contrib/postman)
-
-### Examples
-
-`njs` profile example:
+<details>
+<summary>Configuration schema: Server / location logging object</summary>
 
 ```json
 {
-  ...
-  "declaration": {
-    "http": {
-      ...
-      "njs_profiles": [
-        {
-          "name": "<NJS_PROFILE_NAME>",
-          "file": {
-            "content": "<BASE64_ENCODED_JAVASCRIPT_CODE|JAVASCRIPT_FILE_URL>",
-            "authentication": [
-              {
-                "profile": "<SERVER_AUTHENTICATION_PROFILE>"
-              }
-            ]
-          }
-        }
-      ]
+    "access": {
+        "destination": "<LOGFILE_NAME or syslog format>",
+        "format": "<OPTIONAL_ACCESS_LOG_FORMAT>",
+        "condition": "<OPTIONAL_VARIABLE>"
+    },
+    "error": {
+        "destination": "<LOGFILE_NAME or syslog format>",
+        "level": "<debug|info|notice|warn|error|crit|alert|emerg>"
     }
-  }
 }
-
 ```
 
-`njs` hook examples (under `.declaration.http`, `.declaration.http.servers[]`, `.declaration.http.servers[].location[]`):
+</details>
+
+### Access Logging Formats
+
+| Feature | API v5.5 | API v5.6 | API v5.7 | Declaration Path | NGINX Reference |
+| --- | :---: | :---: | :---: | --- | --- |
+| **Custom log formats** | ✅ | ✅ | ✅ | `.declaration.http.logformats[]` | [`log_format`](https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format) |
+
+<details>
+<summary>Configuration schema: HTTP access log format</summary>
 
 ```json
-"njs": [
-    {
-        "hook": {
-            "type": "<HOOK_TYPE>"
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
+{
+    "name": "<LOGGING_FORMAT_NAME>",
+    "escape": "<DEFAULT|JSON|NONE>",
+    "format": "<FORMAT STRING>"
+}
 ```
 
-Example hooks:
+</details>
 
-- `js_body_filter` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_body_filter
+### DNS Resolvers
+
+| Feature | API v5.5 | API v5.6 | API v5.7 | Declaration Path | Referenceable From |
+| --- | :---: | :---: | :---: | --- | --- |
+| **DNS resolver profiles** | ✅ | ✅ | ✅ | `.declaration.resolvers[]` | `.declaration.http.servers[]`, `.declaration.http.upstreams[]`, `.declaration.layer4.upstreams[]` |
+
+<details>
+<summary>Configuration schema: DNS resolver profile</summary>
 
 ```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_body_filter",
-            "js_body_filter": {
-              "buffer_type": "<STRING_OR_BUFFER>"
-            }
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-- `js_content` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_content
-
-```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_content"
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-- `js_header_filter` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_header_filter
-
-```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_header_filter"
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-- `js_periodic` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_periodic
-
-```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_periodic",
-            "js_periodic": {
-                "interval": "<INTERVAL_TIME>",
-                "jitter": "<NUMBER>",
-                "worker_affinity": "<MASK>"
-            }       
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-- `js_preload_object` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_preload_object
-
-```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_preload_object"
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-- `js_set` - see https://nginx.org/en/docs/http/ngx_http_js_module.html#js_set
-
-```json
-"njs": [
-    {
-        "hook": {
-            "type": "js_set",
-            "js_set": {
-              "variable": "<VARIABLE_NAME>"
-            }
-        },
-        "profile": "<NJS_PROFILE_NAME>",
-        "function": "<JAVASCRIPT_FUNCTION>"
-    }
-]
-```
-
-### DNS resolvers
-
-|                         | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                                    |
-|-------------------------|----------|----------|----------|--------------------------------------------------------------------------------------------------------------------------|
-| DNS resolver profiles   | X        | X        | X        | Available in <li>`declaration.http.servers[]`</li><li>`declaration.http.upstreams[]`</li><li>`declaration.layer4.upstreams[]`</li> |
-
-#### Examples
-
-DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
-
-- DNS resolver profile:
-
- ```json
 {
     "name": "<DNS_RESOLVER_PROFILE_NAME>",
     "address": "<DNS_IP_OR_HOSTNAME>",
@@ -539,58 +531,113 @@ DNS resolver profiles to be defined under `.declaration.http.resolvers[]`
 }
 ```
 
-#### HTTP Access and error logging
+</details>
 
-|         | API v5.5 | API v5.6 | API v5.7 | Notes                                                                                                                                                                                                                                 |
-|---------|----------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Logging | X        | X        | X        | Available in <li>`.declaration.http.servers[].log`</li><li>`.declaration.http.servers[].locations[].log`</li><br>`condition` enables conditional logging. Logging will be disabled if `condition` evaluates to "0" or an empty string |
+### NGINX JavaScript
 
-### Access logging formats
+`njs` profiles can be supplied inline (base64-encoded under `.declaration.http.njs_profiles[]`) or fetched from a source of truth, and bound via `njs` hook arrays at `http`, `servers[]`, or `locations[]` levels. In API v5.7, API Gateway request body schema enforcement also automatically generates and wires dedicated `apigw_body_*` `njs` modules. See the [Postman collection](/contrib/postman) for full examples.
 
-|                 | API v5.5 | API v5.6 | API v5.7 | Notes |
-|-----------------|----------|----------|----------|-------|
-| Logging formats | X        | X        | X        |       |
+| Hook Type | API v5.5 | API v5.6 | API v5.7 | Scope Availability | NGINX Documentation |
+| --- | :---: | :---: | :---: | --- | --- |
+| `js_body_filter` | ✅ | ✅ | ✅ | `locations[]` | [`js_body_filter`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_body_filter) |
+| `js_content` | ✅ | ✅ | ✅ | `locations[]` | [`js_content`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_content) |
+| `js_header_filter` | ✅ | ✅ | ✅ | `locations[]` | [`js_header_filter`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_header_filter) |
+| `js_periodic` | ✅ | ✅ | ✅ | `locations[]` | [`js_periodic`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_periodic) |
+| `js_preload_object` | ✅ | ✅ | ✅ | `http`, `servers[]`, `locations[]` | [`js_preload_object`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_preload_object) |
+| `js_set` | ✅ | ✅ | ✅ | `http`, `servers[]`, `locations[]` | [`js_set`](https://nginx.org/en/docs/http/ngx_http_js_module.html#js_set) |
 
-#### Examples
+<details>
+<summary>Configuration schemas: <code>njs_profiles[]</code> definition and hook examples</summary>
 
-Access and error logging available in `.declaration.http.servers[].log` and `.declaration.http.servers[].locations[].log`
-See:
-
-* Access log: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
-* Logging to syslog: https://nginx.org/en/docs/syslog.html
-* Error log: https://nginx.org/en/docs/ngx_core_module.html#error_log
-
-```json
-{
-  "access": {
-    "destination": "<LOGFILE_NAME or syslog format>",
-    "format": "<OPTIONAL_ACCESS_LOG_FORMAT>",
-    "condition": "<OPTIONAL_VARIABLE>"
-  },
-  "error": {
-    "destination": "<LOGFILE_NAME or syslog format>",
-    "level": "<debug|info|notice|warn|error|crit|alert|emerg>"
-  }
-}
-```
-
-Access logging formats to be defined in `.declaration.http.logformats[]`
-See:
-
-* Access log format: https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
+**`njs` Profile:**
 
 ```json
 {
-    "name": "<LOGGING_FORMAT_NAME>",
-    "escape": "<DEFAULT|JSON|NONE>",
-    "format": "<FORMAT STRING>"
+    "declaration": {
+        "http": {
+            "njs_profiles": [
+                {
+                    "name": "<NJS_PROFILE_NAME>",
+                    "file": {
+                        "content": "<BASE64_ENCODED_JAVASCRIPT_CODE|JAVASCRIPT_FILE_URL>",
+                        "authentication": [
+                            {
+                                "profile": "<SERVER_AUTHENTICATION_PROFILE>"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
 }
 ```
 
-### Maps
+**`js_body_filter` Hook:**
 
-Map entries `.declaration.http.maps[].entries.keymatch` can be:
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_body_filter",
+            "js_body_filter": {
+                "buffer_type": "<STRING_OR_BUFFER>"
+            }
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
 
-- *exact* - exact variable matching
-- *regex* - case sensitive regex matching
-- *iregex* - case insensitive regex matching
+**`js_content`, `js_header_filter`, and `js_preload_object` Hooks:**
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "<js_content|js_header_filter|js_preload_object>"
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+**`js_periodic` Hook:**
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_periodic",
+            "js_periodic": {
+                "interval": "<INTERVAL_TIME>",
+                "jitter": "<NUMBER>",
+                "worker_affinity": "<MASK>"
+            }
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+**`js_set` Hook:**
+
+```json
+"njs": [
+    {
+        "hook": {
+            "type": "js_set",
+            "js_set": {
+                "variable": "<VARIABLE_NAME>"
+            }
+        },
+        "profile": "<NJS_PROFILE_NAME>",
+        "function": "<JAVASCRIPT_FUNCTION>"
+    }
+]
+```
+
+</details>

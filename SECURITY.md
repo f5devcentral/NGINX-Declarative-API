@@ -72,10 +72,10 @@ This security policy covers the **NGINX Declarative API application code** in th
 
 The following are **not** in scope for this project's security policy and should be reported to their respective vendors:
 
-- [F5 NGINX Instance Manager](https://docs.nginx.com/nginx-instance-manager/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
-- [F5 NGINX One Console](https://docs.nginx.com/nginx-one/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
-- [F5 NGINX Plus](https://docs.nginx.com/nginx/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
-- [F5 WAF for NGINX](https://docs.nginx.com/waf/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
+- [F5 NGINX Instance Manager](https://docs.f5.com/nginx-instance-manager/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
+- [F5 NGINX One Console](https://docs.f5.com/nginx-one-console/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
+- [F5 NGINX Plus](https://docs.f5.com/nginx/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
+- [F5 WAF for NGINX](https://docs.f5.com/waf/) vulnerabilities → report to [F5 SIRT](https://www.f5.com/support/report-a-vulnerability)
 - Third-party dependencies (Redis, Moesif, Redocly, Backstage) → report to respective maintainers
 
 ---

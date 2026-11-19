@@ -7,7 +7,7 @@
 # Main variables
 main:
   banner: "NGINX Declarative API"
-  version: "5.7.1"
+  version: "5.7.2"
   url: "https://github.com/f5devcentral/NGINX-Declarative-API"
 
 log:
@@ -37,9 +37,11 @@ templates:
   license: "nginx-conf/license-key.tmpl"
 
   httpconf: "http.tmpl"
-  apigwconf: "apigateway.tmpl"
-  apigwmapsconf: "apigateway-maps.tmpl"
-  apigwupstreamsconf: "apigateway-upstreams.tmpl"
+  apigwconf: "apigateway/apigateway.tmpl"
+  apigwmapsconf: "apigateway/apigateway-maps.tmpl"
+  apigwupstreamsconf: "apigateway/apigateway-upstreams.tmpl"
+  apigwproxyconf: "apigateway/apigateway-proxy.tmpl"
+  apigwbodyvalidatorjs: "apigateway/apigateway-body-validator.js.tmpl"
   visibility_root: "visibility"
   streamconf: "stream.tmpl"
   configmap: "configmap.tmpl"
